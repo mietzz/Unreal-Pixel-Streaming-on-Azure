@@ -1,9 +1,3 @@
-## variables
-variable "base_name" {
-  description = "the base name for the resources"
-  type        = string
-}
-
 variable "resource_group" {
   description = "The RG for the NSG"
   type = object({
@@ -11,10 +5,6 @@ variable "resource_group" {
     location = string
     name   = string
   })
-}
-
-variable "nsg_name"{
-    type = string
 }
 variable "security_rule_name"{
     type = string
@@ -43,21 +33,11 @@ variable "security_rule_source_address_prefix"{
 variable "security_rule_destination_address_prefix"{
     type = string
 }
-
-output "network_security_group_id" {
-  value = azurerm_network_security_group.nsg.id
+variable "network_security_group_name" {
+    type = string
 }
 
-output "network_security_group_name" {
-  value = azurerm_network_security_group.nsg.name
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = var.nsg_name
-  location            = var.resource_group.location
-  resource_group_name = var.resource_group.name
-
-  security_rule {
+resource "azurerm_network_security_rule" "add_security_rule" {
     name                       = var.security_rule_name
     priority                   = var.security_rule_priority
     direction                  = var.security_rule_direction
@@ -67,5 +47,6 @@ resource "azurerm_network_security_group" "nsg" {
     destination_port_range     = var.security_rule_destination_port_range
     source_address_prefix      = var.security_rule_source_address_prefix
     destination_address_prefix = var.security_rule_destination_address_prefix
-  }
+    resource_group_name         = var.resource_group.name
+    network_security_group_name = var.network_security_group_name
 }

@@ -15,7 +15,22 @@ variable "resource_group" {
 variable "vm_size" {
    description = "VM Size for the client"
   type        = string
-  default     = "Standard_DS3_v2"
+}
+
+variable "vm_publisher" {
+  type        = string
+}
+
+variable "vm_offer" {
+  type        = string
+}
+
+variable "vm_sku" {
+  type        = string
+}
+
+variable "vm_version" {
+  type        = string
 }
 
 variable "subnet_id" {
@@ -28,10 +43,13 @@ variable "dia_stg_acct_id" {
   type        = string
 }
 
+variable "storage_uri" {
+  type = string
+}
+
 variable "admin_username" {
   description = "user name for the VMs"
   type        = string
-  default     = "azureuser"
 }
 
 variable "admin_password" {
@@ -56,30 +74,21 @@ output "nic_id" {
   value = azurerm_network_interface.nic.id
 }
 
-## locals
-locals {
-  vm_base_name    = format("%s", var.vm_name)  
-  vm_publisher    = "MicrosoftWindowsServer"
-  vm_offer        = "WindowsServer"
-  vm_sku          = "2016-Datacenter"
-  vm_version      = "latest"  
-}
-
 ## resources
 resource "azurerm_network_interface" "nic" {
-  name                = format("%s-nic", local.vm_base_name)
+  name                = format("%s-nic", var.vm_name)
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
 
   ip_configuration {
-    name                          = "internal"
+    name                          = "Internal"
     subnet_id                     = var.subnet_id
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_windows_virtual_machine" "vm" {
-  name                = format("%s-vm", local.vm_base_name)
+  name                = format("%s-vm", var.vm_name)
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
   size                = var.vm_size
@@ -95,9 +104,14 @@ resource "azurerm_windows_virtual_machine" "vm" {
   }
 
   source_image_reference {
-    publisher = local.vm_publisher
-    offer     = local.vm_offer
-    sku       = local.vm_sku
-    version   = local.vm_version
+    publisher = var.vm_publisher
+    offer     = var.vm_offer
+    sku       = var.vm_sku
+    version   = var.vm_version
   }
+
+  boot_diagnostics {
+    //enabled = "true"
+    storage_account_uri = var.storage_uri
+  }  
 }

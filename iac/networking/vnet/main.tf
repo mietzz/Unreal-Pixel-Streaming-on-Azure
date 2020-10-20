@@ -15,12 +15,10 @@ variable "resource_group" {
 
  variable "vnet_address_space" {
   type        = string
-  default     = "10.100.0.0/16"
 }
 
  variable "subnet_address_prefixes" {
   type        = string
-  default     = "10.100.0.0/24"
 }
 
 
@@ -31,6 +29,10 @@ output "unreal_vnet" {
     name   = azurerm_virtual_network.vnet.name
     location = azurerm_virtual_network.vnet.location
   })
+}
+
+output "subnet_id" {
+  value = azurerm_subnet.subnet.id
 }
 
 #resources
@@ -51,8 +53,11 @@ resource "azurerm_virtual_network" "vnet" {
     enable = true
   }
 
-  subnet {
-    name           = format("%s-subnet", var.base_name)
-    address_prefix = var.subnet_address_prefixes
-  }  
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = format("%s-subnet", var.base_name)
+  resource_group_name  = var.resource_group.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes = [var.subnet_address_prefixes]
 }

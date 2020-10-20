@@ -22,9 +22,14 @@ variable "account_replication_type" {
 }
 
 ## outputs
-output "storage_account" {
-  value = azurerm_storage_account.storageaccount
+output "id" {
+  value = azurerm_storage_account.storageaccount.id
 }
+
+output "uri" {
+  value = azurerm_storage_account.storageaccount.primary_blob_endpoint
+}
+
 ## locals
 locals {
   base_name = var.base_name

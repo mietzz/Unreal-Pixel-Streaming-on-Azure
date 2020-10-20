@@ -79,6 +79,88 @@ module "unreal-storage" {
   account_replication_type = "LRS"  
 }
 
+#windows web server in spoke
+module "matchmaker-vm" {
+  source = "./compute/vm"
+  base_name = local.base_name
+  vm_name = format("%s-%s", local.base_name, var.vm_name)
+  resource_group = module.unreal-rg.resource_group
+  subnet_id = module.unreal-vnet.subnet_id
+  dia_stg_acct_id = module.unreal-storage.id
+  storage_uri = module.unreal-storage.uri
+
+  admin_username = var.matchmaker_admin_username
+  admin_password = random_string.admin_password.result
+
+  vm_size = var.matchmaker_vm_size
+  vm_publisher = var.matchmaker_vm_publisher
+  vm_offer = var.matchmaker_vm_offer
+  vm_sku = var.matchmaker_vm_sku
+  vm_version = var.matchmaker_vm_version
+}
+
+#turn on the vm diagnostic settings
+#turn on alerts
+#turn on logs
+
+#ADD the first NSG
+module "matchmaker_nsg" {
+  source = "./networking/nsg"
+  base_name = local.base_name
+  resource_group = module.unreal-rg.resource_group
+  nsg_name = "matchmaker-nsg"
+  security_rule_name                       = "Open80"
+  security_rule_priority                   = 1000
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "80"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+#associate the NSG to the NIC
+module "matchmaker_nsg_association" {
+  source = "./networking/nsgassociation"
+  network_interface_id      = module.matchmaker-vm.nic_id
+  network_security_group_id = module.matchmaker_nsg.network_security_group_id
+}
+
+#add this security rule to open another port in the NSG
+module "matchmaker_security_rule_888x" {
+  source = "./networking/security_rule"
+  resource_group = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open888x"
+  security_rule_priority                   = 1010
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "8888-8889"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+#add this security rule to open another port in the NSG
+module "matchmaker_security_rule_7070" {
+  source = "./networking/security_rule"
+  resource_group = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open7070"
+  security_rule_priority                   = 1020
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "7070"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
 /*
 //pvt FunctionApp module
 module "funcapp" {
