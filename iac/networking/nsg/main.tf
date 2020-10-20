@@ -53,7 +53,7 @@ output "network_security_group_name" {
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = var.nsg_name
+  name                = format("%s-%s", var.base_name, var.nsg_name)
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
 

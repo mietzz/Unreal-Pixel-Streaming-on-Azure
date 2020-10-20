@@ -61,6 +61,10 @@ variable "vm_name" {
   type = string
 }
 
+variable "public_ip_address_id" {
+  type = string
+}
+
 ## outputs
 output "admin_password" {
   value = var.admin_password
@@ -84,6 +88,7 @@ resource "azurerm_network_interface" "nic" {
     name                          = "Internal"
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = var.public_ip_address_id
   }
 }
 

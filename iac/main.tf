@@ -79,6 +79,17 @@ module "unreal-storage" {
   account_replication_type = "LRS"  
 }
 
+#get a pip for the matchmaking vm
+#options Dynamic or Static
+module "matchmaker-vm-pip" {
+  source = "./networking/publicip"
+  base_name = local.base_name
+  pip_name = "mm"
+  pip_sku = "Standard"
+  resource_group = module.unreal-rg.resource_group
+  allocation_method = "Static"
+}
+
 #windows web server in spoke
 module "matchmaker-vm" {
   source = "./compute/vm"
@@ -97,18 +108,21 @@ module "matchmaker-vm" {
   vm_offer = var.matchmaker_vm_offer
   vm_sku = var.matchmaker_vm_sku
   vm_version = var.matchmaker_vm_version
+
+  public_ip_address_id = module.matchmaker-vm-pip.id
 }
 
+#TODO?
 #turn on the vm diagnostic settings
-#turn on alerts
-#turn on logs
+#turn on the vm alerts
+#turn on the vm logs
 
 #ADD the first NSG
 module "matchmaker_nsg" {
   source = "./networking/nsg"
   base_name = local.base_name
   resource_group = module.unreal-rg.resource_group
-  nsg_name = "matchmaker-nsg"
+  nsg_name = "mm-nsg"
   security_rule_name                       = "Open80"
   security_rule_priority                   = 1000
   security_rule_direction                  = "Inbound"
@@ -169,48 +183,6 @@ module "funcapp" {
   resource_group = module.rgs.spoke_rg
   spoke_vnet = module.network.spoke_vnet
   spoke_endpoint_subnet = module.network.spoke_endpoint_subnet  
-}
-
-#get a pip for the first client
-#options Dynamic or Static
-module "daniman_vm_pip" {
-  source = "./iac/network/public_ip"
-  base_name = local.base_name
-  pip_name = "client1"
-  pip_sku = "Standard"
-  resource_group = module.rgs.onprem_rg
-  allocation_method = "Static"
-}
-
-
-#ADD NSG
-module "vm1_nsg" {
-  source = "./iac/network/nsgs/"
-  base_name = local.base_name
-  resource_group = module.rgs.onprem_rg
-  nsg_name = "daniman-vm-nsg"
-  security_rule_name                       = "OpenRDP"
-  security_rule_priority                   = 1000
-  security_rule_direction                  = "Inbound"
-  security_rule_access                     = "Allow"
-  security_rule_protocol                   = "Tcp"
-  security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "3389"
-  security_rule_source_address_prefix      = "*"
-  security_rule_destination_address_prefix = "*"
-}
-
-#windows web server in spoke
-module "windows_server_spoke" {
-  source = "./iac/vms/servers/windows/"
-  base_name = local.base_name
-  vm_name = "webserver"
-  resource_group = module.rgs.spoke_rg
-  vm_size = "Standard_DS3_v2"
-  subnet_id = module.network.spoke_subnet.id
-  dia_stg_acct_id = module.vm-stg.diag_stg.id
-  admin_username = "azureadmin"
-  admin_password = random_string.admin_password.result
 }
 
 #I need to add an extension to the vm above to add IIS to respond to 80/443
