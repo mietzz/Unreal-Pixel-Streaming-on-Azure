@@ -39,3 +39,13 @@ variable "matchmaker_vm_version" {
 variable "matchmaker_admin_username" {  
   default = "azureadmin"
 }
+
+variable "capacity_default" {
+  default = 3
+}
+variable "capacity_minimum" {
+  default = 1
+}
+variable "capacity_maximum" {
+  default = 5
+}

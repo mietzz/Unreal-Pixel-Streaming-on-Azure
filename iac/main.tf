@@ -90,7 +90,7 @@ module "matchmaker-vm-pip" {
   allocation_method = "Static"
 }
 
-#windows web server in spoke
+#windows based matchmaking server
 module "matchmaker-vm" {
   source = "./compute/vm"
   base_name = local.base_name
@@ -173,6 +173,35 @@ module "matchmaker_security_rule_7070" {
   security_rule_destination_port_range     = "7070"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
+}
+
+module "compute-vmss" {
+  source = "./compute/vmss"
+  base_name = local.base_name
+  vm_name = format("%s%s", local.base_name, "vmss")
+  resource_group = module.unreal-rg.resource_group
+  subnet_id = module.unreal-vnet.subnet_id
+  
+  admin_username = var.matchmaker_admin_username
+  admin_password = random_string.admin_password.result
+
+  sku = "Standard_NV6"
+  instances = 2
+
+  vm_publisher = var.matchmaker_vm_publisher
+  vm_offer = var.matchmaker_vm_offer
+  vm_sku = var.matchmaker_vm_sku
+  vm_version = var.matchmaker_vm_version
+}
+
+module "compute-autoscale" {
+  source = "./compute/autoscale"
+  base_name = local.base_name
+  resource_group = module.unreal-rg.resource_group
+  vmss_id = module.compute-vmss.id
+  capacity_default = var.capacity_default
+  capacity_minimum = var.capacity_minimum
+  capacity_maximum = var.capacity_maximum
 }
 
 /*
