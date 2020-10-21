@@ -1,50 +1,10 @@
-#######################################
-## terraform configuration
-#######################################
-terraform {
-  required_version = ">=0.12.6"
-
-#  backend "azurerm" {
-    #resource_group_name   = "foo"
-    #storage_account_name  = "foo"
-    #container_name        = "foo"
-    #key                   = "foo"
-#  }  
-}
-
-#######################################
-## Provider
-#######################################
-provider "azurerm" {
-  version = "~>2.13"
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy    = false
-      recover_soft_deleted_key_vaults = true
-    }
-  }
-}
-
-## variables
 variable "base_name" {
-  description = "Base name to use for the resources"
   type        = string
-  default     = "random"
 }
 
-## outputs
-
-## locals
-locals {
-  base_name = var.base_name == "random" ? random_string.base_id.result : var.base_name
-}
-
-## resources
-resource "random_string" "base_id" {
-  length  = 5
-  special = false
-  upper   = false
-  number  = true
+variable "location" {
+  description = "Location of the region"
+  default     = "eastus"
 }
 
 resource "random_string" "admin_password" {
@@ -53,27 +13,32 @@ resource "random_string" "admin_password" {
   upper   = true
   number  = true
 }
+## outputs
+
 
 #create a resource group, uses the location in the variables.tf file
 module "unreal-rg" {
-  source    = "./rg"
-  base_name = local.base_name
+  source    = "../rg"
+  base_name = var.base_name
   location = var.location
+}
+
+output "resource_group_name" {
+  value = module.unreal-rg.resource_group.name
 }
 
 #create a virtual network, uses variables in the variables.tf file
 module "unreal-vnet" {
-    source                    = "./networking/vnet"
-    base_name                 = local.base_name
+    source                    = "../networking/vnet"
+    base_name                 = var.base_name
     resource_group            = module.unreal-rg.resource_group
     vnet_address_space        = var.vnet_address_space
     subnet_address_prefixes   = var.subnet_address_prefixes
 }
-#turn on ddos? any other vnet capabilities?
 
 module "unreal-storage" {
-  source         = "./storage"
-  base_name      = local.base_name
+  source         = "../storage"
+  base_name      = var.base_name
   resource_group = module.unreal-rg.resource_group
   account_tier             = "Standard"
   account_replication_type = "LRS"  
@@ -82,8 +47,8 @@ module "unreal-storage" {
 #get a pip for the matchmaking vm
 #options Dynamic or Static
 module "matchmaker-vm-pip" {
-  source = "./networking/publicip"
-  base_name = local.base_name
+  source = "../networking/publicip"
+  base_name = var.base_name
   pip_name = "mm"
   pip_sku = "Standard"
   resource_group = module.unreal-rg.resource_group
@@ -92,9 +57,9 @@ module "matchmaker-vm-pip" {
 
 #windows based matchmaking server
 module "matchmaker-vm" {
-  source = "./compute/vm"
-  base_name = local.base_name
-  vm_name = format("%s-%s", local.base_name, var.vm_name)
+  source = "../compute/vm"
+  base_name = var.base_name
+  vm_name = format("%s-%s", var.base_name, var.vm_name)
   resource_group = module.unreal-rg.resource_group
   subnet_id = module.unreal-vnet.subnet_id
   dia_stg_acct_id = module.unreal-storage.id
@@ -119,8 +84,8 @@ module "matchmaker-vm" {
 
 #ADD the first NSG
 module "matchmaker_nsg" {
-  source = "./networking/nsg"
-  base_name = local.base_name
+  source = "../networking/nsg"
+  base_name = var.base_name
   resource_group = module.unreal-rg.resource_group
   nsg_name = "mm-nsg"
   security_rule_name                       = "Open80"
@@ -136,14 +101,14 @@ module "matchmaker_nsg" {
 
 #associate the NSG to the NIC
 module "matchmaker_nsg_association" {
-  source = "./networking/nsgassociation"
+  source = "../networking/nsgassociation"
   network_interface_id      = module.matchmaker-vm.nic_id
   network_security_group_id = module.matchmaker_nsg.network_security_group_id
 }
 
 #add this security rule to open another port in the NSG
 module "matchmaker_security_rule_888x" {
-  source = "./networking/security_rule"
+  source = "../networking/security_rule"
   resource_group = module.unreal-rg.resource_group
   network_security_group_name = module.matchmaker_nsg.network_security_group_name
 
@@ -160,7 +125,7 @@ module "matchmaker_security_rule_888x" {
 
 #add this security rule to open another port in the NSG
 module "matchmaker_security_rule_7070" {
-  source = "./networking/security_rule"
+  source = "../networking/security_rule"
   resource_group = module.unreal-rg.resource_group
   network_security_group_name = module.matchmaker_nsg.network_security_group_name
 
@@ -176,9 +141,9 @@ module "matchmaker_security_rule_7070" {
 }
 
 module "compute-vmss" {
-  source = "./compute/vmss"
-  base_name = local.base_name
-  vm_name = format("%s%s", local.base_name, "vmss")
+  source = "../compute/vmss"
+  base_name = var.base_name
+  vm_name = format("%s%s", var.base_name, "vmss")
   resource_group = module.unreal-rg.resource_group
   subnet_id = module.unreal-vnet.subnet_id
   
@@ -194,30 +159,16 @@ module "compute-vmss" {
   vm_version = var.matchmaker_vm_version
 }
 
+output "public_ip_address" {
+    value = module.compute-vmss.public_ip_address
+}
+
 module "compute-autoscale" {
-  source = "./compute/autoscale"
-  base_name = local.base_name
+  source = "../compute/autoscale"
+  base_name = var.base_name
   resource_group = module.unreal-rg.resource_group
   vmss_id = module.compute-vmss.id
   capacity_default = var.capacity_default
   capacity_minimum = var.capacity_minimum
   capacity_maximum = var.capacity_maximum
 }
-
-/*
-//pvt FunctionApp module
-module "funcapp" {
-  source         = "./iac/funcapp/"
-  base_name      = local.base_name
-  resource_group = module.rgs.spoke_rg
-  spoke_vnet = module.network.spoke_vnet
-  spoke_endpoint_subnet = module.network.spoke_endpoint_subnet  
-}
-
-#I need to add an extension to the vm above to add IIS to respond to 80/443
-module "iis_extension" {
-  source = "./iac/extensions/iis_extension/"
-  iis_vm_id = module.windows_server_spoke.vm_id
-}
-
-*/

@@ -19,7 +19,7 @@ output "resource_group" {
 
 ## locals
 locals {
-  rg_name  = format("%s-unreal-rg", var.base_name)
+  rg_name  = format("%s-%s-unreal-rg", var.base_name, var.location)
 }
 
 ## resources
