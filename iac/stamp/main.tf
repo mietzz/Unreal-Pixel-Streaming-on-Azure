@@ -4,7 +4,10 @@ variable "base_name" {
 
 variable "location" {
   description = "Location of the region"
-  default     = "eastus"
+}
+
+variable "index" {
+  type = string
 }
 
 resource "random_string" "admin_password" {
@@ -42,6 +45,7 @@ module "unreal-storage" {
   resource_group = module.unreal-rg.resource_group
   account_tier             = "Standard"
   account_replication_type = "LRS"  
+  index = var.index
 }
 
 #get a pip for the matchmaking vm

@@ -21,6 +21,10 @@ variable "account_replication_type" {
   type = string
 }
 
+variable "index" {
+  type = string
+}
+
 ## outputs
 output "id" {
   value = azurerm_storage_account.storageaccount.id
@@ -37,7 +41,7 @@ locals {
 
 ## resources
 resource "azurerm_storage_account" "storageaccount" {
-  name                     = format("%sstorageacct", var.base_name)
+  name                     = format("%sstoracct%s", var.base_name, var.index)
   resource_group_name      = var.resource_group.name
   location                 = var.resource_group.location
   account_tier             = var.account_tier

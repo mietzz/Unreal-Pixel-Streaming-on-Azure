@@ -131,7 +131,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   instances           = var.instances
 
   health_probe_id     = azurerm_lb_probe.probe.id
-  upgrade_mode        = "Rolling"
+  upgrade_mode        = "Manual"
 
   source_image_reference {
     publisher = var.vm_publisher
@@ -157,11 +157,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.lb_nat_pool.id]      
     }
   }
-
+/*
   rolling_upgrade_policy {
     max_batch_instance_percent              = 21
     max_unhealthy_instance_percent          = 22
     max_unhealthy_upgraded_instance_percent = 23
     pause_time_between_batches              = "PT30S"
   }  
+*/
 }
