@@ -163,8 +163,8 @@ module "compute-vmss" {
   vm_version = var.matchmaker_vm_version
 }
 
-output "public_ip_address" {
-    value = module.compute-vmss.public_ip_address
+output "resourceTargetId" {
+    value = module.compute-vmss.resourceTargetId
 }
 
 module "compute-autoscale" {

@@ -1,14 +1,10 @@
 # Project
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+The IAC folder contains the example infrastructure as code for implementing a multi-region instance of the Unreal Pixel Streaming Engine. 
 
-As the maintainer of this project, please make a few updates:
+In the project, there is an outermain.tf in the root of the iac folder that creates the multiple region instances (each instance is via the stamp folder in the main.tf file, along with the variables file to control the stamps). 
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+There is a README.md file in the IAC folder to get you started on the Terraform deployment. 
 
 ## Contributing
 

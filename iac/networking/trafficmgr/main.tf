@@ -23,12 +23,16 @@ variable "traffic_routing_method" {
     default = "Weighted"
 }
 
-variable "region1_public_ip_address_id" {
+variable "region1_resourceTargetId" {
     type = string
 }
 
-variable "region2_public_ip_address_id" {
+variable "region2_resourceTargetId" {
     type = string
+}
+
+output "traffic_manager_profile_name" {
+    value = azurerm_traffic_manager_profile.traffic_manager_profile.name
 }
 
 resource "azurerm_traffic_manager_profile" "traffic_manager_profile" {
@@ -52,16 +56,17 @@ resource "azurerm_traffic_manager_endpoint" "region1" {
   name                = format("%s-region1", var.base_name)
   resource_group_name = var.resource_group_name
   profile_name        = azurerm_traffic_manager_profile.traffic_manager_profile.name
-  target_resource_id  = var.region1_public_ip_address_id
+  target_resource_id  = var.region1_resourceTargetId
   type                = "azureEndpoints"
   weight              = 100
+  
 }
 
 resource "azurerm_traffic_manager_endpoint" "region2" {
   name                = format("%s-region2", var.base_name)
   resource_group_name    = var.resource_group_name
   profile_name        = azurerm_traffic_manager_profile.traffic_manager_profile.name
-  target_resource_id  = var.region2_public_ip_address_id
+  target_resource_id  = var.region2_resourceTargetId
   type                = "azureEndpoints"
   weight              = 100
 }

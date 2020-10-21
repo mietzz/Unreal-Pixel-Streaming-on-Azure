@@ -72,12 +72,35 @@ module "tm" {
     resource_group_name = module.region_1.resource_group_name
 
     #the next line can be Weighted or Geographic for example
-    traffic_routing_method = "Geographic"
+    traffic_routing_method = "Weighted"
 
     #starting with two regions add more if desired
-    region1_public_ip_address_id = module.region_1.public_ip_address
-    region2_public_ip_address_id = module.region_2.public_ip_address
+    region1_resourceTargetId = module.region_1.resourceTargetId
+    region2_resourceTargetId = module.region_2.resourceTargetId
 }
+
+
+/*
+//use this value for the TM name
+value = module.tm.traffic_manager_profile_name
+
+//get an id of public ip
+
+//add method of a 3rd region
+module "add_region_3" {
+    source = "./networking/trafficmgraddreg"
+    traffic_manager_profile_name = var.traffic_manager_profile_name
+    region_location = "foo"
+    region_resourceTargetId
+}
+
+//add method of a 3rd region
+module "add_region_4" {
+    source = "./networking/trafficmgraddreg"
+    traffic_manager_profile_name = var.traffic_manager_profile_name
+    region_location = "bar"
+}
+*/
 
 /* TODO
     -turn on accelerated networking on the vms and vmss

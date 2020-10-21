@@ -58,8 +58,8 @@ output "id" {
     value = azurerm_windows_virtual_machine_scale_set.vmss.id
 }
 
-output "public_ip_address" {
-    value = azurerm_public_ip.pip.ip_address
+output "resourceTargetId" {
+    value = azurerm_public_ip.pip.id
 }
 
 resource "azurerm_public_ip" "pip" {

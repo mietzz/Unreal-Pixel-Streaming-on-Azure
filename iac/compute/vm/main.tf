@@ -83,6 +83,7 @@ resource "azurerm_network_interface" "nic" {
   name                = format("%s-nic", var.vm_name)
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
+  #enable_accelerated_networking = true
 
   ip_configuration {
     name                          = "Internal"
@@ -99,6 +100,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   size                = var.vm_size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
+  
   network_interface_ids = [
     azurerm_network_interface.nic.id,
   ]
