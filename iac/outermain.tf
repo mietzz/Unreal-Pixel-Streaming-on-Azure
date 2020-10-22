@@ -56,14 +56,20 @@ module "region_1" {
     index                     = "1"
 }
 
+/*
 module "region_2" {
     source                    = "./stamp"
     base_name                 = local.base_name
     location                  = "westeurope"
     index                     = "2"
 }
+*/
+
+#need a dns label on the pips that I create for the ELBs
 
 #get the fields necessary for the traffic manager
+
+/*
 module "tm" {
     source = "./networking/trafficmgr"
     base_name                 = local.base_name
@@ -72,15 +78,23 @@ module "tm" {
     resource_group_name = module.region_1.resource_group_name
 
     #the next line can be Weighted or Geographic for example
-    traffic_routing_method = "Weighted"
+    traffic_routing_method = "Performance"
 
     #starting with two regions add more if desired
     region1_resourceTargetId = module.region_1.resourceTargetId
     region2_resourceTargetId = module.region_2.resourceTargetId
 }
+*/
+#todo take out vmss autoscale
+#add the elb in front of matchmaker
+#associate the vm to the elb
 
 
 /*
+
+    tmregion1 = data.azurerm_traffic_manager_geographical_location.tmregion1.id
+    tmregion2 = data.azurerm_traffic_manager_geographical_location.tmregion2.id
+
 //use this value for the TM name
 value = module.tm.traffic_manager_profile_name
 

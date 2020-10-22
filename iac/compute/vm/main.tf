@@ -61,9 +61,21 @@ variable "vm_name" {
   type = string
 }
 
-variable "public_ip_address_id" {
+variable "lb_backend_address_pool_id" {
+    type = string
+}
+
+variable "lb_nat_pool_id" {
+    type = string
+}
+
+variable "ip_configuration_name" {
   type = string
 }
+
+/* variable "public_ip_address_id" {
+  type = string
+} */
 
 ## outputs
 output "admin_password" {
@@ -86,10 +98,12 @@ resource "azurerm_network_interface" "nic" {
   #enable_accelerated_networking = true
 
   ip_configuration {
-    name                          = "Internal"
+    name                          = var.ip_configuration_name
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = var.public_ip_address_id
+    #public_ip_address_id          = var.public_ip_address_id
+    #load_balancer_backend_address_pool_ids = [var.lb_backend_address_pool_id]
+    #load_balancer_inbound_nat_rules_ids    = [var.lb_nat_pool_id]          
   }
 }
 
@@ -100,6 +114,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   size                = var.vm_size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
+  enable_automatic_updates = true
   
   network_interface_ids = [
     azurerm_network_interface.nic.id,

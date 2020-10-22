@@ -24,6 +24,10 @@ variable "pip_sku" {
   default = "Standard"
 }
 
+variable "domain_name_label" {
+  type = string
+}
+
 locals {
   name = format("%s-%s-pip", var.base_name, var.pip_name)
 }
@@ -35,6 +39,7 @@ resource "azurerm_public_ip" "pip" {
   resource_group_name = var.resource_group.name
   allocation_method   = var.allocation_method
   sku                 = var.pip_sku
+  domain_name_label   = var.domain_name_label
 }
 
 # Output

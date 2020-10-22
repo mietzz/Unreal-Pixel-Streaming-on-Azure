@@ -58,8 +58,7 @@ resource "azurerm_traffic_manager_endpoint" "region1" {
   profile_name        = azurerm_traffic_manager_profile.traffic_manager_profile.name
   target_resource_id  = var.region1_resourceTargetId
   type                = "azureEndpoints"
-  weight              = 100
-  
+  priority            = 1
 }
 
 resource "azurerm_traffic_manager_endpoint" "region2" {
@@ -68,5 +67,5 @@ resource "azurerm_traffic_manager_endpoint" "region2" {
   profile_name        = azurerm_traffic_manager_profile.traffic_manager_profile.name
   target_resource_id  = var.region2_resourceTargetId
   type                = "azureEndpoints"
-  weight              = 100
+  priority            = 2
 }

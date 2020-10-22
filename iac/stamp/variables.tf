@@ -39,7 +39,8 @@ variable "matchmaker_vm_version" {
 variable "matchmaker_admin_username" {  
   default = "azureadmin"
 }
-
+/*
+# we moved the autoscale from terraform config to code on the VMSS
 variable "capacity_default" {
   default = 3
 }
@@ -48,4 +49,11 @@ variable "capacity_minimum" {
 }
 variable "capacity_maximum" {
   default = 5
+}
+*/
+variable "vmss_start_instances" {
+  default = 2
+}
+variable "vmss_sku" {
+  default = "Standard_NV6"
 }
