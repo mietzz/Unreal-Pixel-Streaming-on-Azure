@@ -74,14 +74,104 @@ module "ue4-elb" {
   lb_name        = "ue4"
   domain_name_label = format("%s-%s-%s", var.location, lower(var.base_name), "ue4")
 
-  nat_pool_frontend_port_start = 80
-  nat_pool_frontend_port_end = 90
+  nat_pool_frontend_port_start = 49152
+  nat_pool_frontend_port_end = 65534
   nat_pool_backend_port = 90
 
   sku = "Standard"
   subnet_id = module.unreal-vnet.subnet_id
   private_ip_address = "10.100.0.110"
   private_ip_address_allocation = "Static"
+}
+
+#add a lb probe/rule for mm - 90
+module "mm-90-rule" {
+  source         = "../networking/addporttolb"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  lb_name        = "mm"
+  loadbalancer_id = module.matchmaker-elb.lb_id
+  backend_address_pool_id = module.matchmaker-elb.lb_backend_address_pool_id
+  probe_port = "90"
+  probe_protocol = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol = "TCP"
+  rule_frontend_port = "90"
+  rule_backend_port = "90"
+  load_distribution = "SourceIPProtocol"
+}
+
+#add a lb probe/rule for mm - 9999
+module "mm-9999-rule" {
+  source         = "../networking/addporttolb"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  lb_name        = "mm"
+  loadbalancer_id = module.matchmaker-elb.lb_id
+  backend_address_pool_id = module.matchmaker-elb.lb_backend_address_pool_id
+  probe_port = "9999"
+  probe_protocol = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol = "TCP"
+  rule_frontend_port = "9999"
+  rule_backend_port = "9999"
+  load_distribution = "SourceIPProtocol"
+}
+
+#add a lb probe/rule for UE4 7070
+module "ue4-7070-rule" {
+  source         = "../networking/addporttolb"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  lb_name        = "ue4"
+  loadbalancer_id = module.ue4-elb.lb_id
+  backend_address_pool_id = module.ue4-elb.lb_backend_address_pool_id
+  probe_port = "7070"
+  probe_protocol = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol = "TCP"
+  rule_frontend_port = "7070"
+  rule_backend_port = "7070"
+  load_distribution = "SourceIPProtocol"
+}
+
+#add a lb probe/rule for UE4 8888
+module "ue4-8888-rule" {
+  source         = "../networking/addporttolb"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  lb_name        = "ue4"
+  loadbalancer_id = module.ue4-elb.lb_id
+  backend_address_pool_id = module.ue4-elb.lb_backend_address_pool_id
+  probe_port = "8888"
+  probe_protocol = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol = "TCP"
+  rule_frontend_port = "8888"
+  rule_backend_port = "8888"
+  load_distribution = "SourceIPProtocol"
+}
+
+#add a lb probe/rule for UE4 8889
+module "ue4-8889-rule" {
+  source         = "../networking/addporttolb"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  lb_name        = "ue4"
+  loadbalancer_id = module.ue4-elb.lb_id
+  backend_address_pool_id = module.ue4-elb.lb_backend_address_pool_id
+  probe_port = "8889"
+  probe_protocol = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol = "TCP"
+  rule_frontend_port = "8889"
+  rule_backend_port = "8889"
+  load_distribution = "SourceIPProtocol"
 }
 
 #windows based matchmaking server with no pip as it is behind a ELB
@@ -157,6 +247,41 @@ module "matchmaker_security_rule_9999" {
   security_rule_destination_address_prefix = "*"
 }
 
+//do I need to do anything about: https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-multivip-overview
+
+//create a nsg for the UE4 components
+module "ue4_nsg" {
+  source = "../networking/nsg"
+  base_name = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  nsg_name = "ue4-nsg"
+  security_rule_name                       = "Open7070"
+  security_rule_priority                   = 1000
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "7070"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+module "matchmaker_security_rule_888x" {
+  source = "../networking/security_rule"
+  resource_group = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open888x"
+  security_rule_priority                   = 1010
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "8888-8889"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
 module "compute-vmss" {
   source = "../compute/vmss"
   base_name = var.base_name
@@ -179,48 +304,10 @@ module "compute-vmss" {
   lb_backend_address_pool_id = module.ue4-elb.lb_backend_address_pool_id
   lb_nat_pool_id = module.ue4-elb.lb_nat_pool_id
   health_probe_id = module.ue4-elb.health_probe_id
-}
 
-/* not sure how to link an nsg to a vmss
-module "ue4_nsg" {
-  source = "../networking/nsg"
-  base_name = var.base_name
-  resource_group = module.unreal-rg.resource_group
-  nsg_name = "ue4-nsg"
-  security_rule_name                       = "Open7070"
-  security_rule_priority                   = 1000
-  security_rule_direction                  = "Inbound"
-  security_rule_access                     = "Allow"
-  security_rule_protocol                   = "Tcp"
-  security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "7070"
-  security_rule_source_address_prefix      = "*"
-  security_rule_destination_address_prefix = "*"
-}
-
-#associate the NSG to the NIC
-module "ue4_nsg_association" {
-  source = "../networking/nsgassociation"
-  network_interface_id      = module.compute-vmss.nic_id
   network_security_group_id = module.ue4_nsg.network_security_group_id
 }
 
-module "matchmaker_security_rule_888x" {
-  source = "../networking/security_rule"
-  resource_group = module.unreal-rg.resource_group
-  network_security_group_name = module.ue4_nsg.network_security_group_name
-
-  security_rule_name                       = "Open888x"
-  security_rule_priority                   = 1010
-  security_rule_direction                  = "Inbound"
-  security_rule_access                     = "Allow"
-  security_rule_protocol                   = "Tcp"
-  security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "8888-8889"
-  security_rule_source_address_prefix      = "*"
-  security_rule_destination_address_prefix = "*"
-}
-*/
 
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {

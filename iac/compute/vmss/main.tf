@@ -70,6 +70,10 @@ variable "health_probe_id" {
     type = string
 }
 
+variable "network_security_group_id" {
+    type = string
+}
+
 output "id" {
     value = azurerm_windows_virtual_machine_scale_set.vmss.id
 }
@@ -103,6 +107,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   network_interface {
     name    = "vmss-nic"
     primary = true
+    network_security_group_id = var.network_security_group_id
 
     ip_configuration {
       name      = "external"

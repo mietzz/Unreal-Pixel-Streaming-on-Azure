@@ -48,7 +48,10 @@ variable "private_ip_address_allocation" {
   type = string
 }
 
-#TODO: output the ids for the ELB to be used in linkage
+output "lb_id" {
+    value = azurerm_lb.lb.id
+}
+
 output "lb_nat_pool_id" {
     value = azurerm_lb_nat_pool.lb_nat_pool.id
 }
@@ -78,7 +81,7 @@ resource "azurerm_lb" "lb" {
   sku                 = var.sku
 
   frontend_ip_configuration {
-    name                 = "external"
+    name                 = "external" 
     public_ip_address_id = azurerm_public_ip.pip.id
     #subnet_id = var.subnet_id
     #private_ip_address = var.private_ip_address
