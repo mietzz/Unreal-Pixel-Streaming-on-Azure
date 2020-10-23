@@ -308,6 +308,11 @@ module "compute-vmss" {
   network_security_group_id = module.ue4_nsg.network_security_group_id
 }
 
+module "mm-extension" {
+  source = "../mmextension"
+  virtual_machine_id = module.matchmaker-vm.vm_id
+  extension_name = "mm-extension"
+}
 
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {

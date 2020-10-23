@@ -1,5 +1,7 @@
 # Project
+## Please note that this repo is still in development. 
 
+## Summary
 The IAC folder contains the example infrastructure as code for implementing a multi-region instance of the Unreal Pixel Streaming Engine. 
 
 In the project, there is an outermain.tf in the root of the iac folder that creates the multiple region instances (each instance is via the stamp folder in the main.tf file, along with the variables file to control the stamps). 
