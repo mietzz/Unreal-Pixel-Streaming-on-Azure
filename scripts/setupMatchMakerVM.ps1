@@ -14,3 +14,5 @@ New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe"
 
 
 git clone -q -n https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git c:\Unreal\
+
+
