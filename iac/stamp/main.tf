@@ -296,10 +296,10 @@ module "compute-vmss" {
   instances = var.vmss_start_instances
   upgrade_mode = "Manual"
 
-  vm_publisher = var.matchmaker_vm_publisher
-  vm_offer = var.matchmaker_vm_offer
-  vm_sku = var.matchmaker_vm_sku
-  vm_version = var.matchmaker_vm_version
+  vm_publisher = var.vmss_source_image_publisher
+  vm_offer = var.vmss_source_image_offer
+  vm_sku = var.vmss_source_image_sku
+  vm_version = var.vmss_source_image_version
 
   lb_backend_address_pool_id = module.ue4-elb.lb_backend_address_pool_id
   lb_nat_pool_id = module.ue4-elb.lb_nat_pool_id
@@ -313,6 +313,14 @@ module "mm-extension" {
   virtual_machine_id = module.matchmaker-vm.vm_id
   extension_name = "mm-extension"
 }
+
+/*
+module "ue4-extension" {
+  source = "../ue4extension"
+  virtual_machine_id = module.compute-vmss.id
+  extension_name = "ue4-extension"
+}
+*/
 
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {

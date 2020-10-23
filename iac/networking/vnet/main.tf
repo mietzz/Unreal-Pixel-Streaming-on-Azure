@@ -21,7 +21,6 @@ variable "resource_group" {
   type        = string
 }
 
-
 ## Outputs
 output "unreal_vnet" {
   value = ({

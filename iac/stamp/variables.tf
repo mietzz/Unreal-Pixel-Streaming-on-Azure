@@ -11,6 +11,7 @@ variable "subnet_address_prefixes" {
   default = "10.100.0.0/18"
 }
 
+
 #the following can only be 6 characters or less
 variable "vm_name" {
   default = "mm"
@@ -29,7 +30,7 @@ variable "matchmaker_vm_offer" {
 }
 
 variable "matchmaker_vm_sku" {          
-  default = "2016-Datacenter"
+  default = "2019-Datacenter"
 }
 
 variable "matchmaker_vm_version" {      
@@ -56,4 +57,20 @@ variable "vmss_start_instances" {
 }
 variable "vmss_sku" {
   default = "Standard_NV6"
+}
+
+variable "vmss_source_image_publisher" {
+  default = "MicrosoftWindowsDesktop"
+}
+
+variable "vmss_source_image_offer" {
+  default =  "Windows-10"
+}
+
+variable "vmss_source_image_sku" {
+  default = "rs5-pro"
+}
+
+variable "vmss_source_image_version" {
+  default = "latest"
 }

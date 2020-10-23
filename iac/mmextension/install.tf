@@ -17,8 +17,13 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
   settings = <<SETTINGS
   {
     "fileUris": [
-      "${https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupMatchMakerVM.ps1}",
+      "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupMatchMakerVM.ps1"],
     "commandToExecute": "powershell.exe ./setupMatchMakerVM.ps1"
   }
   SETTINGS
+
+  protected_settings = <<PROTECTED_SETTINGS
+  {
+  }
+  PROTECTED_SETTINGS  
 }
