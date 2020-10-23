@@ -1,0 +1,10 @@
+{
+	"httpPort": 90,
+	"matchmakerPort": 9999,
+	"instancesPerNode": 2,
+	"instanceCountBuffer": 5,
+	"percentBuffer": 75,
+	"idleMinutes": 60,
+	"connectionIdleRatio": 25,
+	"minIdleInstanceCount": 5
+}

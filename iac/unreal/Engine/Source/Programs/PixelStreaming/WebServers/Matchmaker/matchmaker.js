@@ -1,9 +1,34 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-var httpPort = 90;
-var matchmakerPort = 9999;
+// A variable to hold when the last time we scaled up, used for determining if we are in a determined idle state and might need to scale down (via idleMinutes and connectionIdleRatio)
+var minutesSinceLastScaleup = 0;
+
+const defaultConfig = {
+	// The port clients connect to the matchmaking service over HTTP
+	httpPort: 90,
+	// The matchmaking port the signaling service connects to the matchmaker
+	matchmakerPort: 9999,
+	// The amount of instances deployed per node, to be used in the autoscale policy (2 unreal apps running per GPU VM)
+	instancesPerNode: 2,
+	// The amount of available signaling service / App instances we want to ensure are available before we have to scale up
+	instanceCountBuffer: 5,
+	// The percentage amount of available signaling service / App instances we want to ensure are available before we have to scale up
+	percentBuffer: .75,
+	//The amount of minutes of no scaling up activity before we decide we might want to see if we should scale down (i.e., after hours--reduce costs)
+	idleMinutes: 60,
+	// The percentage of active connections to total instances that we want to trigger a scale down once idleMinutes passes with no scaleup
+	connectionIdleRatio: .25,
+	// The minimum number of available app instances we want to scale down to during an idle period (idleMinutes passed with no scaleup)
+	minIdleInstanceCount: 5
+};
+
 
 const argv = require('yargs').argv;
+
+var configFile = (typeof argv.configFile != 'undefined') ? argv.configFile.toString() : '.\\config.json';
+console.log(`configFile ${configFile}`);
+const config = require('./modules/config.js').init(configFile, defaultConfig);
+console.log("Config: " + JSON.stringify(config, null, '\t'));
 
 const express = require('express');
 const app = express();
@@ -20,18 +45,18 @@ var cirrusServers = new Map();
 //
 
 if (typeof argv.httpPort != 'undefined') {
-	httpPort = argv.httpPort;
+	config.httpPort = argv.httpPort;
 }
 if (typeof argv.matchmakerPort != 'undefined') {
-	matchmakerPort = argv.matchmakerPort;
+	config.matchmakerPort = argv.matchmakerPort;
 }
 
 //
 // Connect to browser.
 //
 
-http.listen(httpPort, () => {
-    console.log('HTTP listening on *:' + httpPort);
+http.listen(config.httpPort, () => {
+	console.log('HTTP listening on *:' + config.httpPort);
 });
 
 // Get a Cirrus server if there is one available which has no clients connected.
@@ -137,6 +162,6 @@ const matchmaker = net.createServer((connection) => {
 	});
 });
 
-matchmaker.listen(matchmakerPort, () => {
-	console.log('Matchmaker listening on *:' + matchmakerPort);
+matchmaker.listen(config.matchmakerPort, () => {
+	console.log('Matchmaker listening on *:' + config.matchmakerPort);
 });
