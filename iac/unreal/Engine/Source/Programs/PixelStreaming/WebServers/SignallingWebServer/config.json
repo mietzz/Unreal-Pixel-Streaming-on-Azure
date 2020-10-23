@@ -1,0 +1,12 @@
+{
+	"UseFrontend": false,
+	"UseMatchmaker": true,
+	"UseHTTPS": false,
+	"UseAuthentication": false,
+	"LogToFile": true,
+	"HomepageFile": "player.htm",
+	"AdditionalRoutes": {},
+	"matchmakerAddress": "{{{MATCHMAKER_ADDRESS}}}",
+	"matchmakerPort": "{{{MATCHMAKER_PORT}}}",
+	"publicIp": "{{{PUBLIC_IP}}}"
+}
