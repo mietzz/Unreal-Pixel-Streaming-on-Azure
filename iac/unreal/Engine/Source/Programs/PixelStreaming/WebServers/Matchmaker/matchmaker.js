@@ -1,7 +1,14 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// A variable to hold when the last time we scaled up, used for determining if we are in a determined idle state and might need to scale down (via idleMinutes and connectionIdleRatio)
-var minutesSinceLastScaleup = 0;
+// A variable to hold the last time we scaled up, used for determining if we are in a determined idle state and might need to scale down (via idleMinutes and connectionIdleRatio)
+var lastScaleupTime = Date.now();
+// A varible to the last time we scaled down, used for a reference to know how quick we should consider scaling down again (to avoid multiple scale downs too soon)
+var lastScaledownTime = Date.now();
+// The number of total app instances that are connecting to the matchmaker
+var totalInstances = 0;
+// The min minutes between each scaleup (so we don't scale up every frame while we wait for the scale to complete)
+var minMinutesBetweenScaleups = 1;
+var minMinutesBetweenScaledowns = 2;
 
 const defaultConfig = {
 	// The port clients connect to the matchmaking service over HTTP
@@ -10,14 +17,14 @@ const defaultConfig = {
 	matchmakerPort: 9999,
 	// The amount of instances deployed per node, to be used in the autoscale policy (2 unreal apps running per GPU VM)
 	instancesPerNode: 2,
-	// The amount of available signaling service / App instances we want to ensure are available before we have to scale up
+	// The amount of available signaling service / App instances we want to ensure are available before we have to scale up (0 will ignore)
 	instanceCountBuffer: 5,
-	// The percentage amount of available signaling service / App instances we want to ensure are available before we have to scale up
-	percentBuffer: .75,
+	// The percentage amount of available signaling service / App instances we want to ensure are available before we have to scale up (0 will ignore)
+	percentBuffer: 75,
 	//The amount of minutes of no scaling up activity before we decide we might want to see if we should scale down (i.e., after hours--reduce costs)
 	idleMinutes: 60,
 	// The percentage of active connections to total instances that we want to trigger a scale down once idleMinutes passes with no scaleup
-	connectionIdleRatio: .25,
+	connectionIdleRatio: 25,
 	// The minimum number of available app instances we want to scale down to during an idle period (idleMinutes passed with no scaleup)
 	minIdleInstanceCount: 5
 };
@@ -61,12 +68,13 @@ http.listen(config.httpPort, () => {
 
 // Get a Cirrus server if there is one available which has no clients connected.
 function getAvailableCirrusServer() {
+
 	for (cirrusServer of cirrusServers.values()) {
 		if (cirrusServer.numConnectedClients === 0) {
 			return cirrusServer;
 		}
 	}
-	
+
 	console.log('WARNING: No empty Cirrus servers are available');
 	return undefined;
 }
@@ -121,15 +129,81 @@ function disconnect(connection) {
 	connection.end();
 }
 
+function scaleupInstances(newNodeCount) {
+	console.log(`Scaling up${newNodeCount}!!! Well.. once I code it`);
+
+	lastScaleupTime = Date.now();
+}
+
+function scaledownInstances(newNodeCount) {
+	console.log(`Scaling down to ${newNodeCount}!!! Well.. once I code it`);
+	lastScaledownTime = Date.now();
+}
+
+function considerAutoScale() {
+	console.log(`Considering AutoScale....`);
+
+	totalInstances = cirrusServers.size;
+
+	console.log(`Current Servers Connected: ${totalInstances} Current Clients Connected: ${cirrusServer.numConnectedClients}`);
+
+	var numConnections = cirrusServer.numConnectedClients;
+	var safeBuffer = Math.max(totalInstances - config.instanceCountBuffer, config.instanceCountBuffer); // Get the max of the delta or the desired buffer (i.e., when totalInstances < buffer)
+
+	var timeElapsedSinceScaleup = Date.now() - lastScaleupTime;
+	var minutesSinceScaleup = Math.round(((timeElapsedSinceScaleup % 86400000) % 3600000) / 60000);
+
+	var timeElapsedSinceScaledown = Date.now() - lastScaledownTime;
+	var minutesSinceScaledown = Math.round(((timeElapsedSinceScaledown % 86400000) % 3600000) / 60000);
+	var percentUtilized = 0;
+
+	if (numConnections > 0 && totalInstances > 0)
+		percentUtilized = numConnections / totalInstances;
+
+	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and safeBuffer: ${safeBuffer} and % used: ${percentUtilized}`);
+
+	// Make sure we didn't just scale up and should wait until the scaling has enough time to react (TODO: add login to validate if scaling is still in process)
+	if (minutesSinceScaleup < minMinutesBetweenScaleups) {
+		console.log(`Waiting to scale since we already recently scaled up or started the service`);
+		return;
+	}
+	// If the current number of user connections is greater than our buffer level that we are trying to stay under
+	else if ((config.instanceCountBuffer > 0) && (numConnections >= safeBuffer)) {
+		console.log(`Not enough safe buffer--scale up`);
+		scaleupInstances(safeBuffer);
+		return;
+	}
+	// Else if the available percent is less than our desired ratio
+	else if ((config.percentBuffer > 0) && (numConnections / totalInstances >= config.percentBuffer)) {
+		console.log(`Not enough percent ratio buffer--scale up`);
+		var newNodeCount = Math.max(totalInstances * Math.ceil(config.percentBuffer * .1), 1);
+	    scaleupInstances(newNodeCount);
+		return;
+	}
+
+	// Make sure we didn't just scale down and should wait until the scaling has enough time to react (TODO: add login to validate if scaling is still in process)
+	if (minutesSinceScaledown < minMinutesBetweenScaledowns) {
+		console.log(`Waiting to scale down since we already recently scaled down or started the service`);
+		return;
+	}
+	// Else if we've went long enough without scaling up to consider scaling down when we reach a low enough usage ratio
+	else if ((config.connectionIdleRatio > 0) && ((minutesSinceScaleup >= config.idleMinutes) && (percentUtilized <= config.connectionIdleRatio))) {
+		console.log(`It's been a while since scaling activity--scale down`);
+		var newNodeCount = Math.max(totalInstances * Math.ceil(config.connectionIdleRatio * .1), 1);
+		scaledownInstances(newNodeCount);
+	}
+}
+
 const matchmaker = net.createServer((connection) => {
 	connection.on('data', (data) => {
 		try {
 			message = JSON.parse(data);
-		} catch(e) {
+		} catch (e) {
 			console.log(`ERROR (${e.toString()}): Failed to parse Cirrus information from data: ${data.toString()}`);
 			disconnect(connection);
 			return;
 		}
+
 		if (message.type === 'connect') {
 			// A Cirrus server connects to this Matchmaker server.
 			cirrusServer = {
@@ -144,11 +218,15 @@ const matchmaker = net.createServer((connection) => {
 			cirrusServer = cirrusServers.get(connection);
 			cirrusServer.numConnectedClients++;
 			console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
+
+			considerAutoScale();
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
 			cirrusServer.numConnectedClients--;
 			console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
+
+			considerAutoScale();
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);

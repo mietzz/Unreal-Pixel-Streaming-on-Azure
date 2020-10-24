@@ -6,7 +6,7 @@
 	"LogToFile": true,
 	"HomepageFile": "player.htm",
 	"AdditionalRoutes": {},
-	"matchmakerAddress": "{{{MATCHMAKER_ADDRESS}}}",
-	"matchmakerPort": "{{{MATCHMAKER_PORT}}}",
-	"publicIp": "{{{PUBLIC_IP}}}"
+	"matchmakerAddress": "localhost",
+	"matchmakerPort": "9999",
+	"publicIp": "localhost"
 }
