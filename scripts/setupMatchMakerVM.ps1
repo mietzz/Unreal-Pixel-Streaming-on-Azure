@@ -2,11 +2,11 @@
 Set-ExecutionPolicy Bypass -Scope Process -Force
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); 
 
-choco install filezilla -yr --no-progress
-choco install git -yr --no-progress
-choco install nodejs -yr --no-progress
-choco install vcredist-all -yr --no-progress
-choco install directx -yr --no-progress
+choco upgrade filezilla -yr --no-progress
+choco upgrade git -yr --no-progress
+choco upgrade nodejs -yr --no-progress
+choco upgrade vcredist-all -yr --no-progress
+choco upgrade directx -yr --no-progress
 
 New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 

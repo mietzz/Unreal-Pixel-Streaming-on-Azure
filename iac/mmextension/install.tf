@@ -8,7 +8,6 @@ variable "extension_name" {
 
 resource "azurerm_virtual_machine_extension" "mmextension" {
   name                 = var.extension_name
-  depends_on           = []
   virtual_machine_id   = var.virtual_machine_id
   publisher = "Microsoft.Compute"
   type = "CustomScriptExtension"
@@ -23,8 +22,8 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
   }
   SETTINGS
 
-  protected_settings = <<PROTECTED_SETTINGS
-  {
-  }
-  PROTECTED_SETTINGS  
+#  protected_settings = <<PROTECTED_SETTINGS
+#  {
+#  }
+#  PROTECTED_SETTINGS  
 }
