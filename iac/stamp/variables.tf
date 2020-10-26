@@ -68,7 +68,7 @@ variable "vmss_source_image_offer" {
 }
 
 variable "vmss_source_image_sku" {
-  default = "rs5-pro"
+  default = "20h2-pro"
 }
 
 variable "vmss_source_image_version" {
