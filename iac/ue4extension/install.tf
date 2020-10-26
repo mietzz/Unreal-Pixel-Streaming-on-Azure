@@ -22,8 +22,27 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   }
   SETTINGS
 
-  protected_settings = <<PROTECTED_SETTINGS
+#  protected_settings = <<PROTECTED_SETTINGS
+#  {
+#  }
+#  PROTECTED_SETTINGS  
+}
+
+resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
+  name                 = "NvidiaGpuDriverWindows"
+  virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
+  publisher            = "Microsoft.HpcCompute"
+  type                 = "NvidiaGpuDriverWindows"
+  type_handler_version = "1.3"
+
+  settings = <<SETTINGS
   {
+    
   }
-  PROTECTED_SETTINGS  
+  SETTINGS
+
+#  protected_settings = <<PROTECTED_SETTINGS
+#  {
+#  }
+#  PROTECTED_SETTINGS  
 }
