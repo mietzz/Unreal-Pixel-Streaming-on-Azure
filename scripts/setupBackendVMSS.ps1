@@ -19,16 +19,14 @@ else {
     git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
 }
 
-Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-
-install-module azurerm -force
-
-$StorageContext = New-AzureStorageContext -StorageAccountName 'unrealbackendfiles' -StorageAccountKey $key
 
 
-$Container = Get-AzureStorageContainer -Name 'ourpublicblobs' -Context $StorageContext 
+Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
 
 $blobDestination = $folder + '\iac\unreal\app'
 
-Get-AzureStorageBlobContent -Container 'ourpublicblobs' -Blob "WindowsNoEditor.zip" -Destination $blobDestination -Context $StorageContext
+$zipFileName = 'C:\WindowsNoEditor.zip'
+
+Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
+
 
