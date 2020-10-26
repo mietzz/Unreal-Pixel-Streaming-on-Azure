@@ -43,6 +43,9 @@ variable "security_rule_source_address_prefix"{
 variable "security_rule_destination_address_prefix"{
     type = string
 }
+variable "log_analytics_workspace_id" {
+  type = string
+}
 
 output "network_security_group_id" {
   value = azurerm_network_security_group.nsg.id
@@ -67,5 +70,29 @@ resource "azurerm_network_security_group" "nsg" {
     destination_port_range     = var.security_rule_destination_port_range
     source_address_prefix      = var.security_rule_source_address_prefix
     destination_address_prefix = var.security_rule_destination_address_prefix
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "nsg-diag" {
+  name               = "vm-diag"
+  target_resource_id = azurerm_network_security_group.nsg.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  log {
+    category = "NetworkSecurityGroupEvent"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "NetworkSecurityGroupRuleCounter"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
   }
 }

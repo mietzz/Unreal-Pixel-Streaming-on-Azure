@@ -21,6 +21,10 @@ variable "resource_group" {
   type        = string
 }
 
+variable "log_analytics_workspace_id" {
+  type = string
+}
+
 ## Outputs
 output "unreal_vnet" {
   value = ({
@@ -59,4 +63,28 @@ resource "azurerm_subnet" "subnet" {
   resource_group_name  = var.resource_group.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes = [var.subnet_address_prefixes]
+}
+
+resource "azurerm_monitor_diagnostic_setting" "vm-diag" {
+  name               = "vm-diag"
+  target_resource_id = azurerm_virtual_network.vnet.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  log {
+    category = "VMProtectionAlerts"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
 }

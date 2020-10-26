@@ -63,7 +63,10 @@ output "lb_backend_address_pool_id" {
 output "health_probe_id" {
     value = azurerm_lb_probe.probe.id
 }
-#
+
+output "fqdn" {
+    value = azurerm_public_ip.pip.fqdn
+}
 
 resource "azurerm_public_ip" "pip" {
   name                = format("%s-%s-lb-pip", var.base_name, var.lb_name)
