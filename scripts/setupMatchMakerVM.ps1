@@ -16,7 +16,8 @@ if (-not (Test-Path -LiteralPath $folder)) {
 }
 else {
     #rename the existing folder
-    $endtag = 'unreal-' + (get-date).ToString(‘MMddyyhhmmss')
+    $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
     Rename-Item -Path $folder  -NewName $endtag -Force
     git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
 }
+exit 0

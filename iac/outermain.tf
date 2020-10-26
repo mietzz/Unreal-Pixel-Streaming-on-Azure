@@ -84,6 +84,7 @@ module "add_region_1_mm" {
 
     traffic_manager_profile_name = module.tm-profile-mm.traffic_manager_profile_name
     index = module.region_1.index
+    service_name = "mm"
 
     #plug in the ELB of the MM
     region_resourceTargetId = module.region_1.matchmaker-elb-id
@@ -97,6 +98,7 @@ module "add_region_2_mm" {
 
     traffic_manager_profile_name = module.tm-profile-mm.traffic_manager_profile_name
     index = module.region_2.index
+    service_name = "mm"
 
     #plug in the ELB of the MM
     region_resourceTargetId = module.region_2.matchmaker-elb-id
@@ -123,6 +125,7 @@ module "add_region_1_ue4" {
 
     traffic_manager_profile_name = module.tm-profile-ue4.traffic_manager_profile_name
     index = module.region_1.index
+    service_name = "ue4"
 
     #plug in the ELB of the MM
     region_resourceTargetId = module.region_1.ue4-elb-id
@@ -136,6 +139,7 @@ module "add_region_2_ue4" {
 
     traffic_manager_profile_name = module.tm-profile-ue4.traffic_manager_profile_name
     index = module.region_2.index
+    service_name = "ue4"
 
     #plug in the ELB of the MM
     region_resourceTargetId = module.region_2.ue4-elb-id

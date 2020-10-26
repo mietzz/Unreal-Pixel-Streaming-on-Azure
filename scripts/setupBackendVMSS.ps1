@@ -18,3 +18,4 @@ else {
     Rename-Item -Path $folder  -NewName $endtag -Force
     git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
 }
+exit 0
