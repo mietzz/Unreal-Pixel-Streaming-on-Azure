@@ -19,8 +19,6 @@ else {
     git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
 }
 
-
-
 Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
 
 $blobDestination = $folder + '\iac\unreal\app'
@@ -30,3 +28,4 @@ $zipFileName = 'C:\WindowsNoEditor.zip'
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
 
 
+exit 0

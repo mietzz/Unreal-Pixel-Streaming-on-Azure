@@ -17,6 +17,10 @@ variable "service_name" {
     type = string
 }
 
+variable "log_analytics_workspace_id" {
+  type = string
+}
+
 output "traffic_manager_profile_name" {
     value = azurerm_traffic_manager_profile.traffic_manager_profile.name
 }
@@ -27,7 +31,7 @@ resource "azurerm_traffic_manager_profile" "traffic_manager_profile" {
   traffic_routing_method = var.traffic_routing_method
 
   dns_config {
-    relative_name = format("%s-trafficmgr", var.base_name)
+    relative_name = format("%s-trafficmgr-%s", var.base_name, var.service_name)
     ttl           = 100
   }
 
@@ -38,22 +42,26 @@ resource "azurerm_traffic_manager_profile" "traffic_manager_profile" {
   }
 }
 
-/*
-resource "azurerm_traffic_manager_endpoint" "region1" {
-  name                = format("%s-region1", var.base_name)
-  resource_group_name = var.resource_group_name
-  profile_name        = azurerm_traffic_manager_profile.traffic_manager_profile.name
-  target_resource_id  = var.region1_resourceTargetId
-  type                = "azureEndpoints"
-  priority            = 1
-}
+resource "azurerm_monitor_diagnostic_setting" "tm-diag" {
+  name               = "tm-diag"
+  target_resource_id = azurerm_traffic_manager_profile.traffic_manager_profile.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
 
-resource "azurerm_traffic_manager_endpoint" "region2" {
-  name                = format("%s-region2", var.base_name)
-  resource_group_name    = var.resource_group_name
-  profile_name        = azurerm_traffic_manager_profile.traffic_manager_profile.name
-  target_resource_id  = var.region2_resourceTargetId
-  type                = "azureEndpoints"
-  priority            = 2
+  log {
+    category = "ProbeHealthStatusEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
 }
-*/
