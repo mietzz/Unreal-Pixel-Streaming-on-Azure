@@ -6,13 +6,7 @@ Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://cho
 choco install git -yr --no-progress
 choco install directx -yr --no-progress
 
-#added the try/catch as this fails on a rerun of the extension
-try 	{
-	New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe"
-	}
-catch {
-	#do nothing
-}
+New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
 $folder = "c:\Unreal\"
 if (-not (Test-Path -LiteralPath $folder)) {

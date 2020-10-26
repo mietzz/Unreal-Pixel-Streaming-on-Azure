@@ -17,8 +17,8 @@ resource "azurerm_virtual_machine_extension" "ue4extension" {
   settings = <<SETTINGS
   {
     "fileUris": [
-      "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupVMSS.ps1"],
-    "commandToExecute": "powershell.exe ./setupVMSS.ps1"
+      "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupBackendVMSS.ps1"],
+    "commandToExecute": "powershell.exe ./setupBackendVMSS.ps1"
   }
   SETTINGS
 
