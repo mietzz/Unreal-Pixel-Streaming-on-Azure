@@ -156,9 +156,6 @@ module "add_region_2_ue4" {
 }
 
 /* TODO
-    -decide on faster disks for vms or vmss
-    -turn on log analytics and capture diags
-    -turn on process for autoupdate on vmss and vms
-    -consider how to make the tm add geo points
-    -take out vmss autoscale
+    -decide on faster disks for vms or vmss?
+    -take out vmss autoscale?
 */
