@@ -56,16 +56,12 @@ module "region_1" {
     index                     = "1"
 }
 
-/*
 module "region_2" {
     source                    = "./stamp"
     base_name                 = local.base_name
     location                  = "westeurope"
     index                     = "2"
 }
-*/
-
-#need a dns label on the pips that I create for the ELBs
 
 #get the fields necessary for the traffic manager
 
