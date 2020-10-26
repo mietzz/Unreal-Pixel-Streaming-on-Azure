@@ -25,6 +25,6 @@ resource "azurerm_traffic_manager_endpoint" "traffic_manager_endpoint" {
   profile_name        = var.traffic_manager_profile_name
   target_resource_id  = var.region_resourceTargetId  
     #id of the matchmaker ELB
-  type                = "externalEndpoints"
+  type                = "azureEndpoints"
   priority            = var.index
 }
