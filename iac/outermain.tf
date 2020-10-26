@@ -63,59 +63,88 @@ module "region_2" {
     index                     = "2"
 }
 
-#get the fields necessary for the traffic manager
-
-/*
-module "tm" {
+#first set up the matchmaker traffic manager profile
+module "tm-profile-mm" {
     source = "./networking/trafficmgr"
-    base_name                 = local.base_name
+    base_name = local.base_name
 
     #put the PM in the first region
     resource_group_name = module.region_1.resource_group_name
 
+    service_name = "mm"
     #the next line can be Weighted or Geographic for example
     traffic_routing_method = "Performance"
-
-    #starting with two regions add more if desired
-    region1_resourceTargetId = module.region_1.resourceTargetId
-    region2_resourceTargetId = module.region_2.resourceTargetId
 }
-*/
-#todo take out vmss autoscale
-#add the elb in front of matchmaker
-#associate the vm to the elb
 
-
-/*
-
-    tmregion1 = data.azurerm_traffic_manager_geographical_location.tmregion1.id
-    tmregion2 = data.azurerm_traffic_manager_geographical_location.tmregion2.id
-
-//use this value for the TM name
-value = module.tm.traffic_manager_profile_name
-
-//get an id of public ip
-
-//add method of a 3rd region
-module "add_region_3" {
+#add the first region TM endpoint
+module "add_region_1_mm" {
     source = "./networking/trafficmgraddreg"
-    traffic_manager_profile_name = var.traffic_manager_profile_name
-    region_location = "foo"
-    region_resourceTargetId
+    base_name = local.base_name
+    resource_group_name = module.region_1.resource_group_name
+
+    traffic_manager_profile_name = module.tm-profile-mm.traffic_manager_profile_name
+    index = module.region_1.index
+
+    #plug in the ELB of the MM
+    region_resourceTargetId = module.region_1.matchmaker-elb-id
 }
 
-//add method of a 3rd region
-module "add_region_4" {
+#add the second region TM endpoint
+module "add_region_2_mm" {
     source = "./networking/trafficmgraddreg"
-    traffic_manager_profile_name = var.traffic_manager_profile_name
-    region_location = "bar"
+    base_name = local.base_name
+    resource_group_name = module.region_2.resource_group_name
+
+    traffic_manager_profile_name = module.tm-profile-mm.traffic_manager_profile_name
+    index = module.region_2.index
+
+    #plug in the ELB of the MM
+    region_resourceTargetId = module.region_2.matchmaker-elb-id
 }
-*/
+
+#first set up the backend traffic manager profile
+module "tm-profile-ue4" {
+    source = "./networking/trafficmgr"
+    base_name = local.base_name
+
+    #put the PM in the first region
+    resource_group_name = module.region_1.resource_group_name
+
+    service_name = "ue4"
+    #the next line can be Weighted or Geographic for example
+    traffic_routing_method = "Performance"
+}
+
+#add the first region TM endpoint
+module "add_region_1_ue4" {
+    source = "./networking/trafficmgraddreg"
+    base_name = local.base_name
+    resource_group_name = module.region_1.resource_group_name
+
+    traffic_manager_profile_name = module.tm-profile-ue4.traffic_manager_profile_name
+    index = module.region_1.index
+
+    #plug in the ELB of the MM
+    region_resourceTargetId = module.region_1.ue4-elb-id
+}
+
+#add the first region TM endpoint
+module "add_region_2_ue4" {
+    source = "./networking/trafficmgraddreg"
+    base_name = local.base_name
+    resource_group_name = module.region_2.resource_group_name
+
+    traffic_manager_profile_name = module.tm-profile-ue4.traffic_manager_profile_name
+    index = module.region_2.index
+
+    #plug in the ELB of the MM
+    region_resourceTargetId = module.region_2.ue4-elb-id
+}
 
 /* TODO
-    -turn on accelerated networking on the vms and vmss
     -decide on faster disks for vms or vmss
     -turn on log analytics and capture diags
     -turn on process for autoupdate on vmss and vms
     -consider how to make the tm add geo points
+    -take out vmss autoscale
 */

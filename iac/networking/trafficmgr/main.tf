@@ -4,30 +4,16 @@ variable "base_name" {
   type        = string
 }
 
-/*
- variable "resource_group" {
-  description = "The RG for the storage account"
-  type = object({
-    id     = string
-    location = string
-    name   = string
-  })
-}
-*/
 variable "resource_group_name" {
     type = string
 }
 
 variable "traffic_routing_method" {
     type = string
-    default = "Weighted"
+    default = "Performance"
 }
 
-variable "region1_resourceTargetId" {
-    type = string
-}
-
-variable "region2_resourceTargetId" {
+variable "service_name" {
     type = string
 }
 
@@ -36,7 +22,7 @@ output "traffic_manager_profile_name" {
 }
 
 resource "azurerm_traffic_manager_profile" "traffic_manager_profile" {
-  name                   = format("%s-trafficmgr", var.base_name)
+  name                   = format("%s-trafficmgr-%s", var.base_name, var.service_name)
   resource_group_name    = var.resource_group_name
   traffic_routing_method = var.traffic_routing_method
 
@@ -52,6 +38,7 @@ resource "azurerm_traffic_manager_profile" "traffic_manager_profile" {
   }
 }
 
+/*
 resource "azurerm_traffic_manager_endpoint" "region1" {
   name                = format("%s-region1", var.base_name)
   resource_group_name = var.resource_group_name
@@ -69,3 +56,4 @@ resource "azurerm_traffic_manager_endpoint" "region2" {
   type                = "azureEndpoints"
   priority            = 2
 }
+*/

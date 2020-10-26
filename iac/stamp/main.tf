@@ -10,6 +10,11 @@ variable "index" {
   type = string
 }
 
+#this is used for the outer loops
+output "index" {
+  value = var.index
+}
+
 resource "random_string" "admin_password" {
   length  = 10
   special = true
@@ -67,6 +72,11 @@ module "matchmaker-elb" {
   private_ip_address_allocation = "Static"
 }
 
+#output the ELB id for the outer loop into Traffic Manager
+output "matchmaker-elb-id" {
+  value = module.matchmaker-elb.lb_id
+}
+
 module "ue4-elb" {
   source         = "../networking/elb"
   base_name      = var.base_name
@@ -82,6 +92,11 @@ module "ue4-elb" {
   subnet_id = module.unreal-vnet.subnet_id
   private_ip_address = "10.100.0.110"
   private_ip_address_allocation = "Static"
+}
+
+#output the ELB id for the outer loop into Traffic Manager
+output "ue4-elb-id" {
+  value = module.ue4-elb.lb_id
 }
 
 #add a lb probe/rule for mm - 90
@@ -314,13 +329,11 @@ module "mm-extension" {
   extension_name = "mm-extension"
 }
 
-/*
 module "ue4-extension" {
   source = "../ue4extension"
-  virtual_machine_id = module.compute-vmss.id
+  virtual_machine_scale_set_id  = module.compute-vmss.id
   extension_name = "ue4-extension"
 }
-*/
 
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {

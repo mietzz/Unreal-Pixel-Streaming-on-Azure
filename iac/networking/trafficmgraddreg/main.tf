@@ -20,7 +20,7 @@ variable "index" {
 }
 
 resource "azurerm_traffic_manager_endpoint" "traffic_manager_endpoint" {
-  name                = format("%s-trafficmgr-$s", var.base_name, var.index)
+  name                = format("%s-trafficmgr-%s", var.base_name, var.index)
   resource_group_name = var.resource_group_name
   profile_name        = var.traffic_manager_profile_name
   target_resource_id  = var.region_resourceTargetId  
