@@ -3,8 +3,8 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); 
 
-choco install git -yr --no-progress
-choco install directx -yr --no-progress
+choco upgrade git -yr --no-progress
+choco upgrade directx -yr --no-progress
 
 New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
@@ -22,10 +22,8 @@ else {
 Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
 
 $blobDestination = $folder + '\iac\unreal\app'
-
 $zipFileName = 'C:\WindowsNoEditor.zip'
 
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
-
 
 exit 0
