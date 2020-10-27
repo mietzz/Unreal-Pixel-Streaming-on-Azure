@@ -39,11 +39,11 @@ output "subnet_id" {
 }
 
 #resources
-resource "azurerm_network_ddos_protection_plan" "ddos" {
-  name                = format("%s-ddosplan", var.base_name)
-  location            = var.resource_group.location
-  resource_group_name = var.resource_group.name
-}
+#resource "azurerm_network_ddos_protection_plan" "ddos" {
+#  name                = format("%s-ddosplan", var.base_name)
+#  location            = var.resource_group.location
+#  resource_group_name = var.resource_group.name
+#}
 
 resource "azurerm_virtual_network" "vnet" {
   name                = format("%s-vnet", var.base_name)
@@ -51,10 +51,10 @@ resource "azurerm_virtual_network" "vnet" {
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
 
-  ddos_protection_plan {
-    id     = azurerm_network_ddos_protection_plan.ddos.id
-    enable = true
-  }
+#  ddos_protection_plan {
+#    id     = azurerm_network_ddos_protection_plan.ddos.id
+#    enable = true
+#  }
 
 }
 

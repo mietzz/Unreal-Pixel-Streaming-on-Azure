@@ -56,6 +56,7 @@ module "region_1" {
     index                     = "1"
 }
 
+/*
 module "region_2" {
     source                    = "./stamp"
     base_name                 = local.base_name
@@ -154,6 +155,7 @@ module "add_region_2_ue4" {
     pip_fqdn = module.region_2.ue4-elb-fqdn
     endpoint_location = module.region_2.location
 }
+*/
 
 /* TODO
     -decide on faster disks for vms or vmss?
