@@ -1,5 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
+
+
 // A variable to hold the last time we scaled up, used for determining if we are in a determined idle state and might need to scale down (via idleMinutes and connectionIdleRatio)
 var lastScaleupTime = Date.now();
 // A varible to the last time we scaled down, used for a reference to know how quick we should consider scaling down again (to avoid multiple scale downs too soon)
@@ -29,7 +32,6 @@ const defaultConfig = {
 	minIdleInstanceCount: 5
 };
 
-
 const argv = require('yargs').argv;
 
 var configFile = (typeof argv.configFile != 'undefined') ? argv.configFile.toString() : '.\\config.json';
@@ -57,6 +59,33 @@ if (typeof argv.httpPort != 'undefined') {
 if (typeof argv.matchmakerPort != 'undefined') {
 	config.matchmakerPort = argv.matchmakerPort;
 }
+
+const options: msRestNodeAuth.MSIVmOptions = {
+	// The objectId of the managed identity you would like the token for.
+	// Required, if your VM has multiple user-assigned managed identities.
+	//
+	//     objectId: "your-managed-identity-object-id",
+	//
+
+	// The clientId of the managed identity you would like the token for.
+	// Required, if your VM has any user-assigned managed identity.
+	//
+	//     clientId: "your-managed-identity-client-id",
+	//
+
+	// The `Azure Resource ID` of the managed identity you would like the token for.
+	// Required, if your VM has multiple user-assigned managed identities.
+	//
+	//     identityId: "your-managed-identity-identity-id",
+	//
+}
+
+msRestNodeAuth.loginWithVmMSI(options).then((msiTokenRes) => {
+	console.log(msiTokenRes);
+}).catch((err) => {
+	console.log(err);
+});
+
 
 //
 // Connect to browser.
@@ -132,12 +161,15 @@ function disconnect(connection) {
 function scaleupInstances(newNodeCount) {
 	console.log(`Scaling up${newNodeCount}!!! Well.. once I code it`);
 
-	lastScaleupTime = Date.now();
+	lastScaleupTime = Date.now
+	//TODO: Use Managed Identity code to scale up the new VMSS node count
 }
 
 function scaledownInstances(newNodeCount) {
 	console.log(`Scaling down to ${newNodeCount}!!! Well.. once I code it`);
 	lastScaledownTime = Date.now();
+
+	//TODO: Use Managed Identity code to scale down the new VMSS node count
 }
 
 function considerAutoScale() {
@@ -148,7 +180,7 @@ function considerAutoScale() {
 	console.log(`Current Servers Connected: ${totalInstances} Current Clients Connected: ${cirrusServer.numConnectedClients}`);
 
 	var numConnections = cirrusServer.numConnectedClients;
-	var safeBuffer = Math.max(totalInstances - config.instanceCountBuffer, config.instanceCountBuffer); // Get the max of the delta or the desired buffer (i.e., when totalInstances < buffer)
+	var availableConnections = Math.max(totalInstances - numConnections, 0);
 
 	var timeElapsedSinceScaleup = Date.now() - lastScaleupTime;
 	var minutesSinceScaleup = Math.round(((timeElapsedSinceScaleup % 86400000) % 3600000) / 60000);
@@ -160,28 +192,28 @@ function considerAutoScale() {
 	if (numConnections > 0 && totalInstances > 0)
 		percentUtilized = numConnections / totalInstances;
 
-	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and safeBuffer: ${safeBuffer} and % used: ${percentUtilized}`);
+	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availableConnections: ${availableConnections} and % used: ${percentUtilized}`);
 
-	// Make sure we didn't just scale up and should wait until the scaling has enough time to react (TODO: add login to validate if scaling is still in process)
+	// Adding hysteresis check to make sure we didn't just scale up and should wait until the scaling has enough time to react (TODO: add logic to validate if scaling is still in process)
 	if (minutesSinceScaleup < minMinutesBetweenScaleups) {
 		console.log(`Waiting to scale since we already recently scaled up or started the service`);
 		return;
 	}
-	// If the current number of user connections is greater than our buffer level that we are trying to stay under
-	else if ((config.instanceCountBuffer > 0) && (numConnections >= safeBuffer)) {
-		console.log(`Not enough safe buffer--scale up`);
-		scaleupInstances(safeBuffer);
+	// If available user connections is less than our desired buffer level scale up
+	else if ((config.instanceCountBuffer > 0) && (availableConnections < config.instanceCountBuffer)) {
+		console.log(`Not enough of a buffer--scale up`);
+		scaleupInstances(config.instanceCountBuffer - availableConnections);
 		return;
 	}
 	// Else if the available percent is less than our desired ratio
-	else if ((config.percentBuffer > 0) && (numConnections / totalInstances >= config.percentBuffer)) {
+	else if ((config.percentBuffer > 0) && (1 - ((numConnections / totalInstances) * 100) <= config.percentBuffer)) {
 		console.log(`Not enough percent ratio buffer--scale up`);
 		var newNodeCount = Math.max(totalInstances * Math.ceil(config.percentBuffer * .1), 1);
 	    scaleupInstances(newNodeCount);
 		return;
 	}
 
-	// Make sure we didn't just scale down and should wait until the scaling has enough time to react (TODO: add login to validate if scaling is still in process)
+	// Adding hysteresis check to make sure we didn't just scale down and should wait until the scaling has enough time to react (TODO: add logic to validate if scaling is still in process)
 	if (minutesSinceScaledown < minMinutesBetweenScaledowns) {
 		console.log(`Waiting to scale down since we already recently scaled down or started the service`);
 		return;
