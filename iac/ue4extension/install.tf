@@ -28,13 +28,13 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
 resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   name                 = var.extension_name
   virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.10"
 
   settings = <<SETTINGS
   {
-    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File \"setupBackendVMSS.ps1; exit 0;\""
+    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupBackendVMSS.ps1; exit 0;\""
   }
   SETTINGS
     protected_settings = <<PROTECTED_SETTINGS
