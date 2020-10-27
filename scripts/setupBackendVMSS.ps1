@@ -1,11 +1,10 @@
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
-
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); 
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 choco upgrade git directx nvidia-display-driver -y --no-progress
 
-New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
+Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
 $folder = "c:\Unreal\"
 if (-not (Test-Path -LiteralPath $folder)) {
