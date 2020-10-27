@@ -2,7 +2,7 @@
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
-choco upgrade git directx nvidia-display-driver -y --no-progress
+choco upgrade git directx -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
@@ -25,5 +25,5 @@ $zipFileName = 'C:\WindowsNoEditor.zip'
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
 
 #install the nvidia driver
-Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/452.39_grid_win10_64bit_whql.exe -OutFile C:\452.39_grid_win10_64bit_whql.exe
-C:\452.39_grid_win10_64bit_whql.exe -s
+Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/452.39_grid_win10_64bit_whql.exe -OutFile C:\unreal\452.39_grid_win10_64bit_whql.exe
+C:\unreal\452.39_grid_win10_64bit_whql.exe -s
