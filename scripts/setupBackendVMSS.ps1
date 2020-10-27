@@ -3,8 +3,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); 
 
-choco upgrade git -yr --no-progress
-choco upgrade directx -yr --no-progress
+choco upgrade git directx nvidia-display-driver -y --no-progress
 
 New-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
