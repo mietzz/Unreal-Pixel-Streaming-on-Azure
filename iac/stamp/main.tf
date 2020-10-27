@@ -353,7 +353,7 @@ module "compute-vmss" {
 
   sku = var.vmss_sku
   instances = var.vmss_start_instances
-  upgrade_mode = "Manual"
+  upgrade_mode = "Automatic"
 
   vm_publisher = var.vmss_source_image_publisher
   vm_offer = var.vmss_source_image_offer

@@ -8,9 +8,8 @@ variable "vnet_address_space" {
 }
 
 variable "subnet_address_prefixes" {
-  default = "10.100.0.0/18"
+  default = "10.100.0.0/22"
 }
-
 
 #the following can only be 6 characters or less
 variable "vm_name" {

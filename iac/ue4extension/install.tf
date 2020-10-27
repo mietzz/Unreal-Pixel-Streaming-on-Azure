@@ -39,7 +39,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   SETTINGS
     protected_settings = <<PROTECTED_SETTINGS
     {
-    "fileUris": ["https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupBackendVMSS.ps1"]
+    "fileUris": ["https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupBackendVMSS.ps1?raw=true"]
     }
   PROTECTED_SETTINGS  
 }
