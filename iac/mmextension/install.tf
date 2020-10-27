@@ -9,10 +9,10 @@ variable "extension_name" {
 resource "azurerm_virtual_machine_extension" "mmextension" {
   name                 = var.extension_name
   virtual_machine_id   = var.virtual_machine_id
-  publisher = "Microsoft.Compute"
-  type = "CustomScriptExtension"
-  type_handler_version = "1.8"
-  auto_upgrade_minor_version = true
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.08"
+  #auto_upgrade_minor_version = true
 
   settings = <<SETTINGS
   {
