@@ -73,9 +73,9 @@ variable "ip_configuration_name" {
   type = string
 }
 
-/* variable "public_ip_address_id" {
+variable "availability_set_id" {
   type = string
-} */
+}
 
 ## outputs
 output "admin_password" {
@@ -101,9 +101,6 @@ resource "azurerm_network_interface" "nic" {
     name                          = var.ip_configuration_name
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
-    #public_ip_address_id          = var.public_ip_address_id
-    #load_balancer_backend_address_pool_ids = [var.lb_backend_address_pool_id]
-    #load_balancer_inbound_nat_rules_ids    = [var.lb_nat_pool_id]          
   }
 }
 
@@ -115,6 +112,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
   enable_automatic_updates = true
+  availability_set_id = var.availability_set_id
   
   network_interface_ids = [
     azurerm_network_interface.nic.id,

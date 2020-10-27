@@ -10,6 +10,16 @@ variable "index" {
   type = string
 }
 
+#this is used for the outer loops
+output "index" {
+  value = var.index
+}
+
+#this is used for the outer loops
+output "location" {
+  value = var.location
+}
+
 resource "random_string" "admin_password" {
   length  = 10
   special = true
@@ -31,6 +41,21 @@ output "resource_group_name" {
   value = module.unreal-rg.resource_group.name
 }
 
+#this is used for service diagnostics
+module "loganalytics" {
+  source = "../mgmt/loganalytics"
+  base_name = var.base_name
+  resource_group_name = module.unreal-rg.resource_group.name
+  location = var.location
+
+  #workspace_id is the output
+  #or id
+}
+
+output "LogA_workspace_id" {
+  value = module.loganalytics.id
+}
+
 #create a virtual network, uses variables in the variables.tf file
 module "unreal-vnet" {
     source                    = "../networking/vnet"
@@ -38,6 +63,8 @@ module "unreal-vnet" {
     resource_group            = module.unreal-rg.resource_group
     vnet_address_space        = var.vnet_address_space
     subnet_address_prefixes   = var.subnet_address_prefixes
+
+    log_analytics_workspace_id = module.loganalytics.id
 }
 
 module "unreal-storage" {
@@ -47,6 +74,16 @@ module "unreal-storage" {
   account_tier             = "Standard"
   account_replication_type = "LRS"  
   index = var.index
+}
+
+module "appinsights" {
+  source = "../mgmt/appinsights"
+  base_name = var.base_name
+  resource_group_name = module.unreal-rg.resource_group.name
+  location = var.location
+
+  #instrumentation_key is the output
+  #app_id is the output
 }
 
 //add an external load balancer in front of the matchmaker vm
@@ -67,6 +104,11 @@ module "matchmaker-elb" {
   private_ip_address_allocation = "Static"
 }
 
+#output the fqdn for the outer loop into Traffic Manager
+output "matchmaker-elb-fqdn" {
+  value = module.matchmaker-elb.fqdn
+}
+
 module "ue4-elb" {
   source         = "../networking/elb"
   base_name      = var.base_name
@@ -82,6 +124,11 @@ module "ue4-elb" {
   subnet_id = module.unreal-vnet.subnet_id
   private_ip_address = "10.100.0.110"
   private_ip_address_allocation = "Static"
+}
+
+#output the ELB id for the outer loop into Traffic Manager
+output "ue4-elb-fqdn" {
+  value = module.ue4-elb.fqdn
 }
 
 #add a lb probe/rule for mm - 90
@@ -174,6 +221,12 @@ module "ue4-8889-rule" {
   load_distribution = "SourceIPProtocol"
 }
 
+module "matchmaker-availset" {
+  source = "../compute/availset"
+  base_name = var.base_name
+  resource_group = module.unreal-rg.resource_group  
+}
+
 #windows based matchmaking server with no pip as it is behind a ELB
 module "matchmaker-vm" {
   source = "../compute/vm"
@@ -183,6 +236,8 @@ module "matchmaker-vm" {
   subnet_id = module.unreal-vnet.subnet_id
   dia_stg_acct_id = module.unreal-storage.id
   storage_uri = module.unreal-storage.uri
+
+  availability_set_id = module.matchmaker-availset.availability_set_id
 
   admin_username = var.matchmaker_admin_username
   admin_password = random_string.admin_password.result
@@ -221,6 +276,8 @@ module "matchmaker_nsg" {
   security_rule_destination_port_range     = "90"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
+
+  log_analytics_workspace_id = module.loganalytics.id
 }
 
 #associate the NSG to the NIC
@@ -264,6 +321,8 @@ module "ue4_nsg" {
   security_rule_destination_port_range     = "7070"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
+
+  log_analytics_workspace_id = module.loganalytics.id
 }
 
 module "matchmaker_security_rule_888x" {
@@ -314,13 +373,11 @@ module "mm-extension" {
   extension_name = "mm-extension"
 }
 
-/*
 module "ue4-extension" {
   source = "../ue4extension"
-  virtual_machine_id = module.compute-vmss.id
+  virtual_machine_scale_set_id  = module.compute-vmss.id
   extension_name = "ue4-extension"
 }
-*/
 
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {
