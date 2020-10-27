@@ -25,4 +25,6 @@ $zipFileName = 'C:\WindowsNoEditor.zip'
 
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
 
-exit 0
+#install the nvidia driver
+Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/452.39_grid_win10_64bit_whql.exe -OutFile C:\452.39_grid_win10_64bit_whql.exe
+C:\452.39_grid_win10_64bit_whql.exe -s
