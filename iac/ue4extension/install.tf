@@ -26,13 +26,12 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
 
   settings = <<SETTINGS
   {
-    "fileUris": [
-      "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupBackendVMSS.ps1"],
-    "commandToExecute": "powershell.exe ./setupBackendVMSS.ps1"
+    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupBackendVMSS.ps1; exit 0;\""
   }
   SETTINGS
-  protected_settings = <<PROTECTED_SETTINGS
-  {
-  }
+    protected_settings = <<PROTECTED_SETTINGS
+    {
+    "fileUris": ["https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure/blob/main/scripts/setupBackendVMSS.ps1"]
+    }
   PROTECTED_SETTINGS  
 }
