@@ -11,7 +11,7 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
   virtual_machine_id   = var.virtual_machine_id
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
-  type_handler_version = "1.10.9"
+  type_handler_version = "1.10"
   #auto_upgrade_minor_version = true
 
   settings = <<SETTINGS

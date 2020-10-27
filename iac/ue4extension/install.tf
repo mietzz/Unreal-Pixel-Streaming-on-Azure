@@ -12,7 +12,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
-  type_handler_version = "1.10.9"
+  type_handler_version = "1.10"
 
   settings = <<SETTINGS
   {
@@ -33,7 +33,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
   virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
   publisher            = "Microsoft.HpcCompute"
   type                 = "NvidiaGpuDriverWindows"
-  type_handler_version = "1.3.1"
+  type_handler_version = "1.3"
   auto_upgrade_minor_version = true
 
   settings = <<SETTINGS
