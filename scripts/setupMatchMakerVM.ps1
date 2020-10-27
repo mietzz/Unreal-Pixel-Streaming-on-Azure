@@ -1,4 +1,5 @@
-Set-ExecutionPolicy Bypass -Scope Process -Force
+Write-Host "Hello World"
+#Set-ExecutionPolicy Bypass -Scope Process -Force
 
 #[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 #[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -15,7 +16,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 #if (-not (Test-Path -LiteralPath $folder)) {
 #    git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
     #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
-}
+#}
 #else {
     #rename the existing folder
     #$endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
