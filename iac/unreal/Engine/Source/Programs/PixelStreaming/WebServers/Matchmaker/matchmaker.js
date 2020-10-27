@@ -1,5 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
+
+
 // A variable to hold the last time we scaled up, used for determining if we are in a determined idle state and might need to scale down (via idleMinutes and connectionIdleRatio)
 var lastScaleupTime = Date.now();
 // A varible to the last time we scaled down, used for a reference to know how quick we should consider scaling down again (to avoid multiple scale downs too soon)
@@ -29,7 +32,6 @@ const defaultConfig = {
 	minIdleInstanceCount: 5
 };
 
-
 const argv = require('yargs').argv;
 
 var configFile = (typeof argv.configFile != 'undefined') ? argv.configFile.toString() : '.\\config.json';
@@ -57,6 +59,33 @@ if (typeof argv.httpPort != 'undefined') {
 if (typeof argv.matchmakerPort != 'undefined') {
 	config.matchmakerPort = argv.matchmakerPort;
 }
+
+const options: msRestNodeAuth.MSIVmOptions = {
+	// The objectId of the managed identity you would like the token for.
+	// Required, if your VM has multiple user-assigned managed identities.
+	//
+	//     objectId: "your-managed-identity-object-id",
+	//
+
+	// The clientId of the managed identity you would like the token for.
+	// Required, if your VM has any user-assigned managed identity.
+	//
+	//     clientId: "your-managed-identity-client-id",
+	//
+
+	// The `Azure Resource ID` of the managed identity you would like the token for.
+	// Required, if your VM has multiple user-assigned managed identities.
+	//
+	//     identityId: "your-managed-identity-identity-id",
+	//
+}
+
+msRestNodeAuth.loginWithVmMSI(options).then((msiTokenRes) => {
+	console.log(msiTokenRes);
+}).catch((err) => {
+	console.log(err);
+});
+
 
 //
 // Connect to browser.
@@ -132,12 +161,15 @@ function disconnect(connection) {
 function scaleupInstances(newNodeCount) {
 	console.log(`Scaling up${newNodeCount}!!! Well.. once I code it`);
 
-	lastScaleupTime = Date.now();
+	lastScaleupTime = Date.now
+	//TODO: Use Managed Identity code to scale up the new VMSS node count
 }
 
 function scaledownInstances(newNodeCount) {
 	console.log(`Scaling down to ${newNodeCount}!!! Well.. once I code it`);
 	lastScaledownTime = Date.now();
+
+	//TODO: Use Managed Identity code to scale down the new VMSS node count
 }
 
 function considerAutoScale() {
@@ -162,7 +194,7 @@ function considerAutoScale() {
 
 	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and safeBuffer: ${safeBuffer} and % used: ${percentUtilized}`);
 
-	// Make sure we didn't just scale up and should wait until the scaling has enough time to react (TODO: add login to validate if scaling is still in process)
+	// Adding hysteresis check to make sure we didn't just scale up and should wait until the scaling has enough time to react (TODO: add logic to validate if scaling is still in process)
 	if (minutesSinceScaleup < minMinutesBetweenScaleups) {
 		console.log(`Waiting to scale since we already recently scaled up or started the service`);
 		return;
@@ -181,7 +213,7 @@ function considerAutoScale() {
 		return;
 	}
 
-	// Make sure we didn't just scale down and should wait until the scaling has enough time to react (TODO: add login to validate if scaling is still in process)
+	// Adding hysteresis check to make sure we didn't just scale down and should wait until the scaling has enough time to react (TODO: add logic to validate if scaling is still in process)
 	if (minutesSinceScaledown < minMinutesBetweenScaledowns) {
 		console.log(`Waiting to scale down since we already recently scaled down or started the service`);
 		return;
