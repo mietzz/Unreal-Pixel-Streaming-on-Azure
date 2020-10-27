@@ -6,6 +6,17 @@ variable "extension_name" {
     type = string
 }
 
+/*
+resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
+  name                 = "NvidiaGpuDriverWindows"
+  virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
+  publisher            = "Microsoft.HpcCompute"
+  type                 = "NvidiaGpuDriverWindows"
+  type_handler_version = "1.3"
+  auto_upgrade_minor_version = true
+}
+*/
+
 resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   name                 = var.extension_name
   virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
@@ -20,13 +31,8 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
     "commandToExecute": "powershell.exe ./setupBackendVMSS.ps1"
   }
   SETTINGS
-}
-
-resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
-  name                 = "NvidiaGpuDriverWindows"
-  virtual_machine_scale_set_id    = var.virtual_machine_scale_set_id 
-  publisher            = "Microsoft.HpcCompute"
-  type                 = "NvidiaGpuDriverWindows"
-  type_handler_version = "1.3"
-  auto_upgrade_minor_version = true
+  protected_settings = <<PROTECTED_SETTINGS
+  {
+  }
+  PROTECTED_SETTINGS  
 }
