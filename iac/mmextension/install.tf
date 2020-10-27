@@ -16,7 +16,7 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
 
   settings = <<SETTINGS
   {
-    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupMatchMakerVM.ps1; exit 0;\"
+    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupMatchMakerVM.ps1; exit 0;\""
   }
   SETTINGS
     protected_settings = <<PROTECTED_SETTINGS
