@@ -23,9 +23,6 @@ else {
     #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
 }
 
-#install the nodejs
-choco upgrade nodejs -yf --no-progress
-
 $mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
 cd $mmServiceFolder 
 $RunMMService = ".\run.bat"
