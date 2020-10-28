@@ -368,22 +368,30 @@ module "compute-vmss" {
 }
 
 module "mm-extension" {
-  source = "../mmextension"
+  source = "../extensions/mmextension"
   virtual_machine_id = module.matchmaker-vm.vm_id
   extension_name = "mm-extension"
 }
 
 module "ue4-extension" {
-  source = "../ue4extension"
+  source = "../extensions/ue4extension"
   virtual_machine_scale_set_id  = module.compute-vmss.id
   extension_name = "ue4-extension"
 }
 
 module "ue4-nvidia-extension" {
-  source = "../nvidiaext"
+  source = "../extensions/nvidiaext"
   virtual_machine_scale_set_id  = module.compute-vmss.id
   extension_name = "ue4_nvidia_driver"
 }
+
+/*
+module "ue4-launch-pixel-streamer" {
+  source = "../extensions/launchpixelstreamer"
+  virtual_machine_scale_set_id  = module.compute-vmss.id
+  extension_name = "ue4-launch-pixel-streamer"
+}
+*/
 
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {
