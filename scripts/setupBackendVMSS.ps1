@@ -1,7 +1,7 @@
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-choco upgrade git directx -y --no-progress
+choco upgrade git directx nodejs -y --no-progress
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
 $folder = "c:\Unreal\"
@@ -22,14 +22,6 @@ $zipFileName = 'C:\WindowsNoEditor.zip'
 
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
 
-#install the nvidia driver
-Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/452.39_grid_win10_64bit_whql.exe -OutFile C:\unreal\452.39_grid_win10_64bit_whql.exe
-
-#cd \Unreal
-#Invoke-Item ./"452.39_grid_win10_64bit_whql.exe -s"
-#install the nodejs
-choco install nodejs -yf --no-progress
-
 $RunPixelStreamer = "C:\Unreal\iac\unreal\App\WindowsNoEditor\PixelStreamer.exe"
 $arg1 = "
 -AudioMixer"
@@ -43,6 +35,8 @@ $vmServiceFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\Engine\Source\Progr
 
 cd $vmServiceFolder 
 
-$RunVMSSService = ".\runAWS_WithTURN.bat"
+#$RunVMSSService = ".\runAWS_WithTURN.bat"
+#& $RunVMSSService
 
-& $RunVMSSService
+#need to change this as an exec 
+start-process "cmd.exe" "/c .\runAWS_WithTURN.bat"
