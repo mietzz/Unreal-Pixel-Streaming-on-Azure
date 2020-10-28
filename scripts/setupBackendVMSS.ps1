@@ -25,5 +25,5 @@ Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
 #install the nvidia driver
 Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/452.39_grid_win10_64bit_whql.exe -OutFile C:\unreal\452.39_grid_win10_64bit_whql.exe
 
-cd \Unreal
-Invoke-Item ./"452.39_grid_win10_64bit_whql.exe -s"
+#cd \Unreal
+#Invoke-Item ./"452.39_grid_win10_64bit_whql.exe -s"

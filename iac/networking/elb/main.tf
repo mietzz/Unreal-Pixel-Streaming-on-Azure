@@ -109,11 +109,12 @@ resource "azurerm_lb_nat_pool" "lb_nat_pool" {
   backend_port                   = var.nat_pool_backend_port
 }
 
+#change this port at some point
 resource "azurerm_lb_probe" "probe" {
   name                = format("%s-%s-lb-probe", var.base_name, var.lb_name)
   resource_group_name = var.resource_group.name
   loadbalancer_id     = azurerm_lb.lb.id
-  port                = 22
+  port                = 3389
   protocol            = "Tcp"
 }
 
@@ -125,6 +126,6 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_address_pool_id        = azurerm_lb_backend_address_pool.lb_backend_address_pool.id
   frontend_ip_configuration_name = "external"
   protocol                       = "Tcp"
-  frontend_port                  = 22
-  backend_port                   = 22
+  frontend_port                  = 3389
+  backend_port                   = 3389
 }

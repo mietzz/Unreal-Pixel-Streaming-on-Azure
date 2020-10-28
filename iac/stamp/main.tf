@@ -379,6 +379,12 @@ module "ue4-extension" {
   extension_name = "ue4-extension"
 }
 
+module "ue4-nvidia-extension" {
+  source = "../nvidiaext"
+  virtual_machine_scale_set_id  = module.compute-vmss.id
+  extension_name = "ue4_nvidia_driver"
+}
+
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {
   source = "../compute/autoscale"
