@@ -25,7 +25,10 @@ else {
 
 $mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
 cd $mmServiceFolder 
-$RunMMService = ".\run.bat"
+#$RunMMService = ".\run.bat"
 
-& $RunMMService
+#& $RunMMService
+
+#need to change this as an exec 
+start-process "cmd.exe" "/c .\run.bat"
 
