@@ -385,14 +385,6 @@ module "ue4-nvidia-extension" {
   extension_name = "ue4_nvidia_driver"
 }
 
-/*
-module "ue4-launch-pixel-streamer" {
-  source = "../extensions/launchpixelstreamer"
-  virtual_machine_scale_set_id  = module.compute-vmss.id
-  extension_name = "ue4-launch-pixel-streamer"
-}
-*/
-
 /* disabled as code is now in code on the VMSS Servers
 module "compute-autoscale" {
   source = "../compute/autoscale"
