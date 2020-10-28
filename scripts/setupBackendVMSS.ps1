@@ -27,3 +27,17 @@ Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblob
 
 #cd \Unreal
 #Invoke-Item ./"452.39_grid_win10_64bit_whql.exe -s"
+#install the nodejs
+choco install nodejs -yf --no-progress
+
+$RunPixelStreamer = "C:\Unreal\iac\unreal\App\WindowsNoEditor\PixelStreamer.exe"
+$arg1 = "
+-AudioMixer"
+$arg2 = "-PixelStreamingIP=localhost"
+$arg3 = "-PixelStreamingPort=8888"
+$arg4 = "-RenderOffScreen"
+
+& $RunPixelStreamer $arg1 $arg2 $arg3 $arg4
+
+#$RunVMSSService = "C:\Unreal\iac\unreal\App\WindowsNoEditor\PixelStreamer.exe"
+
