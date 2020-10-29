@@ -110,7 +110,7 @@ resource "azurerm_network_interface" "nic" {
 
 resource "azurerm_windows_virtual_machine" "vm" {
   count                    = var.vm_count
-  name                     = format("%s-vm.%s", var.vm_name, count.index)
+  name                     = format("%s-vm%s", var.vm_name, count.index)
   location                 = var.resource_group.location
   resource_group_name      = var.resource_group.name
   size                     = var.vm_size
