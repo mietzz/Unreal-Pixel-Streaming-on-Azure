@@ -23,8 +23,7 @@ $zipFileName = 'C:\WindowsNoEditor.zip'
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination
 
 $RunPixelStreamer = "C:\Unreal\iac\unreal\App\WindowsNoEditor\PixelStreamer.exe"
-$arg1 = "
--AudioMixer"
+$arg1 = "-AudioMixer"
 $arg2 = "-PixelStreamingIP=localhost"
 $arg3 = "-PixelStreamingPort=8888"
 $arg4 = "-RenderOffScreen"
@@ -32,7 +31,6 @@ $arg4 = "-RenderOffScreen"
 & $RunPixelStreamer $arg1 $arg2 $arg3 $arg4
 
 $vmServiceFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
-
 cd $vmServiceFolder 
 
 #$RunVMSSService = ".\runAWS_WithTURN.bat"

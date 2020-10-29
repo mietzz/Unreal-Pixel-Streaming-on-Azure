@@ -92,10 +92,9 @@ output "nic_id" {
 
 ## resources
 resource "azurerm_network_interface" "nic" {
-  name                = format("%s-nic", var.vm_name)
+  name                = format("%s-nic-%s", var.vm_name, lower(var.resource_group.location))
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
-  #enable_accelerated_networking = true
 
   ip_configuration {
     name                          = var.ip_configuration_name

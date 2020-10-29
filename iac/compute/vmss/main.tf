@@ -105,7 +105,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   }
 
   network_interface {
-    name    = "vmss-nic"
+    name    = format("vmss-nic-%s", lower(var.resource_group.location))
     primary = true
     network_security_group_id = var.network_security_group_id
 

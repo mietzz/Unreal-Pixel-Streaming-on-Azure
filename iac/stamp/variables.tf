@@ -1,14 +1,17 @@
-/* variable "location" {
-  description = "Location of the network"
-  default     = "eastus"
-} */
-
 variable "vnet_address_space" {
   default = "10.100.0.0/16"
 }
 
 variable "subnet_address_prefixes" {
   default = "10.100.0.0/22"
+}
+
+variable "matchmaker_elb_private_ip_address" {
+  default = "10.100.0.100"
+}
+
+variable "ue4_elb_private_ip_address" {
+  default = "10.100.0.110"
 }
 
 #the following can only be 6 characters or less
@@ -20,23 +23,23 @@ variable "matchmaker_vm_size" {
   default = "Standard_DS3_v2"
 }
 
-variable "matchmaker_vm_publisher" {    
+variable "matchmaker_vm_publisher" {
   default = "MicrosoftWindowsServer"
 }
 
-variable "matchmaker_vm_offer" {        
+variable "matchmaker_vm_offer" {
   default = "WindowsServer"
 }
 
-variable "matchmaker_vm_sku" {          
+variable "matchmaker_vm_sku" {
   default = "2019-Datacenter"
 }
 
-variable "matchmaker_vm_version" {      
-  default = "latest"  
+variable "matchmaker_vm_version" {
+  default = "latest"
 }
 
-variable "matchmaker_admin_username" {  
+variable "matchmaker_admin_username" {
   default = "azureadmin"
 }
 /*
@@ -63,7 +66,7 @@ variable "vmss_source_image_publisher" {
 }
 
 variable "vmss_source_image_offer" {
-  default =  "Windows-10"
+  default = "Windows-10"
 }
 
 variable "vmss_source_image_sku" {

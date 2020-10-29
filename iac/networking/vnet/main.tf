@@ -39,6 +39,8 @@ output "subnet_id" {
 }
 
 #resources
+
+#commented the following from a cost perspective. 
 #resource "azurerm_network_ddos_protection_plan" "ddos" {
 #  name                = format("%s-ddosplan", var.base_name)
 #  location            = var.resource_group.location
@@ -46,7 +48,7 @@ output "subnet_id" {
 #}
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = format("%s-vnet", var.base_name)
+  name                = format("%s-vnet-%s", var.base_name, lower(var.resource_group.location))
   address_space       = [var.vnet_address_space]
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
@@ -59,14 +61,14 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "subnet" {
-  name                 = format("%s-subnet", var.base_name)
+  name                 = format("%s-subnet-%s", var.base_name, lower(var.resource_group.location))
   resource_group_name  = var.resource_group.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes = [var.subnet_address_prefixes]
 }
 
 resource "azurerm_monitor_diagnostic_setting" "vm-diag" {
-  name               = "vm-diag"
+  name               = format("%s-vm-diag-%s", var.base_name, lower(var.resource_group.location))
   target_resource_id = azurerm_virtual_network.vnet.id
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
