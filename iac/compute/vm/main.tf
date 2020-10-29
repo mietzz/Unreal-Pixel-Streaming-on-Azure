@@ -6,31 +6,35 @@ variable "base_name" {
 variable "resource_group" {
   description = "The RG VMs"
   type = object({
-    id     = string
+    id       = string
     location = string
-    name   = string
+    name     = string
   })
 }
 
+variable "vm_count" {
+  type = number
+}
+
 variable "vm_size" {
-   description = "VM Size for the client"
+  description = "VM Size for the client"
   type        = string
 }
 
 variable "vm_publisher" {
-  type        = string
+  type = string
 }
 
 variable "vm_offer" {
-  type        = string
+  type = string
 }
 
 variable "vm_sku" {
-  type        = string
+  type = string
 }
 
 variable "vm_version" {
-  type        = string
+  type = string
 }
 
 variable "subnet_id" {
@@ -62,11 +66,11 @@ variable "vm_name" {
 }
 
 variable "lb_backend_address_pool_id" {
-    type = string
+  type = string
 }
 
 variable "lb_nat_pool_id" {
-    type = string
+  type = string
 }
 
 variable "ip_configuration_name" {
@@ -82,17 +86,18 @@ output "admin_password" {
   value = var.admin_password
 }
 
-output "vm_id" {
-    value = azurerm_windows_virtual_machine.vm.id
+output "vms" {
+  value = azurerm_windows_virtual_machine.vm
 }
 
-output "nic_id" {
-  value = azurerm_network_interface.nic.id
+output "nics" {
+  value = azurerm_network_interface.nic
 }
 
 ## resources
 resource "azurerm_network_interface" "nic" {
-  name                = format("%s-nic-%s", var.vm_name, lower(var.resource_group.location))
+  count               = var.vm_count
+  name                = format("%s-nic-%s.%s", var.vm_name, lower(var.resource_group.location), count.index)
   location            = var.resource_group.location
   resource_group_name = var.resource_group.name
 
@@ -104,17 +109,18 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_windows_virtual_machine" "vm" {
-  name                = format("%s-vm", var.vm_name)
-  location            = var.resource_group.location
-  resource_group_name = var.resource_group.name
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
+  count                    = var.vm_count
+  name                     = format("%s-vm.%s", var.vm_name, count.index)
+  location                 = var.resource_group.location
+  resource_group_name      = var.resource_group.name
+  size                     = var.vm_size
+  admin_username           = var.admin_username
+  admin_password           = var.admin_password
   enable_automatic_updates = true
-  availability_set_id = var.availability_set_id
-  
+  availability_set_id      = var.availability_set_id
+
   network_interface_ids = [
-    azurerm_network_interface.nic.id,
+    azurerm_network_interface.nic[count.index].id,
   ]
 
   os_disk {
@@ -132,5 +138,5 @@ resource "azurerm_windows_virtual_machine" "vm" {
   boot_diagnostics {
     //enabled = "true"
     storage_account_uri = var.storage_uri
-  }  
+  }
 }

@@ -122,7 +122,7 @@ module "ue4-elb" {
 
   nat_pool_frontend_port_start = 49152
   nat_pool_frontend_port_end   = 65534
-  nat_pool_backend_port        = 7070
+  nat_pool_backend_port        = 49151
 
   sku       = "Standard"
   subnet_id = module.unreal-vnet.subnet_id
@@ -233,7 +233,9 @@ module "matchmaker-availset" {
 }
 
 #windows based matchmaking server with no pip as it is behind a ELB
+
 module "matchmaker-vm" {
+  vm_count        = var.vm_count
   source          = "../compute/vm"
   base_name       = var.base_name
   vm_name         = format("%s-%s", var.base_name, var.vm_name)
@@ -261,7 +263,7 @@ module "matchmaker-vm" {
 # add the matchmaker vm to the elb
 module "vm_to_backend_pool" {
   source                  = "../networking/backendpoolassociation"
-  network_interface_id    = module.matchmaker-vm.nic_id
+  network_interface_ids   = module.matchmaker-vm.nics
   ip_configuration_name   = format("%s-mm-config-%s", var.base_name, var.index)
   backend_address_pool_id = module.matchmaker-elb.lb_backend_address_pool_id
 }
@@ -288,7 +290,7 @@ module "matchmaker_nsg" {
 #associate the NSG to the NIC
 module "matchmaker_nsg_association" {
   source                    = "../networking/nsgassociation"
-  network_interface_id      = module.matchmaker-vm.nic_id
+  network_interface_ids     = module.matchmaker-vm.nics
   network_security_group_id = module.matchmaker_nsg.network_security_group_id
 }
 
@@ -373,9 +375,9 @@ module "compute-vmss" {
 }
 
 module "mm-extension" {
-  source             = "../extensions/mmextension"
-  virtual_machine_id = module.matchmaker-vm.vm_id
-  extension_name     = "mm-extension"
+  source              = "../extensions/mmextension"
+  virtual_machine_ids = module.matchmaker-vm.vms
+  extension_name      = "mm-extension"
 }
 
 module "ue4-extension" {

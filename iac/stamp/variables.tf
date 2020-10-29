@@ -19,6 +19,10 @@ variable "vm_name" {
   default = "mm"
 }
 
+variable "vm_count" {
+  default = 3
+}
+
 variable "matchmaker_vm_size" {
   default = "Standard_DS3_v2"
 }
