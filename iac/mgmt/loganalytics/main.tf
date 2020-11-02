@@ -5,23 +5,31 @@ variable "base_name" {
 }
 
 variable "resource_group_name" {
-  type        = string
+  type = string
 }
 
 variable "location" {
-  type        = string
+  type = string
+}
+
+variable "logA_Name" {
+  type = string
 }
 
 output "workspace_id" {
-    value = azurerm_log_analytics_workspace.logA.workspace_id
+  value = azurerm_log_analytics_workspace.logA.workspace_id
+}
+
+output "workspace_key" {
+  value = azurerm_log_analytics_workspace.logA.primary_shared_key
 }
 
 output "id" {
-    value = azurerm_log_analytics_workspace.logA.id
+  value = azurerm_log_analytics_workspace.logA.id
 }
 
 resource "azurerm_log_analytics_workspace" "logA" {
-  name                = format("%s-loganalytics-%s", var.base_name, lower(var.location))
+  name                = var.logA_Name
   resource_group_name = var.resource_group_name
   location            = var.location
   sku                 = "PerGB2018"

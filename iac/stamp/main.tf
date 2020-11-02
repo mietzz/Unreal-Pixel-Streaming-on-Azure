@@ -47,13 +47,7 @@ module "loganalytics" {
   base_name           = var.base_name
   resource_group_name = module.unreal-rg.resource_group.name
   location            = var.location
-
-  #workspace_id is the output
-  #or id
-}
-
-output "LogA_workspace_id" {
-  value = module.loganalytics.id
+  logA_Name           = format("%s-loganalytics-%s", var.base_name, lower(var.location))
 }
 
 #create a virtual network, uses variables in the variables.tf file
@@ -73,8 +67,8 @@ module "unreal-storage" {
   source                   = "../storage"
   base_name                = var.base_name
   resource_group           = module.unreal-rg.resource_group
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_tier             = var.storage_account_tier
+  account_replication_type = var.storage_account_replication_type
   index                    = var.index
 }
 
@@ -100,7 +94,7 @@ module "matchmaker-elb" {
   nat_pool_frontend_port_end   = 90
   nat_pool_backend_port        = 90
 
-  sku       = "Standard"
+  sku       = var.matchmaker_elb_sku
   subnet_id = module.unreal-vnet.subnet_id
 
   ### todo: use the function in terraform to get it from the range ###
@@ -124,7 +118,7 @@ module "ue4-elb" {
   nat_pool_frontend_port_end   = 65534
   nat_pool_backend_port        = 49151
 
-  sku       = "Standard"
+  sku       = var.ue4_elb_sku
   subnet_id = module.unreal-vnet.subnet_id
 
   ### todo: use the function in terraform to get it from the range ###
@@ -227,11 +221,13 @@ module "ue4-8889-rule" {
 }
 
 module "matchmaker-availset" {
-  source         = "../compute/availset"
-  base_name      = var.base_name
-  resource_group = module.unreal-rg.resource_group
+  source                       = "../compute/availset"
+  base_name                    = var.base_name
+  resource_group               = module.unreal-rg.resource_group
+  platform_update_domain_count = var.platform_update_domain_count
+  platform_fault_domain_count  = var.platform_fault_domain_count
+  managed                      = var.managed
 }
-
 #windows based matchmaking server with no pip as it is behind a ELB
 
 module "matchmaker-vm" {
@@ -360,7 +356,7 @@ module "compute-vmss" {
 
   sku          = var.vmss_sku
   instances    = var.vmss_start_instances
-  upgrade_mode = "Automatic"
+  upgrade_mode = var.vmss_upgrade_mode
 
   vm_publisher = var.vmss_source_image_publisher
   vm_offer     = var.vmss_source_image_offer
@@ -380,6 +376,14 @@ module "mm-extension" {
   extension_name      = "mm-extension"
 }
 
+module "mm-msft-extension" {
+  source              = "../extensions/microsoftmonitoringagent"
+  virtual_machine_ids = module.matchmaker-vm.vms
+  extension_name      = "mm-msft-extension"
+  workspace_id        = module.loganalytics.workspace_id
+  workspace_key       = module.loganalytics.workspace_key
+}
+
 module "ue4-extension" {
   source                       = "../extensions/ue4extension"
   virtual_machine_scale_set_id = module.compute-vmss.id
@@ -390,6 +394,49 @@ module "ue4-nvidia-extension" {
   source                       = "../extensions/nvidiaext"
   virtual_machine_scale_set_id = module.compute-vmss.id
   extension_name               = "ue4_nvidia_driver"
+}
+
+# now add this stamp to the Traffic Manager
+#add the regional TM endpoint for the matchmaker service
+variable "global_resource_group_name" {
+  type = string
+}
+
+variable "mm_traffic_manager_profile_name" {
+  type = string
+}
+
+variable "ue4_traffic_manager_profile_name" {
+  type = string
+}
+
+module "add_tm_region_mm" {
+  source    = "../networking/trafficmgraddreg"
+  base_name = var.base_name
+
+  #this needs to be the rg where the tm profile is:
+  resource_group_name = var.global_resource_group_name
+
+  traffic_manager_profile_name = var.mm_traffic_manager_profile_name
+  index                        = var.index
+  service_name                 = "mm"
+
+  pip_fqdn          = module.matchmaker-elb.fqdn
+  endpoint_location = var.location
+}
+
+#add the regional TM endpoint for the backend
+module "add_tm_region_ue4" {
+  source              = "../networking/trafficmgraddreg"
+  base_name           = var.base_name
+  resource_group_name = var.global_resource_group_name
+
+  traffic_manager_profile_name = var.ue4_traffic_manager_profile_name
+  index                        = var.index
+  service_name                 = "ue4"
+
+  pip_fqdn          = module.ue4-elb.fqdn
+  endpoint_location = var.location
 }
 
 /* disabled as code is now in code on the VMSS Servers

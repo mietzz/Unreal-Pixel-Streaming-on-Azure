@@ -4,23 +4,23 @@ variable "base_name" {
 }
 
 variable "resource_group_name" {
-    type = string
+  type = string
 }
 
 variable "traffic_manager_profile_name" {
-    type = string
+  type = string
 }
 
 variable "pip_fqdn" {
-    type = string
+  type = string
 }
 
 variable "index" {
-    type = string
+  type = string
 }
 
 variable "service_name" {
-    type = string
+  type = string
 }
 
 variable "endpoint_location" {
@@ -33,10 +33,10 @@ resource "azurerm_traffic_manager_endpoint" "traffic_manager_endpoint" {
   profile_name        = var.traffic_manager_profile_name
   #target_resource_id  = var.region_resourceTargetId  
   #id of the matchmaker ELB
-  
+
   #adding target for the pip fqdn
-  target              = var.pip_fqdn
-  endpoint_location   = var.endpoint_location
-  type                = "externalEndpoints"
-  priority            = var.index
+  target            = var.pip_fqdn
+  endpoint_location = var.endpoint_location
+  type              = "externalEndpoints"
+  priority          = var.index
 }
