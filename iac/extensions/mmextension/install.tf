@@ -22,6 +22,10 @@ variable "application_insights_key" {
   type = string
 }
 
+locals {
+  source = "./setupMatchMakerVM.ps1"
+}
+
 #original command: "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupMatchMakerVM.ps1; exit 0;\""
 resource "azurerm_virtual_machine_extension" "mmextension" {
   count                = length(var.virtual_machine_ids)
@@ -34,7 +38,7 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
 
   settings           = <<SETTINGS
   {
-    "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ./setupMatchMakerVM.ps1 -subscription_id ${var.subscription_id} -resource_group_id ${var.resource_group_id} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key}"
+    "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ${local.source} -subscription_id ${var.subscription_id} -resource_group_id ${var.resource_group_id} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key}"
   }
   SETTINGS
   protected_settings = <<PROTECTED_SETTINGS

@@ -4,7 +4,7 @@ Param (
   [Parameter(Mandatory = $True, HelpMessage = "resource group id")]
   [String]$resource_group_id = "",
   [Parameter(Mandatory = $True, HelpMessage = "vmss name")]
-  [String]$vmss_name = ""
+  [String]$vmss_name = "",
   [Parameter(Mandatory = $True, HelpMessage = "application insights key")]
   [String]$application_insights_key = ""
 )
