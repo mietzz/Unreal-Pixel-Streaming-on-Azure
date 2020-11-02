@@ -370,10 +370,24 @@ module "compute-vmss" {
   network_security_group_id = module.ue4_nsg.network_security_group_id
 }
 
+/*
+variable "subscription_id"
+variable "resource_group_id" 
+variable "vmss_name" 
+variable "application_insights_key" 
+*/
+
+data "azurerm_subscription" "current" {
+}
+
 module "mm-extension" {
-  source              = "../extensions/mmextension"
-  virtual_machine_ids = module.matchmaker-vm.vms
-  extension_name      = "mm-extension"
+  source                   = "../extensions/mmextension"
+  virtual_machine_ids      = module.matchmaker-vm.vms
+  extension_name           = "mm-extension"
+  subscription_id          = data.azurerm_subscription.current.subscription_id
+  resource_group_id        = module.unreal-rg.resource_group.id
+  vmss_name                = module.compute-vmss.name
+  application_insights_key = module.appinsights.instrumentation_key
 }
 
 module "mm-msft-extension" {
@@ -388,6 +402,10 @@ module "ue4-extension" {
   source                       = "../extensions/ue4extension"
   virtual_machine_scale_set_id = module.compute-vmss.id
   extension_name               = "ue4-extension"
+  subscription_id              = data.azurerm_subscription.current.subscription_id
+  resource_group_id            = module.unreal-rg.resource_group.id
+  vmss_name                    = module.compute-vmss.name
+  application_insights_key     = module.appinsights.instrumentation_key
 }
 
 module "ue4-nvidia-extension" {

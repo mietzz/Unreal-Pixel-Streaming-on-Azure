@@ -21,7 +21,8 @@ output "workspace_id" {
 }
 
 output "workspace_key" {
-  value = azurerm_log_analytics_workspace.logA.primary_shared_key
+  value     = azurerm_log_analytics_workspace.logA.primary_shared_key
+  sensitive = true
 }
 
 output "id" {

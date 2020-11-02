@@ -6,6 +6,23 @@ variable "extension_name" {
   type = string
 }
 
+variable "subscription_id" {
+  type = string
+}
+
+variable "resource_group_id" {
+  type = string
+}
+
+variable "vmss_name" {
+  type = string
+}
+
+variable "application_insights_key" {
+  type = string
+}
+
+#original command: "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupMatchMakerVM.ps1; exit 0;\""
 resource "azurerm_virtual_machine_extension" "mmextension" {
   count                = length(var.virtual_machine_ids)
   name                 = var.extension_name
@@ -17,7 +34,7 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
 
   settings           = <<SETTINGS
   {
-    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupMatchMakerVM.ps1; exit 0;\""
+    "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ./setupMatchMakerVM.ps1 -subscription_id ${var.subscription_id} -resource_group_id ${var.resource_group_id} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key}"
   }
   SETTINGS
   protected_settings = <<PROTECTED_SETTINGS
@@ -27,4 +44,4 @@ resource "azurerm_virtual_machine_extension" "mmextension" {
   PROTECTED_SETTINGS  
 }
 
-#  depends_on         = [azurerm_virtual_machine_extension.mmextension]
+//"commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ${azurerm_storage_blob.configure-dc-01.name} -DomainPrefix ${var.dc_domain_prefix} -DomainName ${var.dc_domain_name} -SafeModeAdministratorPassword ${var.dc_safe_mode_password} -User ${var.dc_username} -Password ${var.dc_password}"
