@@ -28,7 +28,7 @@ const defaultConfig = {
 	// The minimum number of available app instances we want to scale down to during an idle period (idleMinutes passed with no scaleup)
 	minIdleInstanceCount: 5,
 	// The total amount of VMSS nodes that we will approve scaling up to
-	maxInstanceScaleCout: 500,
+	maxInstanceScaleCount: 500,
 	// The subscription used for autoscaling policy
 	subscriptionId: "",
 	// The Azure ResourceGroup where the Azure VMSS is located, used for autoscaling

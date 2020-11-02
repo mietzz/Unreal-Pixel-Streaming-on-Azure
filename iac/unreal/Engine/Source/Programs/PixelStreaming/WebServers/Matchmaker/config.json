@@ -7,7 +7,7 @@
 	"idleMinutes": 60,
 	"connectionIdleRatio": 25,
 	"minIdleInstanceCount": 5,
-	"maxInstanceScaleCout": 500,
+	"maxInstanceScaleCount": 500,
 	"subscriptionId": "",
 	"resourceGroup": "",
 	"virtualMachineScaleSet": "",
