@@ -48,7 +48,7 @@ $arg4 = "-RenderOffScreen"
 
 & $RunPixelStreamer $arg1 $arg2 $arg3 $arg4
 
-$vmServiceFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+$vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 cd $vmServiceFolder 
 
 #$RunVMSSService = ".\runAWS_WithTURN.bat"
