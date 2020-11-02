@@ -385,7 +385,7 @@ module "mm-extension" {
   virtual_machine_ids      = module.matchmaker-vm.vms
   extension_name           = "mm-extension"
   subscription_id          = data.azurerm_subscription.current.subscription_id
-  resource_group_id        = module.unreal-rg.resource_group.id
+  resource_group_name      = module.unreal-rg.resource_group.name
   vmss_name                = module.compute-vmss.name
   application_insights_key = module.appinsights.instrumentation_key
 }
@@ -403,7 +403,7 @@ module "ue4-extension" {
   virtual_machine_scale_set_id = module.compute-vmss.id
   extension_name               = "ue4-extension"
   subscription_id              = data.azurerm_subscription.current.subscription_id
-  resource_group_id            = module.unreal-rg.resource_group.id
+  resource_group_name          = module.unreal-rg.resource_group.name
   vmss_name                    = module.compute-vmss.name
   application_insights_key     = module.appinsights.instrumentation_key
 }
