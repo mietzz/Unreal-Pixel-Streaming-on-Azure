@@ -286,19 +286,10 @@ module "vm_to_backend_pool" {
 
 #add the first NSG for the matchmaker nic
 module "matchmaker_nsg" {
-  source                                   = "../networking/nsg"
-  base_name                                = var.base_name
-  resource_group                           = module.unreal-rg.resource_group
-  nsg_name                                 = "mm-nsg"
-  security_rule_name                       = "Open90"
-  security_rule_priority                   = 1000
-  security_rule_direction                  = "Inbound"
-  security_rule_access                     = "Allow"
-  security_rule_protocol                   = "Tcp"
-  security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "90"
-  security_rule_source_address_prefix      = "*"
-  security_rule_destination_address_prefix = "*"
+  source         = "../networking/nsg"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  nsg_name       = "mm-nsg"
 
   log_analytics_workspace_id = module.loganalytics.id
 }
@@ -308,6 +299,22 @@ module "matchmaker_nsg_association" {
   source                    = "../networking/nsgassociation"
   network_interface_ids     = module.matchmaker-vm.nics
   network_security_group_id = module.matchmaker_nsg.network_security_group_id
+}
+
+module "matchmaker_security_rule_90" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open90"
+  security_rule_priority                   = 1000
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "90"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
 }
 
 #add this security rule to open another port in the NSG for the return from the UE4
@@ -378,10 +385,19 @@ module "mm_outbound_rule_80" {
 
 //create a nsg for the UE4 components
 module "ue4_nsg" {
-  source                                   = "../networking/nsg"
-  base_name                                = var.base_name
-  resource_group                           = module.unreal-rg.resource_group
-  nsg_name                                 = "ue4-nsg"
+  source         = "../networking/nsg"
+  base_name      = var.base_name
+  resource_group = module.unreal-rg.resource_group
+  nsg_name       = "ue4-nsg"
+
+  log_analytics_workspace_id = module.loganalytics.id
+}
+
+module "ue4_security_rule_7070" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
   security_rule_name                       = "Open7070"
   security_rule_priority                   = 1000
   security_rule_direction                  = "Inbound"
@@ -391,8 +407,6 @@ module "ue4_nsg" {
   security_rule_destination_port_range     = "7070"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
-
-  log_analytics_workspace_id = module.loganalytics.id
 }
 
 module "ue4_security_rule_888x" {
