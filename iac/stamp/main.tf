@@ -166,6 +166,24 @@ module "mm-9999-rule" {
   load_distribution  = "SourceIPProtocol"
 }
 
+#add a lb probe/rule for UE4 80
+module "ue4-80-rule" {
+  source                              = "../networking/addporttolb"
+  base_name                           = var.base_name
+  resource_group                      = module.unreal-rg.resource_group
+  lb_name                             = "ue4"
+  loadbalancer_id                     = module.ue4-elb.lb_id
+  backend_address_pool_id             = module.ue4-elb.lb_backend_address_pool_id
+  probe_port                          = "80"
+  probe_protocol                      = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol      = "TCP"
+  rule_frontend_port = "80"
+  rule_backend_port  = "80"
+  load_distribution  = "SourceIPProtocol"
+}
+
 #add a lb probe/rule for UE4 7070
 module "ue4-7070-rule" {
   source                              = "../networking/addporttolb"
@@ -278,7 +296,7 @@ module "matchmaker_nsg" {
   security_rule_access                     = "Allow"
   security_rule_protocol                   = "Tcp"
   security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "90,9999"
+  security_rule_destination_port_range     = "90"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 
@@ -292,7 +310,6 @@ module "matchmaker_nsg_association" {
   network_security_group_id = module.matchmaker_nsg.network_security_group_id
 }
 
-/*
 #add this security rule to open another port in the NSG for the return from the UE4
 module "matchmaker_security_rule_9999" {
   source                      = "../networking/security_rule"
@@ -309,9 +326,55 @@ module "matchmaker_security_rule_9999" {
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }
-*/
 
-#change the following to: 80,8888-8889,7070
+module "mm_outbound_rule_7070" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open7070"
+  security_rule_priority                   = 1000
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "7070"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+module "mm_outbound_rule_888x" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open888x"
+  security_rule_priority                   = 1010
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "8888-8889"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+module "mm_outbound_rule_80" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open80"
+  security_rule_priority                   = 1020
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "80"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
 
 //create a nsg for the UE4 components
 module "ue4_nsg" {
@@ -325,15 +388,14 @@ module "ue4_nsg" {
   security_rule_access                     = "Allow"
   security_rule_protocol                   = "Tcp"
   security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "8888-8889,80,7070"
+  security_rule_destination_port_range     = "7070"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 
   log_analytics_workspace_id = module.loganalytics.id
 }
 
-/*
-module "matchmaker_security_rule_888x" {
+module "ue4_security_rule_888x" {
   source                      = "../networking/security_rule"
   resource_group              = module.unreal-rg.resource_group
   network_security_group_name = module.ue4_nsg.network_security_group_name
@@ -348,7 +410,38 @@ module "matchmaker_security_rule_888x" {
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }
-*/
+
+module "ue4_security_rule_80" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open80"
+  security_rule_priority                   = 1020
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "80"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+module "ue4_outbound_security_rule_9999" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open9999"
+  security_rule_priority                   = 1030
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "9999"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
 
 module "compute-vmss" {
   source         = "../compute/vmss"

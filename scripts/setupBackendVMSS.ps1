@@ -15,6 +15,14 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 choco upgrade git directx nodejs -y --no-progress
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-90' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 90
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-9999' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 9999
+
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-80' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-7070' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 7070
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-8888' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8888
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-8889' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8889
+
 $folder = "c:\Unreal\"
 if (-not (Test-Path -LiteralPath $folder)) {
     git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
