@@ -36,7 +36,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   #original command:     "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"./setupBackendVMSS.ps1; exit 0;\""
   settings           = <<SETTINGS
   {
-    "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ${local.source} -subscription_id ${var.subscription_id} -resource_group_id ${var.resource_group_name} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key}"    
+    "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ${local.source} -subscription_id ${var.subscription_id} -resource_group_name ${var.resource_group_name} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key}"    
   }
   SETTINGS
   protected_settings = <<PROTECTED_SETTINGS
