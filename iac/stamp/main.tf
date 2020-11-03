@@ -264,6 +264,8 @@ module "vm_to_backend_pool" {
   backend_address_pool_id = module.matchmaker-elb.lb_backend_address_pool_id
 }
 
+#change the following to: 90,9999
+
 #add the first NSG for the matchmaker nic
 module "matchmaker_nsg" {
   source                                   = "../networking/nsg"
@@ -276,7 +278,7 @@ module "matchmaker_nsg" {
   security_rule_access                     = "Allow"
   security_rule_protocol                   = "Tcp"
   security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "90"
+  security_rule_destination_port_range     = "90,9999"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 
@@ -290,6 +292,7 @@ module "matchmaker_nsg_association" {
   network_security_group_id = module.matchmaker_nsg.network_security_group_id
 }
 
+/*
 #add this security rule to open another port in the NSG for the return from the UE4
 module "matchmaker_security_rule_9999" {
   source                      = "../networking/security_rule"
@@ -306,8 +309,9 @@ module "matchmaker_security_rule_9999" {
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }
+*/
 
-//do I need to do anything about: https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-multivip-overview
+#change the following to: 80,8888-8889,7070
 
 //create a nsg for the UE4 components
 module "ue4_nsg" {
@@ -321,13 +325,14 @@ module "ue4_nsg" {
   security_rule_access                     = "Allow"
   security_rule_protocol                   = "Tcp"
   security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "7070"
+  security_rule_destination_port_range     = "8888-8889,80,7070"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 
   log_analytics_workspace_id = module.loganalytics.id
 }
 
+/*
 module "matchmaker_security_rule_888x" {
   source                      = "../networking/security_rule"
   resource_group              = module.unreal-rg.resource_group
@@ -343,6 +348,7 @@ module "matchmaker_security_rule_888x" {
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }
+*/
 
 module "compute-vmss" {
   source         = "../compute/vmss"
