@@ -9,6 +9,12 @@ var totalInstances = 0;
 // The min minutes between each scaleup (so we don't scale up every frame while we wait for the scale to complete)
 var minMinutesBetweenScaleups = 1;
 var minMinutesBetweenScaledowns = 2;
+// This stores the current Azure Virtual Machine Scale Set node count (sku.capacity), retried by client.get(rg_name, vmss_name)
+var currentVMSSNodeCount = -1;
+// The stores the current Azure Virtual Machine Scale Set provisioning (i.e., scale) state (Succeeded, etc..)
+var currentVMSSProvisioningState = null;
+// The amount of ms for checking the VMSS state (30 seconds * 1000 ms) = 30 second intervals
+var vmssUpdateStateInterval = 30 * 1000;
 
 const defaultConfig = {
 	// The port clients connect to the matchmaking service over HTTP
@@ -50,6 +56,12 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 
+// Azure SDK Clients
+const { ComputeManagementClient, VirtualMachineScaleSets } = require('@azure/arm-compute');
+const msRestNodeAuth = require('@azure/ms-rest-nodeauth');
+const logger = require('@azure/logger');
+logger.setLogLevel('info');
+
 // A list of all the Cirrus server which are connected to the Matchmaker.
 var cirrusServers = new Map();
 
@@ -64,23 +76,6 @@ if (typeof argv.matchmakerPort != 'undefined') {
 	config.matchmakerPort = argv.matchmakerPort;
 }
 
-const logger = require('@azure/logger');
-logger.setLogLevel('info');
-
-
-// const credential = new ManagedIdentityCredential();
-// var tokenPromise = credential.getToken(`https://management.azure.com`).then((msiTokenRes) => {
-// console.log(`Managed Identity getToken() TOKEN: ${msiTokenRes.token}`);
-
-// }).catch((err) => {
-//     console.log(`Managed Identity getToken() ERROR: ${err}`);
-// });
-
-const { ManagedIdentityCredential } = require("@azure/identity");
-const { ResourceManagementClient, ResourceManagementModels, ResourceManagementMappers } = require('@azure/arm-resources');
-const { ComputeManagementClient, ComputeManagementModels, ComputeManagementMappers, ComputeManagementClientContext } = require('@azure/arm-compute');
-const msRestNodeAuth = require('@azure/ms-rest-nodeauth');
-
 //
 // Connect to browser.
 //
@@ -88,6 +83,55 @@ const msRestNodeAuth = require('@azure/ms-rest-nodeauth');
 http.listen(config.httpPort, () => {
 	console.log('HTTP listening on *:' + config.httpPort);
 });
+
+// This goes out to Azure and grabs the current VMSS provisioning state and current capacity
+function getVMSSNodeCountAndState(subscriptionId, resourceGroup, virtualMachineScaleSet) {
+
+	const options = {
+		resource: 'https://management.azure.com'
+	}
+
+	// Use an Azure system managed identity to get a token for managing the given resource group
+	msRestNodeAuth.loginWithVmMSI(options).then((creds) => {
+		const client = new ComputeManagementClient(creds, subscriptionId);
+		var vmss = new VirtualMachineScaleSets(client);
+
+		// Get the latest details about the VMSS in Azure
+		vmss.get(resourceGroup, virtualMachineScaleSet).then((result) => {
+			console.log(`Success getting VMSS info: ${result}`);
+
+			var propValue;
+			for (var propName in result) {
+				propValue = result[propName]
+				console.log(propName, propValue);
+			}
+
+			if (result == null || result.sku == null) {
+				console.error(`ERROR getting VMSS sku info`);
+				return;
+			}
+
+			currentVMSSNodeCount = result.sku.capacity;
+			currentVMSSProvisioningState = result.provisioningState;
+
+			console.log(`VMSS Capacity: ${currentVMSSNodeCount} and State: ${currentVMSSProvisioningState}`);
+		}).catch((err) => {
+			console.error(`ERROR getting VMSS info: ${err}`);
+		});
+	}).catch((err) => {
+		console.error(err);
+	});
+}
+
+// Call out to Azure to get the current VMSS initial capacity and status
+getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.virtualMachineScaleSet);
+
+// Set a timed refresh interval for getting the latest update from the state and capacity of the VMSS
+setInterval(function () {
+
+	getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.virtualMachineScaleSet);
+
+}, vmssUpdateStateInterval);
 
 // Get a Cirrus server if there is one available which has no clients connected.
 function getAvailableCirrusServer() {
@@ -146,28 +190,30 @@ app.get('/custom_html/:htmlFilename', (req, res) => {
 //
 
 const net = require('net');
-//const { VirtualMachineScaleSetUpdateVMProfile } = require('@azure/arm-compute/esm/models/mappers');
 
 function disconnect(connection) {
 	console.log(`Ending connection to remote address ${connection.remoteAddress}`);
 	connection.end();
 }
 
+// This scales out the Azure VMSS servers with a new capacity
 function scaleSignalingWebServers(newCapacity) {
-	
+
 	const options = {
 		resource: 'https://management.azure.com'
 	}
 
+	//msRestNodeAuth.interactiveLogin().then((creds) => {  // Used for local testing
+	// Use an Azure system managed identity to get a token for managing the given resource group
 	msRestNodeAuth.loginWithVmMSI(options).then((creds) => {
-	//msRestNodeAuth.interactiveLogin().then((creds) => {
 		const client = new ComputeManagementClient(creds, config.subscriptionId);
 		var vmss = new VirtualMachineScaleSets(client);
 
 		var updateOptions = new Object();
 		updateOptions.sku = new Object();
-		updateOptions.sku.capacity = newCapacity; 
+		updateOptions.sku.capacity = newCapacity;
 
+		// Update the VMSS with the new capacity
 		vmss.update(config.resourceGroup, config.virtualMachineScaleSet, updateOptions).then((result) => {
 			console.log(`Success Scaling VMSS: ${result}`);
 		}).catch((err) => {
@@ -217,26 +263,39 @@ function considerAutoScale() {
 
 	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availableConnections: ${availableConnections} and % used: ${percentUtilized}`);
 
-	// Adding hysteresis check to make sure we didn't just scale up and should wait until the scaling has enough time to react (TODO: add logic to validate if scaling is still in process)
-	if (minutesSinceScaleup < minMinutesBetweenScaleups) {
-		console.log(`Waiting to scale since we already recently scaled up or started the service`);
+	if (currentVMSSProvisioningState != 'Succeeded') {
+		console.log(`Ignoring scale check as VMSS provisioning state isn't in Succeeded state: ${currentVMSSProvisioningState}`);
 		return;
 	}
+
+	// Adding hysteresis check to make sure we didn't just scale up and should wait until the scaling has enough time to react
+	//if (minutessincescaleup < minminutesbetweenscaleups) {
+	//	console.log(`waiting to scale since we already recently scaled up or started the service`);
+	//	return;
+	//}
+
 	// If available user connections is less than our desired buffer level scale up
-	else if ((config.instanceCountBuffer > 0) && (availableConnections < config.instanceCountBuffer)) {
+	if ((config.instanceCountBuffer > 0) && (availableConnections < config.instanceCountBuffer)) {
 		console.log(`Not enough of a buffer--scale up`);
-		scaleupInstances(config.instanceCountBuffer - availableConnections);
+		scaleupInstances(currentVMSSNodeCount + config.instanceCountBuffer - availableConnections);
 		return;
 	}
 	// Else if the available percent is less than our desired ratio
 	else if ((config.percentBuffer > 0) && (1 - ((numConnections / totalInstances) * 100) <= config.percentBuffer)) {
 		console.log(`Not enough percent ratio buffer--scale up`);
 		var newNodeCount = Math.max(totalInstances * Math.ceil(config.percentBuffer * .1), 1);
-		scaleupInstances(newNodeCount);
+		scaleupInstances(currentVMSSNodeCount + newNodeCount);
+		return;
+	}
+	// Else if our current VMSS nodes are less than the desired node count buffer
+	else if (currentVMSSNodeCount < config.instanceCountBuffer) {
+		var newNodeCount = config.instanceCountBuffer - currentVMSSNodeCount;
+		console.log(`Scaling up ${newNodeCount} VMSS nodes since available nodes (${currentVMSSNodeCount}) are less than desired buffer (${config.instanceCountBuffer})`);
+		scaleupInstances(currentVMSSNodeCount + newNodeCount);
 		return;
 	}
 
-	// Adding hysteresis check to make sure we didn't just scale down and should wait until the scaling has enough time to react (TODO: add logic to validate if scaling is still in process)
+	// Adding hysteresis check to make sure we didn't just scale down and should wait until the scaling has enough time to react
 	if (minutesSinceScaledown < minMinutesBetweenScaledowns) {
 		console.log(`Waiting to scale down since we already recently scaled down or started the service`);
 		return;
@@ -268,6 +327,7 @@ const matchmaker = net.createServer((connection) => {
 			};
 			cirrusServers.set(connection, cirrusServer);
 			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker`);
+			considerAutoScale();
 		} else if (message.type === 'clientConnected') {
 			// A client connects to a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
