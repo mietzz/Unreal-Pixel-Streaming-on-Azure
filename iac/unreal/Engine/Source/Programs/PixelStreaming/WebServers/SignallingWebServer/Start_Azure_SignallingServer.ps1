@@ -1,10 +1,10 @@
 # Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
-$PublicIp = Invoke-WebRequest -Uri "https://api.ipify.org"
+$PublicIp = Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing
 
 Write-Output "Public IP: $PublicIp"
 
-$peerConnectionOptions = "{ \""iceServers\"": [{\""urls\"": [\""stun:" + $PublicIp + ":19302\""]}] }"
+$peerConnectionOptions = "{ \""iceServers\"": [{\""urls\"": [\""stun:stun.l.google.com:19302\""]}] }"
 
 $ProcessExe = "node.exe"
 $Arguments = @("cirrus", "--peerConnectionOptions=""$peerConnectionOptions""", "--publicIp=$PublicIp")
