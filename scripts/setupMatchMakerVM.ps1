@@ -24,6 +24,8 @@ New-NetFirewallRule -DisplayName 'Matchmaker-OB-80' -Profile 'Private' -Directio
 New-NetFirewallRule -DisplayName 'Matchmaker-OB-7070' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 7070
 New-NetFirewallRule -DisplayName 'Matchmaker-OB-8888' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8888
 New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8889
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
 
 #export GITHUB_USER=anonuser
 #export GITHUB_TOKEN=(az keyvault secret show -n thekey --vault-name uegamingakv | ConvertFrom-Json).value
@@ -31,15 +33,15 @@ New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Profile 'Private' -Direct
 
 $folder = "c:\Unreal\"
 if (-not (Test-Path -LiteralPath $folder)) {
-    git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
-    #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
+  git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
+  #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
 }
 else {
-    #rename the existing folder
-    $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
-    Rename-Item -Path $folder  -NewName $endtag -Force
-    git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
-    #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
+  #rename the existing folder
+  $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
+  Rename-Item -Path $folder  -NewName $endtag -Force
+  git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
+  #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
 }
 
 #test:

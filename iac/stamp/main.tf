@@ -382,6 +382,21 @@ module "mm_outbound_rule_80" {
   security_rule_destination_address_prefix = "*"
 }
 
+module "mm_outbound_rule_19302" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.matchmaker_nsg.network_security_group_name
+
+  security_rule_name                       = "Open19302"
+  security_rule_priority                   = 1030
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "19302-19303"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
 
 //create a nsg for the UE4 components
 module "ue4_nsg" {
@@ -453,6 +468,22 @@ module "ue4_outbound_security_rule_9999" {
   security_rule_protocol                   = "Tcp"
   security_rule_source_port_range          = "*"
   security_rule_destination_port_range     = "9999"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+module "ue4_outbound_security_rule_19302" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open19302"
+  security_rule_priority                   = 1040
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "19302-19303"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }

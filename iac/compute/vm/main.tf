@@ -139,4 +139,20 @@ resource "azurerm_windows_virtual_machine" "vm" {
     //enabled = "true"
     storage_account_uri = var.storage_uri
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
+
+//do a role assignment for the new system identity
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_role_assignment" "role_assignment" {
+  count                = var.vm_count
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_windows_virtual_machine.vm[count.index].identity[0].principal_id
+}
+

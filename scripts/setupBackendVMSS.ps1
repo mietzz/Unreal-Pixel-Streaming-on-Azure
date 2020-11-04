@@ -15,23 +15,32 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 choco upgrade git directx nodejs -y --no-progress
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Force
 
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-90' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 90
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-9999' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 9999
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\DomainProfile' -name "EnableFirewall" -Value 0
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\PublicProfile' -name "EnableFirewall" -Value 0
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\Standardprofile' -name "EnableFirewall" -Value 0 
 
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-80' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-7070' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 7070
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-8888' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8888
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-8889' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8889
+#New-NetFirewallRule -DisplayName 'Matchmaker-OB-90' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 90
+#New-NetFirewallRule -DisplayName 'Matchmaker-OB-9999' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 9999
+#New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
+#New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
+
+#New-NetFirewallRule -DisplayName 'Matchmaker-IB-80' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80
+#New-NetFirewallRule -DisplayName 'Matchmaker-IB-7070' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 7070
+#New-NetFirewallRule -DisplayName 'Matchmaker-IB-8888' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8888
+#New-NetFirewallRule -DisplayName 'Matchmaker-IB-8889' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8889
+
+#New-NetFirewallRule -DisplayName 'Matchmaker-IB-19302' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 19302
+#New-NetFirewallRule -DisplayName 'Matchmaker-IB-19303' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 19303
 
 $folder = "c:\Unreal\"
 if (-not (Test-Path -LiteralPath $folder)) {
-    git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
+  git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
 }
 else {
-    #rename the existing folder if exists
-    $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
-    Rename-Item -Path $folder  -NewName $endtag -Force
-    git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
+  #rename the existing folder if exists
+  $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
+  Rename-Item -Path $folder  -NewName $endtag -Force
+  git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
 }
 
 Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
