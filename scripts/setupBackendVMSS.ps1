@@ -48,8 +48,7 @@ Add-Content -Path $logoutput -Value $resource_group_name
 Add-Content -Path $logoutput -Value $vmss_name
 Add-Content -Path $logoutput -Value $application_insights_key
 
-$RunPixelStreamer = "C:\Unreal\iac\unreal\App\WindowsNoEditor\PixelStreamer.exe"
-$arg1 = "-AudioMixer"
+
 $arg2 = "-PixelStreamingIP=localhost"
 $arg3 = "-PixelStreamingPort=8888"
 $arg4 = "-RenderOffScreen"
@@ -59,8 +58,8 @@ $arg4 = "-RenderOffScreen"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 cd $vmServiceFolder 
 
-#$RunVMSSService = ".\runAWS_WithTURN.bat"
+#$RunVMSSService = ".\runAzure.bat"
 #& $RunVMSSService
 
 #need to change this as an exec 
-start-process "cmd.exe" "/c .\runAWS_WithTURN.bat"
+start-process "cmd.exe" "/c .\runAzure.bat"
