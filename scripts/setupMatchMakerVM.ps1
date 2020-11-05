@@ -55,6 +55,16 @@ $mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\W
 cd $mmServiceFolder 
 #$RunMMService = ".\run.bat"
 
+$mmConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
+echo $mmConfigJson
+
+$mmConfigJson.resourceGroup = $resource_group_name
+$mmConfigJson.subscriptionId = $subscription_id
+$mmConfigJson.virtualMachineScaleSet = $vmss_name
+$mmConfigJson.appInsightsId = $application_insights_key
+
+$mmConfigJson | ConvertTo-Json | set-content "config.json"
+
 #& $RunMMService
 
 #need to change this as an exec 

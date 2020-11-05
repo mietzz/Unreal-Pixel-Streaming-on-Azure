@@ -13,8 +13,12 @@ var minMinutesBetweenScaledowns = 2;
 var currentVMSSNodeCount = -1;
 // The stores the current Azure Virtual Machine Scale Set provisioning (i.e., scale) state (Succeeded, etc..)
 var currentVMSSProvisioningState = null;
-// The amount of ms for checking the VMSS state (30 seconds * 1000 ms) = 30 second intervals
-var vmssUpdateStateInterval = 30 * 1000;
+// The amount of ms for checking the VMSS state (10 seconds * 1000 ms) = 10 second intervals
+var vmssUpdateStateInterval = 10 * 1000;
+// The amount of percentage we need to scale up when autoscaling with a percentage policy
+var scaleUpPercentage = 10;
+// The amount of scaling up when we fall below a desired node buffer count policy
+var scaleUpNodeCount = 5;
 
 const defaultConfig = {
 	// The port clients connect to the matchmaking service over HTTP
@@ -84,6 +88,13 @@ http.listen(config.httpPort, () => {
 	console.log('HTTP listening on *:' + config.httpPort);
 });
 
+function validateConfigs() {
+	// TODO: Do validations on config params to ensure valid data
+}
+
+var lastVMSSCapacity = 0;
+var lastVMSSProvisioningState = "";
+
 // This goes out to Azure and grabs the current VMSS provisioning state and current capacity
 function getVMSSNodeCountAndState(subscriptionId, resourceGroup, virtualMachineScaleSet) {
 
@@ -100,21 +111,22 @@ function getVMSSNodeCountAndState(subscriptionId, resourceGroup, virtualMachineS
 		vmss.get(resourceGroup, virtualMachineScaleSet).then((result) => {
 			console.log(`Success getting VMSS info: ${result}`);
 
-			var propValue;
-			for (var propName in result) {
-				propValue = result[propName]
-				console.log(propName, propValue);
-			}
-
 			if (result == null || result.sku == null) {
 				console.error(`ERROR getting VMSS sku info`);
 				return;
 			}
 
+			// Set our global variables so we know the totaly capacity and VMSS status
 			currentVMSSNodeCount = result.sku.capacity;
 			currentVMSSProvisioningState = result.provisioningState;
 
-			console.log(`VMSS Capacity: ${currentVMSSNodeCount} and State: ${currentVMSSProvisioningState}`);
+			// Only log if it changed
+			if (currentVMSSNodeCount != lastVMSSCapacity || currentVMSSProvisioningState != lastVMSSProvisioningState) {
+				console.log(`VMSS Capacity: ${currentVMSSNodeCount} and State: ${currentVMSSProvisioningState}`);
+			}
+
+			lastVMSSCapacity = currentVMSSProvisioningState;
+			lastVMSSProvisioningState = currentVMSSProvisioningState;
 		}).catch((err) => {
 			console.error(`ERROR getting VMSS info: ${err}`);
 		});
@@ -227,6 +239,12 @@ function scaleSignalingWebServers(newCapacity) {
 function scaleupInstances(newNodeCount) {
 	console.log(`Scaling up${newNodeCount}!!!`);
 
+	// Make sure we don't try to scale past our desired max instances
+	if (cirrusServers.size >= config.maxInstanceScaleCount) {
+		console.log(`Reached max instance count for scale out: ${config.maxInstanceScaleCount}`);
+		return;
+	}
+
 	lastScaleupTime = Date.now();
 
 	// TODO: Make sure we've added the current plus new node count
@@ -237,12 +255,23 @@ function scaledownInstances(newNodeCount) {
 	console.log(`Scaling down to ${newNodeCount}!!!`);
 	lastScaledownTime = Date.now();
 
+	// If set, make sure we don't try to scale below our desired min node count
+	if ((config.minIdleInstanceCount > 0) && (newNodeCount < config.minIdleInstanceCount)) {
+		console.log(`Using minIdleInstanceCount to scale down: ${config.minIdleInstanceCount}`);
+		newNodeCount = config.minIdleInstanceCount;
+	}
+
+	// Mode sure we keep at least 1 node
+	if (newNodeCount <= 0)
+		newNodeCount = 1;
+
 	// TODO: Make sure we've added the current plus new node count
 	scaleSignalingWebServers(newNodeCount);
 }
 
-function considerAutoScale() {
-	console.log(`Considering AutoScale....`);
+// Called when we want to review the autoscale policy to see if there needs to be scaling up or down
+function evaluateAutoScalePolicy() {
+	console.log(`Evaluating AutoScale Policy....`);
 
 	totalInstances = cirrusServers.size;
 
@@ -257,16 +286,21 @@ function considerAutoScale() {
 	var timeElapsedSinceScaledown = Date.now() - lastScaledownTime;
 	var minutesSinceScaledown = Math.round(((timeElapsedSinceScaledown % 86400000) % 3600000) / 60000);
 	var percentUtilized = 0;
+	var remainingUtilization = 0;
 
-	if (numConnections > 0 && totalInstances > 0)
+	// Get the percentage of total available signaling servers taken by users
+	if (numConnections > 0 && totalInstances > 0) {
 		percentUtilized = numConnections / totalInstances;
+		remainingUtilization = (1 - percentUtilized) * 100;
+	}
 
 	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availableConnections: ${availableConnections} and % used: ${percentUtilized}`);
 
+	// Don't try and scale up/down if there is already a scaling operation in progress
 	if (currentVMSSProvisioningState != 'Succeeded') {
 		console.log(`Ignoring scale check as VMSS provisioning state isn't in Succeeded state: ${currentVMSSProvisioningState}`);
 		return;
-	}
+	}	
 
 	// Adding hysteresis check to make sure we didn't just scale up and should wait until the scaling has enough time to react
 	//if (minutessincescaleup < minminutesbetweenscaleups) {
@@ -280,11 +314,14 @@ function considerAutoScale() {
 		scaleupInstances(currentVMSSNodeCount + config.instanceCountBuffer - availableConnections);
 		return;
 	}
-	// Else if the available percent is less than our desired ratio
-	else if ((config.percentBuffer > 0) && (1 - ((numConnections / totalInstances) * 100) <= config.percentBuffer)) {
-		console.log(`Not enough percent ratio buffer--scale up`);
-		var newNodeCount = Math.max(totalInstances * Math.ceil(config.percentBuffer * .1), 1);
-		scaleupInstances(currentVMSSNodeCount + newNodeCount);
+	// Else if the remaining utilization percent is less than our desired min percentage. scale up 10% of total instances
+	else if ((config.percentBuffer > 0) && (remainingUtilization < config.percentBuffer)) {
+
+		// Get a percentage of the total instances that we want to scale up by
+		var newNodeCountIncrease = Math.max(totalInstances * (scaleUpPercentage * .01), 1);
+		//var percentageBufferNodes = totalInstances * (config.percentBuffer * .01);
+		console.log(`We are below the needed percent buffer--scaling up ${scaleUpPercentage}% by ${newNodeCountIncrease}`);
+		scaleupInstances(currentVMSSNodeCount + newNodeCountIncrease);
 		return;
 	}
 	// Else if our current VMSS nodes are less than the desired node count buffer
@@ -301,9 +338,9 @@ function considerAutoScale() {
 		return;
 	}
 	// Else if we've went long enough without scaling up to consider scaling down when we reach a low enough usage ratio
-	else if ((config.connectionIdleRatio > 0) && ((minutesSinceScaleup >= config.idleMinutes) && (percentUtilized <= config.connectionIdleRatio))) {
+	else if ((config.connectionIdleRatio > 0) && ((minutesSinceScaledown >= config.idleMinutes) && (percentUtilized <= config.connectionIdleRatio))) {
 		console.log(`It's been a while since scaling activity--scale down`);
-		var newNodeCount = Math.max(totalInstances * Math.ceil(config.connectionIdleRatio * .1), 1);
+		var newNodeCount = Math.max(totalInstances * Math.ceil(config.connectionIdleRatio * .01), 1);
 		scaledownInstances(newNodeCount);
 	}
 }
@@ -327,21 +364,22 @@ const matchmaker = net.createServer((connection) => {
 			};
 			cirrusServers.set(connection, cirrusServer);
 			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker`);
-			considerAutoScale();
+
+			evaluateAutoScalePolicy();
 		} else if (message.type === 'clientConnected') {
 			// A client connects to a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
 			cirrusServer.numConnectedClients++;
 			console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
 
-			considerAutoScale();
+			evaluateAutoScalePolicy();
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
 			cirrusServer.numConnectedClients--;
 			console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
 
-			considerAutoScale();
+			evaluateAutoScalePolicy();
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);
