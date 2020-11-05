@@ -7,9 +7,9 @@ variable "base_name" {
 variable "resource_group" {
   description = "The RG for the storage account"
   type = object({
-    id     = string
+    id       = string
     location = string
-    name   = string
+    name     = string
   })
 }
 
@@ -32,6 +32,14 @@ output "id" {
 
 output "uri" {
   value = azurerm_storage_account.storageaccount.primary_blob_endpoint
+}
+
+output "name" {
+  value = azurerm_storage_account.storageaccount.name
+}
+
+output "key" {
+  value = azurerm_storage_account.storageaccount.primary_access_key
 }
 
 ## locals

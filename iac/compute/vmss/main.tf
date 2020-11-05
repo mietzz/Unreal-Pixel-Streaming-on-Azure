@@ -122,7 +122,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
 
       public_ip_address {
         name              = "vmss_public_ip"
-        domain_name_label = "vmss"
+        domain_name_label = lower(format("%s-%s", "vmss", var.base_name))
       }
     }
   }

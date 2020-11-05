@@ -104,7 +104,7 @@ resource "azurerm_public_ip" "pip" {
   resource_group_name = var.resource_group.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  domain_name_label   = lower(format("%s-%s", "mmvm", count.index))
+  domain_name_label   = lower(format("%s-%s-%s", "mmvm", count.index, var.base_name))
 }
 
 resource "azurerm_network_interface" "nic" {
@@ -130,6 +130,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   admin_username           = var.admin_username
   admin_password           = var.admin_password
   enable_automatic_updates = true
+  provision_vm_agent       = true
   availability_set_id      = var.availability_set_id
 
   network_interface_ids = [
