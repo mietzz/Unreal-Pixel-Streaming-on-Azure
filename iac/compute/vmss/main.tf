@@ -121,7 +121,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
       load_balancer_inbound_nat_rules_ids    = [var.lb_nat_pool_id]
 
       public_ip_address {
-        name = "vmss_public_ip"
+        name              = "vmss_public_ip"
+        domain_name_label = "vmss"
       }
     }
   }

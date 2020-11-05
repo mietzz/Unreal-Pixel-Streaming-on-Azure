@@ -17,15 +17,15 @@ choco upgrade filezilla git nodejs vcredist-all directx -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe"
 
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-90' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 90
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-9999' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9999
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-90' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 90
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-9999' -Profile 'All' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9999
 
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-80' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 80
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-7070' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 7070
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-8888' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8888
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8889
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-80' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 80
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-7070' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 7070
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-8888' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8888
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8889
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Profile 'All' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
 
 #export GITHUB_USER=anonuser
 #export GITHUB_TOKEN=(az keyvault secret show -n thekey --vault-name uegamingakv | ConvertFrom-Json).value

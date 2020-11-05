@@ -57,7 +57,7 @@ Add-Content -Path $logoutput -Value $resource_group_name
 Add-Content -Path $logoutput -Value $vmss_name
 Add-Content -Path $logoutput -Value $application_insights_key
 
-
+$arg1 = "-AudioMixer"
 $arg2 = "-PixelStreamingIP=localhost"
 $arg3 = "-PixelStreamingPort=8888"
 $arg4 = "-RenderOffScreen"

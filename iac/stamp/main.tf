@@ -456,6 +456,38 @@ module "ue4_security_rule_80" {
   security_rule_destination_address_prefix = "*"
 }
 
+module "ue4_security_rule_1930x" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open1930x"
+  security_rule_priority                   = 1030
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "19302-19303"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
+module "ue4_outbound_security_rule_90" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open90"
+  security_rule_priority                   = 1020
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "90"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
 module "ue4_outbound_security_rule_9999" {
   source                      = "../networking/security_rule"
   resource_group              = module.unreal-rg.resource_group

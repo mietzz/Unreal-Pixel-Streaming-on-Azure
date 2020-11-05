@@ -95,6 +95,18 @@ output "nics" {
 }
 
 ## resources
+
+#create an array of public ip addresses
+resource "azurerm_public_ip" "pip" {
+  count               = var.vm_count
+  name                = format("%s-%s-%s-pip.%s", var.base_name, "mmvm", var.resource_group.location, count.index)
+  location            = var.resource_group.location
+  resource_group_name = var.resource_group.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = lower(format("%s-%s", "mmvm", count.index))
+}
+
 resource "azurerm_network_interface" "nic" {
   count               = var.vm_count
   name                = format("%s-nic-%s.%s", var.vm_name, lower(var.resource_group.location), count.index)
@@ -105,6 +117,7 @@ resource "azurerm_network_interface" "nic" {
     name                          = var.ip_configuration_name
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.pip[count.index].id
   }
 }
 
