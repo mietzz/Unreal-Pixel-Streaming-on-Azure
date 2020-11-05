@@ -36,3 +36,16 @@ resource "azurerm_log_analytics_workspace" "logA" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
+
+resource "azurerm_log_analytics_solution" "sol_vminsights" {
+  solution_name         = "VMInsights"
+  resource_group_name   = var.resource_group_name
+  location              = var.location
+  workspace_resource_id = azurerm_log_analytics_workspace.logA.id
+  workspace_name        = azurerm_log_analytics_workspace.logA.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/VMInsights"
+  }
+}
