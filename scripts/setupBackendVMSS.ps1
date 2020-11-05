@@ -67,6 +67,16 @@ $arg4 = "-RenderOffScreen"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 cd $vmServiceFolder 
 
+$mmConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
+echo $mmConfigJson
+
+$mmConfigJson.resourceGroup = $resource_group_name
+$mmConfigJson.subscriptionId = $subscription_id
+$mmConfigJson.virtualMachineScaleSet = $vmss_name
+$mmConfigJson.appInsightsId = $application_insights_key
+
+$mmConfigJson | ConvertTo-Json | set-content "config.json"
+
 #$RunVMSSService = ".\runAzure.bat"
 #& $RunVMSSService
 
