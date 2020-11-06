@@ -37,12 +37,12 @@ variable "vm_name" {
 
 #the instances of the Matchmaker VMs that will be behind the loadbalancer
 variable "vm_count" {
-  default = 3
+  default = 1
 }
 
 #matchmaker vm size
 variable "matchmaker_vm_size" {
-  default = "Standard_DS3_v2"
+  default = "Standard_F4s_v2"
 }
 
 #matchmaker vm publisher
@@ -75,7 +75,7 @@ variable "platform_update_domain_count" {
 }
 
 variable "platform_fault_domain_count" {
-  default = 3
+  default = 2
 }
 
 variable "managed" {
@@ -84,12 +84,13 @@ variable "managed" {
 
 #Backend number of instances deployed on the VMSS cluster
 variable "vmss_start_instances" {
-  default = 3
+  default = 1
 }
 
 #Backend compute type deployed on the VMSS cluster. NV6 have the NVidia GPUs
 variable "vmss_sku" {
   default = "Standard_NV6"
+  #default = "Standard_NV12s_v3"
 }
 
 #Backend image publisher deployed on the VMSS cluster. 

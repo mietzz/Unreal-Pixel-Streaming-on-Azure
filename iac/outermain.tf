@@ -73,7 +73,7 @@ module "region_1" {
 module "region_2" {
   source    = "./stamp"
   base_name = local.base_name
-  location  = "westeurope"
+  location  = "westus"
   index     = "2"
 
   #variables for the TM
@@ -82,8 +82,19 @@ module "region_2" {
   ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
 }
 
-/*
 module "region_3" {
+  source    = "./stamp"
+  base_name = local.base_name
+  location  = "westeurope"
+  index     = "3"
+
+  #variables for the TM
+  global_resource_group_name       = module.global_region.global_resource_group_name
+  mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
+  ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
+}
+
+module "region_4" {
   source    = "./stamp"
   base_name = local.base_name
   location  = "southeastasia"
@@ -94,4 +105,3 @@ module "region_3" {
   mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
   ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
 }
-*/

@@ -574,7 +574,6 @@ module "mm-vm-monitoring-extension" {
   workspace_id        = module.loganalytics.workspace_id
   workspace_key       = module.loganalytics.workspace_key
 }
-*/
 
 module "mm-vm-diag-extension" {
   source                   = "../extensions/azurediags"
@@ -584,6 +583,7 @@ module "mm-vm-diag-extension" {
   storage_account_key      = module.unreal-storage.key
   storage_account_endpoint = module.unreal-storage.uri
 }
+*/
 
 module "ue4-extension" {
   source                       = "../extensions/ue4extension"
