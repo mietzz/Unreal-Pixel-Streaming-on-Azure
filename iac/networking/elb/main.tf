@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 //implement an external load balancer to put in front of the matchmaker vm for future growth
 variable "base_name" {
   type = string

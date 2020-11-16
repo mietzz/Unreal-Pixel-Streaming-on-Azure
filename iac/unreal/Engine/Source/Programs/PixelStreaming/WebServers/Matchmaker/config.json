@@ -6,7 +6,7 @@
 	"percentBuffer": 25,
 	"idleMinutes": 60,
 	"connectionIdleRatio": 25,
-	"minIdleInstanceCount": 5,
+	"minIdleInstanceCount": 0,
 	"maxInstanceScaleCount": 500,
 	"subscriptionId": "",
 	"resourceGroup": "",

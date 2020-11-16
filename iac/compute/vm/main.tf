@@ -1,4 +1,6 @@
-#rg, location, diag sa, network
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 variable "base_name" {
   type = string
 }
@@ -94,6 +96,10 @@ output "nics" {
   value = azurerm_network_interface.nic
 }
 
+# output "principal_id" {
+#   value = azurerm_windows_virtual_machine.vm[count.index].identity[0].principal_id
+# }
+
 ## resources
 
 #create an array of public ip addresses
@@ -157,6 +163,8 @@ resource "azurerm_windows_virtual_machine" "vm" {
   identity {
     type = "SystemAssigned"
   }
+
+  custom_data = filebase64("../scripts/setupMatchMakerVM.ps1")
 }
 
 //do a role assignment for the new system identity

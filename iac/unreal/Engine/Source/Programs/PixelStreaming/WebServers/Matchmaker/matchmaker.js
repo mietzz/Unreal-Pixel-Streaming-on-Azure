@@ -6,6 +6,8 @@ var lastScaleupTime = Date.now();
 var lastScaledownTime = Date.now();
 // The number of total app instances that are connecting to the matchmaker
 var totalInstances = 0;
+// The number of total client connections (users) streaming
+var totalConnectedClients = 0;
 // The min minutes between each scaleup (so we don't scale up every frame while we wait for the scale to complete)
 var minMinutesBetweenScaleups = 1;
 var minMinutesBetweenScaledowns = 2;
@@ -36,7 +38,7 @@ const defaultConfig = {
 	// The percentage of active connections to total instances that we want to trigger a scale down once idleMinutes passes with no scaleup
 	connectionIdleRatio: 25,
 	// The minimum number of available app instances we want to scale down to during an idle period (idleMinutes passed with no scaleup)
-	minIdleInstanceCount: 5,
+	minIdleInstanceCount: 0,
 	// The total amount of VMSS nodes that we will approve scaling up to
 	maxInstanceScaleCount: 500,
 	// The subscription used for autoscaling policy
@@ -65,6 +67,41 @@ const { ComputeManagementClient, VirtualMachineScaleSets } = require('@azure/arm
 const msRestNodeAuth = require('@azure/ms-rest-nodeauth');
 const logger = require('@azure/logger');
 logger.setLogLevel('info');
+const appInsights = require('applicationinsights');
+appInsights.setup(config.appInsightsId).setSendLiveMetrics(true).start();
+
+if (!appInsights || !appInsights.defaultClient) {
+	console.log("No valid appInsights object to use");
+}
+
+
+function appInsightsLogError(err) {
+
+	if (!appInsights || !appInsights.defaultClient) {
+		return;
+	}
+
+	appInsights.defaultClient.trackMetric({ name: "MatchMakerErrors", value: 1 });
+	appInsights.defaultClient.trackException({ exception: err });
+}
+
+function appInsightsLogEvent(eventName, eventCustomValue) {
+
+	if (!appInsights || !appInsights.defaultClient) {
+		return;
+	}
+
+	appInsights.defaultClient.trackEvent({ name: eventName, properties: { customProperty: eventCustomValue } });
+}
+
+function appInsightsLogMetric(metricName, metricValue) {
+
+	if (!appInsights || !appInsights.defaultClient) {
+		return;
+	}
+
+	appInsights.defaultClient.trackMetric({ name: metricName, value: metricValue });
+}
 
 // A list of all the Cirrus server which are connected to the Matchmaker.
 var cirrusServers = new Map();
@@ -125,13 +162,18 @@ function getVMSSNodeCountAndState(subscriptionId, resourceGroup, virtualMachineS
 				console.log(`VMSS Capacity: ${currentVMSSNodeCount} and State: ${currentVMSSProvisioningState}`);
 			}
 
-			lastVMSSCapacity = currentVMSSProvisioningState;
+			lastVMSSCapacity = currentVMSSNodeCount;
 			lastVMSSProvisioningState = currentVMSSProvisioningState;
+			appInsightsLogMetric("VMSSGetSuccess", 1);
 		}).catch((err) => {
 			console.error(`ERROR getting VMSS info: ${err}`);
+			appInsightsLogError(err);
+			appInsightsLogMetric("VMSSGetError", 1);
 		});
 	}).catch((err) => {
 		console.error(err);
+		appInsightsLogError(err);
+		appInsightsLogMetric("MSILoginGetError", 1);
 	});
 }
 
@@ -149,13 +191,33 @@ setInterval(function () {
 function getAvailableCirrusServer() {
 
 	for (cirrusServer of cirrusServers.values()) {
+
+		console.log(`getAvailableCirrusServer: ${cirrusServer.address} and numConnectedClients: ${cirrusServer.numConnectedClients}`);
+
 		if (cirrusServer.numConnectedClients === 0) {
+			console.log(`Returning server ${cirrusServer.address} to send a user to`);
 			return cirrusServer;
 		}
 	}
 
 	console.log('WARNING: No empty Cirrus servers are available');
 	return undefined;
+}
+
+function getConnectedClients() {
+
+	var connectedClients = 0;
+
+	for (cirrusServer of cirrusServers.values()) {
+		connectedClients += cirrusServer.numConnectedClients;
+
+		if (cirrusServer.numConnectedClients > 1) {
+			console.log(`WARNING: cirrusServer ${cirrusServer.address} has ${cirrusServer.numConnectedClients}`);
+        }
+	}
+
+	console.log(`Total Connected Clients Found: ${connectedClients}`);
+	return connectedClients;
 }
 
 // No servers are available so send some simple JavaScript to the client to make
@@ -177,6 +239,9 @@ function sendRetryResponse(res) {
 
 // Handle standard URL.
 app.get('/', (req, res) => {
+
+	console.log(`app.get() hit!`);
+
 	cirrusServer = getAvailableCirrusServer();
 	if (cirrusServer != undefined) {
 		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/`);
@@ -228,11 +293,16 @@ function scaleSignalingWebServers(newCapacity) {
 		// Update the VMSS with the new capacity
 		vmss.update(config.resourceGroup, config.virtualMachineScaleSet, updateOptions).then((result) => {
 			console.log(`Success Scaling VMSS: ${result}`);
+			appInsightsLogMetric("VMSSScaleSuccess", 1);
 		}).catch((err) => {
 			console.error(`ERROR Scaling VMSS: ${err}`);
+			appInsightsLogError(err);
+			appInsightsLogMetric("VMSSScaleUpdateError", 1);
 		});
 	}).catch((err) => {
 		console.error(err);
+		appInsightsLogError(err);
+		appInsightsLogMetric("MSILoginError", 1);
 	});
 }
 
@@ -245,9 +315,10 @@ function scaleupInstances(newNodeCount) {
 		return;
 	}
 
+	appInsightsLogEvent("ScaleUp", newNodeCount);
+
 	lastScaleupTime = Date.now();
 
-	// TODO: Make sure we've added the current plus new node count
 	scaleSignalingWebServers(newNodeCount);
 }
 
@@ -265,20 +336,22 @@ function scaledownInstances(newNodeCount) {
 	if (newNodeCount <= 0)
 		newNodeCount = 1;
 
-	// TODO: Make sure we've added the current plus new node count
+	appInsightsLogEvent("ScaleDown", newNodeCount);
+
 	scaleSignalingWebServers(newNodeCount);
 }
 
 // Called when we want to review the autoscale policy to see if there needs to be scaling up or down
 function evaluateAutoScalePolicy() {
+
 	console.log(`Evaluating AutoScale Policy....`);
 
 	totalInstances = cirrusServers.size;
+	totalConnectedClients = getConnectedClients();
 
-	console.log(`Current Servers Connected: ${totalInstances} Current Clients Connected: ${cirrusServer.numConnectedClients}`);
+	console.log(`Current Servers Connected: ${totalInstances} Current Clients Connected: ${totalConnectedClients}`);
 
-	var numConnections = cirrusServer.numConnectedClients;
-	var availableConnections = Math.max(totalInstances - numConnections, 0);
+	var availableConnections = Math.max(totalInstances - totalConnectedClients, 0);
 
 	var timeElapsedSinceScaleup = Date.now() - lastScaleupTime;
 	var minutesSinceScaleup = Math.round(((timeElapsedSinceScaleup % 86400000) % 3600000) / 60000);
@@ -289,9 +362,9 @@ function evaluateAutoScalePolicy() {
 	var remainingUtilization = 0;
 
 	// Get the percentage of total available signaling servers taken by users
-	if (numConnections > 0 && totalInstances > 0) {
-		percentUtilized = numConnections / totalInstances;
-		remainingUtilization = (1 - percentUtilized) * 100;
+	if (totalConnectedClients > 0 && totalInstances > 0) {
+		percentUtilized = (totalConnectedClients / totalInstances) * 100;
+		remainingUtilization = 100 - percentUtilized;
 	}
 
 	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availableConnections: ${availableConnections} and % used: ${percentUtilized}`);
@@ -299,6 +372,7 @@ function evaluateAutoScalePolicy() {
 	// Don't try and scale up/down if there is already a scaling operation in progress
 	if (currentVMSSProvisioningState != 'Succeeded') {
 		console.log(`Ignoring scale check as VMSS provisioning state isn't in Succeeded state: ${currentVMSSProvisioningState}`);
+		appInsightsLogMetric("VMSSProvisioningStateNotReady", 1);
 		return;
 	}	
 
@@ -311,6 +385,8 @@ function evaluateAutoScalePolicy() {
 	// If available user connections is less than our desired buffer level scale up
 	if ((config.instanceCountBuffer > 0) && (availableConnections < config.instanceCountBuffer)) {
 		console.log(`Not enough of a buffer--scale up`);
+		appInsightsLogMetric("VMSSNodeCountScaleUp", 1);
+		appInsightsLogEvent("Scaling up VMSS node count", availableConnections);
 		scaleupInstances(currentVMSSNodeCount + config.instanceCountBuffer - availableConnections);
 		return;
 	}
@@ -321,13 +397,17 @@ function evaluateAutoScalePolicy() {
 		var newNodeCountIncrease = Math.max(totalInstances * (scaleUpPercentage * .01), 1);
 		//var percentageBufferNodes = totalInstances * (config.percentBuffer * .01);
 		console.log(`We are below the needed percent buffer--scaling up ${scaleUpPercentage}% by ${newNodeCountIncrease}`);
+		appInsightsLogMetric("VMSSPercentageScaleUp", 1);
+		appInsightsLogEvent("Scaling up VMSS percentage", newNodeCount);
 		scaleupInstances(currentVMSSNodeCount + newNodeCountIncrease);
 		return;
 	}
-	// Else if our current VMSS nodes are less than the desired node count buffer
+	// Else if our current VMSS nodes are less than the desired node count buffer (i.e., we started with 2 VMSS but we wanted a buffer of 5)
 	else if (currentVMSSNodeCount < config.instanceCountBuffer) {
 		var newNodeCount = config.instanceCountBuffer - currentVMSSNodeCount;
 		console.log(`Scaling up ${newNodeCount} VMSS nodes since available nodes (${currentVMSSNodeCount}) are less than desired buffer (${config.instanceCountBuffer})`);
+		appInsightsLogMetric("VMSSDesiredBufferScaleUp", 1);
+		appInsightsLogEvent("Scaling up VMSS to meet initial desired buffer", newNodeCount);
 		scaleupInstances(currentVMSSNodeCount + newNodeCount);
 		return;
 	}
@@ -335,12 +415,15 @@ function evaluateAutoScalePolicy() {
 	// Adding hysteresis check to make sure we didn't just scale down and should wait until the scaling has enough time to react
 	if (minutesSinceScaledown < minMinutesBetweenScaledowns) {
 		console.log(`Waiting to scale down since we already recently scaled down or started the service`);
+		appInsightsLogEvent("Waiting to scale down due to recent scale down", minutesSinceScaledown);
 		return;
 	}
 	// Else if we've went long enough without scaling up to consider scaling down when we reach a low enough usage ratio
 	else if ((config.connectionIdleRatio > 0) && ((minutesSinceScaledown >= config.idleMinutes) && (percentUtilized <= config.connectionIdleRatio))) {
 		console.log(`It's been a while since scaling activity--scale down`);
-		var newNodeCount = Math.max(totalInstances * Math.ceil(config.connectionIdleRatio * .01), 1);
+		var newNodeCount = Math.max(Math.ceil(totalInstances * (config.connectionIdleRatio * .01)), 1);
+		appInsightsLogMetric("VMSSScaleDown", 1);
+		appInsightsLogEvent("Scaling down VMSS due to idling", percentUtilized + "%, count:" + newNodeCount);
 		scaledownInstances(newNodeCount);
 	}
 }
@@ -352,6 +435,7 @@ const matchmaker = net.createServer((connection) => {
 		} catch (e) {
 			console.log(`ERROR (${e.toString()}): Failed to parse Cirrus information from data: ${data.toString()}`);
 			disconnect(connection);
+			appInsightsLogError(e);
 			return;
 		}
 
@@ -362,24 +446,43 @@ const matchmaker = net.createServer((connection) => {
 				port: message.port,
 				numConnectedClients: 0
 			};
-			cirrusServers.set(connection, cirrusServer);
+
+			// Make sure we don't add a server address that already exists (happens when a Cirrus Server has a reconnect)
+			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
+
+			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
+			if (!server || server.size <= 0) {
+				cirrusServers.set(connection, cirrusServer);
+            }				
+			else {
+				appInsightsLogMetric("DuplicateCirrusConnection", 1);
+				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
+				return;
+			}
+
 			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker`);
 
 			evaluateAutoScalePolicy();
+			appInsightsLogMetric("CirrusConnection", 1);
+			appInsightsLogEvent("CirrusConnection", message.address);
 		} else if (message.type === 'clientConnected') {
 			// A client connects to a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
 			cirrusServer.numConnectedClients++;
-			console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
+			console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
 
 			evaluateAutoScalePolicy();
+			appInsightsLogMetric("ClientConnection", 1);
+			appInsightsLogEvent("ClientConnection", message.address);
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
 			cirrusServer.numConnectedClients--;
-			console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
+			console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
 
 			evaluateAutoScalePolicy();
+			appInsightsLogMetric("ClientDisconnect", 1);
+			appInsightsLogEvent("ClientsDisonnected", message.address);
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);
@@ -390,6 +493,8 @@ const matchmaker = net.createServer((connection) => {
 	connection.on('error', () => {
 		cirrusServers.delete(connection);
 		console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+		appInsightsLogMetric("CirrusDisconnect", 1);
+		appInsightsLogEvent("CirrusDisconnect", cirrusServer.address);
 	});
 });
 
