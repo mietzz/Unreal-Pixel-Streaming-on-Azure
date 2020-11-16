@@ -8,6 +8,7 @@
     "yargs": "^10.1.1",
     "@azure/ms-rest-nodeauth": "^3.0.6",
     "@azure/logger": "^1.0.0",
-    "@azure/arm-compute": "^15.0.0"
+    "@azure/arm-compute": "^15.0.0",
+    "applicationinsights": "1.8.8"
   }
 }

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 ## variables
 variable "base_name" {
   description = "the base name for the resources"

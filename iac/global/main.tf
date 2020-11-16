@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #this module is to create the global components
 # implement global rg
 # implement matchmaker tm profile
@@ -11,6 +14,11 @@ variable "base_name" {
 
 variable "location" {
   type = string
+}
+
+variable "git-pat" {
+  type        = string
+  description = "(optional) describe your variable"
 }
 
 ## locals
@@ -44,6 +52,24 @@ module "loganalytics_global" {
 
   //add a name variable here for the global
   logA_Name = format("%s-loganalytics-global-%s", var.base_name, lower(var.location))
+}
+
+data "external" "user" {
+  program = ["powershell.exe", "./global/getobjectid.ps1"]
+}
+
+module "akv_global" {
+  source              = "../mgmt/akv"
+  base_name           = var.base_name
+  resource_group_name = azurerm_resource_group.rg_global.name
+  location            = var.location
+
+  git-pat                     = var.git-pat
+  service_principal_object_id = data.external.user.result.object_id
+}
+
+output "key_vault_id" {
+  value = module.akv_global.key_vault_id
 }
 
 #Traffic Manager implementation:

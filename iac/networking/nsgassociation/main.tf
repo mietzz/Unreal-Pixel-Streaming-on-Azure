@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 ## variables
 variable "network_interface_ids" {
   type = list(object({ id = string }))

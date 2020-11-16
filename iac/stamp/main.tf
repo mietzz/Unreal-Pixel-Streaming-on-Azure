@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 variable "base_name" {
   type = string
 }
@@ -7,6 +10,14 @@ variable "location" {
 }
 
 variable "index" {
+  type = string
+}
+
+variable "key_vault_id" {
+  type = string
+}
+
+variable "git-pat" {
   type = string
 }
 
@@ -21,10 +32,24 @@ output "location" {
 }
 
 resource "random_string" "admin_password" {
-  length  = 10
-  special = true
-  upper   = true
-  number  = true
+  length      = 15
+  special     = true
+  upper       = true
+  number      = true
+  min_special = 4
+}
+
+#base_name = var.base_name == "random" ? random_string.base_id.result : var.base_name
+
+locals {
+  safePWD = replace(replace(random_string.admin_password.result, "{", "!"), "}", "!")
+}
+
+#put this in akv
+resource "azurerm_key_vault_secret" "pwd_secret" {
+  name         = format("%s-%s-password", var.base_name, var.location)
+  value        = local.safePWD
+  key_vault_id = var.key_vault_id
 }
 
 ## outputs
@@ -238,6 +263,23 @@ module "ue4-8889-rule" {
   load_distribution  = "SourceIPProtocol"
 }
 
+module "ue4-4244-rule" {
+  source                              = "../networking/addporttolb"
+  base_name                           = var.base_name
+  resource_group                      = module.unreal-rg.resource_group
+  lb_name                             = "ue4"
+  loadbalancer_id                     = module.ue4-elb.lb_id
+  backend_address_pool_id             = module.ue4-elb.lb_backend_address_pool_id
+  probe_port                          = "4244"
+  probe_protocol                      = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  #format("%s-mm-config-%s", var.base_name, var.index)
+  rule_protocol      = "TCP"
+  rule_frontend_port = "4244"
+  rule_backend_port  = "4244"
+  load_distribution  = "SourceIPProtocol"
+}
+
 module "matchmaker-availset" {
   source                       = "../compute/availset"
   base_name                    = var.base_name
@@ -261,7 +303,7 @@ module "matchmaker-vm" {
   availability_set_id = module.matchmaker-availset.availability_set_id
 
   admin_username = var.matchmaker_admin_username
-  admin_password = random_string.admin_password.result
+  admin_password = local.safePWD
 
   vm_size      = var.matchmaker_vm_size
   vm_publisher = var.matchmaker_vm_publisher
@@ -472,6 +514,22 @@ module "ue4_security_rule_1930x" {
   security_rule_destination_address_prefix = "*"
 }
 
+module "ue4_security_rule_4244" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "Open4244"
+  security_rule_priority                   = 1040
+  security_rule_direction                  = "Inbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "4244"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
 module "ue4_outbound_security_rule_90" {
   source                      = "../networking/security_rule"
   resource_group              = module.unreal-rg.resource_group
@@ -520,6 +578,22 @@ module "ue4_outbound_security_rule_19302" {
   security_rule_destination_address_prefix = "*"
 }
 
+module "ue4_outbound_security_rule_4244" {
+  source                      = "../networking/security_rule"
+  resource_group              = module.unreal-rg.resource_group
+  network_security_group_name = module.ue4_nsg.network_security_group_name
+
+  security_rule_name                       = "OpenOutbound4244"
+  security_rule_priority                   = 1050
+  security_rule_direction                  = "Outbound"
+  security_rule_access                     = "Allow"
+  security_rule_protocol                   = "Tcp"
+  security_rule_source_port_range          = "*"
+  security_rule_destination_port_range     = "4244"
+  security_rule_source_address_prefix      = "*"
+  security_rule_destination_address_prefix = "*"
+}
+
 module "compute-vmss" {
   source         = "../compute/vmss"
   base_name      = var.base_name
@@ -528,7 +602,7 @@ module "compute-vmss" {
   subnet_id      = module.unreal-vnet.subnet_id
 
   admin_username = var.matchmaker_admin_username
-  admin_password = random_string.admin_password.result
+  admin_password = local.safePWD
 
   sku          = var.vmss_sku
   instances    = var.vmss_start_instances
@@ -564,19 +638,25 @@ module "mm-extension" {
   resource_group_name      = module.unreal-rg.resource_group.name
   vmss_name                = module.compute-vmss.name
   application_insights_key = module.appinsights.instrumentation_key
+  git-pat                  = var.git-pat
 }
 
 /*
 module "mm-vm-monitoring-extension" {
-  source              = "../extensions/microsoftmonitoringagent"
+  source              = "../extensions/vmmonitoringagent"
   virtual_machine_ids = module.matchmaker-vm.vms
-  extension_name      = "mm-vm-monitoring-extension"
+  extension_name      = "MonitoringAgentWindows"
   workspace_id        = module.loganalytics.workspace_id
   workspace_key       = module.loganalytics.workspace_key
 }
 
+module "mm-vm-DependencyAgentWindows" {
+  source              = "../extensions/vmdependencyagent"
+  virtual_machine_ids = module.matchmaker-vm.vms
+}
+
 module "mm-vm-diag-extension" {
-  source                   = "../extensions/azurediags"
+  source                   = "../extensions/vmazurediags"
   virtual_machine_ids      = module.matchmaker-vm.vms
   extension_name           = "mm-vm-diag-extension"
   storage_account_name     = module.unreal-storage.name
@@ -593,6 +673,9 @@ module "ue4-extension" {
   resource_group_name          = module.unreal-rg.resource_group.name
   vmss_name                    = module.compute-vmss.name
   application_insights_key     = module.appinsights.instrumentation_key
+  mm_lb_fqdn                   = module.matchmaker-elb.fqdn
+  git-pat                      = var.git-pat
+  admin_password               = local.safePWD
 }
 
 module "ue4-nvidia-extension" {
@@ -600,6 +683,37 @@ module "ue4-nvidia-extension" {
   virtual_machine_scale_set_id = module.compute-vmss.id
   extension_name               = "ue4_nvidia_driver"
 }
+
+/*
+module "ue4-vmss-ManagedIdentity" {
+  source                       = "../extensions/vmssmanagedidentity"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+}
+*/
+
+/*
+module "ue4-vmss-MonitoringAgentWindows" {
+  source                       = "../extensions/vmssmonitoringagent"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+  extension_name               = "MonitoringAgentWindows"
+  workspace_id                 = module.loganalytics.workspace_id
+  workspace_key                = module.loganalytics.workspace_key
+}
+
+module "ue4-vmss-DependencyAgentWindows" {
+  source                       = "../extensions/vmssdependencyagent"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+}
+
+module "ue4-vmss-diag-extension" {
+  source                       = "../extensions/vmssazurediags"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+  extension_name               = "ue4-vmss-diag-extension"
+  storage_account_name         = module.unreal-storage.name
+  storage_account_key          = module.unreal-storage.key
+  storage_account_endpoint     = module.unreal-storage.uri
+}
+*/
 
 # now add this stamp to the Traffic Manager
 #add the regional TM endpoint for the matchmaker service

@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
 #each regional "stamp" variables
 
 #networking address space for the virtual network for each region
@@ -84,13 +86,13 @@ variable "managed" {
 
 #Backend number of instances deployed on the VMSS cluster
 variable "vmss_start_instances" {
-  default = 1
+  default = 3
 }
 
 #Backend compute type deployed on the VMSS cluster. NV6 have the NVidia GPUs
 variable "vmss_sku" {
-  default = "Standard_NV6"
-  #default = "Standard_NV12s_v3"
+  #default = "Standard_NV6"
+  default = "Standard_NV12s_v3"
 }
 
 #Backend image publisher deployed on the VMSS cluster. 

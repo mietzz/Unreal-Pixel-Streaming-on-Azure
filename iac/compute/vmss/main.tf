@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 variable "base_name" {
   type = string
 }
@@ -96,6 +99,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   health_probe_id = var.health_probe_id
   upgrade_mode    = var.upgrade_mode
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   source_image_reference {
     publisher = var.vm_publisher
     offer     = var.vm_offer
@@ -126,12 +133,15 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
       }
     }
   }
-  /*
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 21
-    max_unhealthy_instance_percent          = 22
-    max_unhealthy_upgraded_instance_percent = 23
-    pause_time_between_batches              = "PT30S"
-  }  
-*/
+  custom_data = filebase64("../scripts/setupBackendVMSS.ps1")
+}
+
+//do a role assignment for the new system identity
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_role_assignment" "role_assignment" {
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_windows_virtual_machine_scale_set.vmss.identity[0].principal_id
 }
