@@ -116,7 +116,7 @@ Add-Content -Path $logoutput -Value $logmessage
 $folder = "c:\Unreal\"
 try {
   if (-not (Test-Path -LiteralPath $folder)) {
-    $logmessage = $folder + "doesn't exist. Adding."
+    $logmessage = $folder + "doesn't exist. Adding unreal"
     Add-Content -Path $logoutput -Value $logmessage
     git clone -q $gitpath $folder
   }
