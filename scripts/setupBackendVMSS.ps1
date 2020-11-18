@@ -16,12 +16,12 @@ Param (
 )
 
 #set the base github path for the unreal code
-$gitpath = "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git"
+$gitpath = "https://github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
   #handle if a PAT was passed and use that in the url
-  $gitpath = "https://" + $pat + "@github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git"
+  $gitpath = "https://" + $pat + "@github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
 }
 
 $logsfolder = "c:\gaming\logs"
@@ -131,14 +131,14 @@ try {
   }
   $logmessage = "Cloning the github repo complete"
   Add-Content -Path $logoutput -Value $logmessage
- }
+}
 catch {
-    $logmessage = $_.Exception.Message
-    Write-Output $logmessage
-    Add-Content -Path $logoutput -Value $logmessage
+  $logmessage = $_.Exception.Message
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
 }
 finally {
-    $error.clear()
+  $error.clear()
 }
 
 
