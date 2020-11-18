@@ -145,7 +145,7 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
 
-Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
+Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectEverywhere.zip -OutFile C:\WindowsNoEditor.zip
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
 Add-Content -Path $logoutput -Value $logmessage
