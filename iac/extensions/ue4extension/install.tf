@@ -37,10 +37,11 @@ variable "admin_password" {
   type = string
 }
 
+#-admin_password ${var.admin_password}
 locals {
   source          = "./setupBackendVMSS.ps1"
-  command         = "powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -command cp c:/AzureData/CustomData.bin c:/AzureData/install.ps1; c:/AzureData/install.ps1 -subscription_id ${var.subscription_id} -resource_group_name ${var.resource_group_name} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key} -mm_lb_fqdn ${var.mm_lb_fqdn} -admin_password ${var.admin_password} -pat ${var.git-pat};"
-  shorter_command = "powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -command cp c:/AzureData/CustomData.bin c:/AzureData/install.ps1; c:/AzureData/install.ps1 -subscription_id ${var.subscription_id} -resource_group_name ${var.resource_group_name} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key} -mm_lb_fqdn ${var.mm_lb_fqdn} -admin_password ${var.admin_password};"
+  command         = "powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -command cp c:/AzureData/CustomData.bin c:/AzureData/install.ps1; c:/AzureData/install.ps1 -subscription_id ${var.subscription_id} -resource_group_name ${var.resource_group_name} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key} -mm_lb_fqdn ${var.mm_lb_fqdn} -pat ${var.git-pat};"
+  shorter_command = "powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -command cp c:/AzureData/CustomData.bin c:/AzureData/install.ps1; c:/AzureData/install.ps1 -subscription_id ${var.subscription_id} -resource_group_name ${var.resource_group_name} -vmss_name ${var.vmss_name} -application_insights_key ${var.application_insights_key} -mm_lb_fqdn ${var.mm_lb_fqdn};"
 
   #if git-pat is "" then don't add that parameter
   paramstring = var.git-pat != "" ? local.command : local.shorter_command

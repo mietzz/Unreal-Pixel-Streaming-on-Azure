@@ -21,6 +21,22 @@ variable "git-pat" {
   type = string
 }
 
+variable "vnet_address_space" {
+  type = string
+}
+
+variable "subnet_address_prefixes" {
+  type = string
+}
+
+variable "matchmaker_elb_private_ip_address" {
+  type = string
+}
+
+variable "ue4_elb_private_ip_address" {
+  type = string
+}
+
 #this is used for the outer loops
 output "index" {
   value = var.index
@@ -678,11 +694,13 @@ module "ue4-extension" {
   admin_password               = local.safePWD
 }
 
+/*
 module "ue4-nvidia-extension" {
   source                       = "../extensions/nvidiaext"
   virtual_machine_scale_set_id = module.compute-vmss.id
   extension_name               = "ue4_nvidia_driver"
 }
+*/
 
 /*
 module "ue4-vmss-ManagedIdentity" {

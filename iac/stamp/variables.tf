@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 #each regional "stamp" variables
 
+/*
 #networking address space for the virtual network for each region
 variable "vnet_address_space" {
   default = "10.100.0.0/16"
@@ -16,16 +17,19 @@ variable "subnet_address_prefixes" {
 variable "matchmaker_elb_private_ip_address" {
   default = "10.100.0.100"
 }
+*/
 
 #Matchmaker Load Balancer SKU
 variable "matchmaker_elb_sku" {
   default = "Standard"
 }
 
+/*
 #Backend Load Balancer Private IP Address
 variable "ue4_elb_private_ip_address" {
   default = "10.100.0.110"
 }
+*/
 
 #Backend Load Balancer SKU
 variable "ue4_elb_sku" {

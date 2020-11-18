@@ -11,8 +11,6 @@ Param (
   [String]$application_insights_key = "",
   [Parameter(Mandatory = $True, HelpMessage = "matchmaker load balancer fqdn")]
   [String]$mm_lb_fqdn = "",
-  [Parameter(Mandatory = $True, HelpMessage = "Specify the password for the <run as> user.")]
-  [String]$admin_password = "",  
   [Parameter(Mandatory = $False, HelpMessage = "github personal access token")]
   [String]$pat = ""
 )
@@ -87,13 +85,10 @@ $logmessage = "Installing prerequisites complete"
 Add-Content -Path $logoutput -Value $logmessage
 
 #sleep for 45 seconds to wait for install processes to complete
-Start-Sleep -s 45
+Start-Sleep -s 5
 
 $logmessage = "Disabling Windows Firewalls"
 Add-Content -Path $logoutput -Value $logmessage
-#Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\DomainProfile' -name "EnableFirewall" -Value 0
-#Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\PublicProfile' -name "EnableFirewall" -Value 0
-#Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\Standardprofile' -name "EnableFirewall" -Value 0 
 
 Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False
 
@@ -197,17 +192,12 @@ Add-Content -Path $logoutput -Value $logMessage
 $logmessage = "Creating a job schedule "
 Add-Content -Path $logoutput -Value $logmessage
 
-#$User = "azureadmin"
-#$PWord = ConvertTo-SecureString -String $admin_password -AsPlainText -Force
-#$Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $User, $PWord
-
 $filePath = "C:\Unreal\scripts\startVMSS.ps1"
 $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:10
 try {
-  #Register-ScheduledJob -Trigger $trigger -FilePath $filePath -Name "StartVMSS" -Credential $Cred
-  $User = "azureadmin"
+  $User = "NT AUTHORITY\SYSTEM"
   $PS = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy bypass -noprofile -file $filePath"
-  Register-ScheduledTask -Trigger $trigger -User $User -TaskName "StartVMSS" -Action $PS -RunLevel Highest -Force
+  Register-ScheduledTask -Trigger $trigger -User $User -TaskName "StartVMSS" -Action $PS -RunLevel Highest -AsJob -Force
 }
 catch {
   $logmessage = "Exception: " + $_.Exception
@@ -221,12 +211,32 @@ finally {
 $logmessage = "Creating a job schedule complete"
 Add-Content -Path $logoutput -Value $logmessage
 
+#install the nvidia extension on this vmss
+$logMessage = "Starting the installation of the nVidia extension"
+Add-Content -Path $logoutput -Value $logMessage
+
+az login --identity
+az account set --subscription $subscription_id
+$isExtInstalled = az vmss extension show --name NvidiaGpuDriverWindows --resource-group $resource_group_name --vmss-name $vmss_name
+if (!$isExtInstalled.Length -gt 0) {
+  #install extension
+  az vmss extension set -g $resource_group_name --vmss-name $vmss_name --name NvidiaGpuDriverWindows --publisher Microsoft.HpcCompute --version 1.3 --no-wait --settings '{ }'
+
+  $logMessage = "Completed the installation of the nVidia extension"
+  Add-Content -Path $logoutput -Value $logMessage
+}
+else {
+  $logmessage = "nVidia Extension already installed "
+  Add-Content -Path $logoutput -Value $logmessage
+}
+
+#just in case there is not a reboot, run the process...
 $logmessage = "Starting the VMSS Process "
 Add-Content -Path $logoutput -Value $logmessage
 
 #invoke the script to start it this time
 Set-ExecutionPolicy Bypass -Scope CurrentUser -Force
-#Start-ScheduledTask -TaskName "StartVMSS" -AsJob
+
 Invoke-Expression -Command $filePath
 
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')

@@ -23,7 +23,7 @@ variable "git-pat" {
 
 ## locals
 locals {
-  rg_name = format("%s-%s-unreal-global-rg", var.base_name, lower(var.location))
+  rg_name = format("%s-global-unreal-rg", var.base_name)
 }
 
 output "global_resource_group_name" {
