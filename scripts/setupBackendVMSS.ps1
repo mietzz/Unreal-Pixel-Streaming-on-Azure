@@ -114,33 +114,33 @@ $logmessage = "Cloning the github repo"
 Add-Content -Path $logoutput -Value $logmessage
 
 $folder = "c:\Unreal\"
-if (-not (Test-Path -LiteralPath $folder)) {
-  $logmessage = $folder + "doesn't exist. Adding."
-  Add-Content -Path $logoutput -Value $logmessage
-  git clone -q $gitpath $folder
-}
-else {
-  #rename the existing folder if exists
-  $logmessage = $folder + " already exists. Renaming."
-  Add-Content -Path $logoutput -Value $logmessage
-
-  $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
-  try {
-    Rename-Item -Path $folder  -NewName $endtag -Force
+try {
+  if (-not (Test-Path -LiteralPath $folder)) {
+    $logmessage = $folder + "doesn't exist. Adding unreal"
+    Add-Content -Path $logoutput -Value $logmessage
+    git clone -q $gitpath $folder
   }
-  catch {
+  else {
+    #rename the existing folder if exists
+    $logmessage = $folder + " already exists. Renaming."
+    Add-Content -Path $logoutput -Value $logmessage
+
+    $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
+    Rename-Item -Path $folder  -NewName $endtag -Force
+    git clone -q $gitpath $folder
+  }
+  $logmessage = "Cloning the github repo complete"
+  Add-Content -Path $logoutput -Value $logmessage
+ }
+catch {
     $logmessage = $_.Exception.Message
     Write-Output $logmessage
     Add-Content -Path $logoutput -Value $logmessage
-  }
-  finally {
+}
+finally {
     $error.clear()
-  }
-  git clone -q $gitpath $folder
 }
 
-$logmessage = "Cloning the github repo complete"
-Add-Content -Path $logoutput -Value $logmessage
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
