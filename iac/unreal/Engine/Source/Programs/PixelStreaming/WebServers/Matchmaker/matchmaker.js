@@ -385,7 +385,15 @@ function evaluateAutoScalePolicy() {
 		appInsightsLogMetric("VMSSProvisioningStateNotReady", 1);
 		appInsightsLogEvent("VMSSNotReady", currentVMSSProvisioningState);
 		return;
-	}	
+	}
+
+	// Make sure all the cirrus servers on the VMSS have caught up and connected to the MM before considering scaling, or at least 15 minutes since starting up 
+	if (totalInstances < currentVMSSNodeCount && minutesSinceScaleup < 15) {
+		console.log(`Ignoring scale check as only ${totalInstances} cirrus servers out of ${currentVMSSNodeCount} total VMSS nodes have connected`);
+		appInsightsLogMetric("CirrusServersNotAllReady", 1);
+		appInsightsLogEvent("CirrusServersNotAllReady", currentVMSSNodeCount - totalInstances);
+		return;
+    }
 
 	// Adding hysteresis check to make sure we didn't just scale up and should wait until the scaling has enough time to react
 	//if (minutessincescaleup < minminutesbetweenscaleups) {
