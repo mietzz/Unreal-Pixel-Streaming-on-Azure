@@ -54,11 +54,11 @@ variable "private_ip_address_allocation" {
 output "lb_id" {
   value = azurerm_lb.lb.id
 }
-
+/*
 output "lb_nat_pool_id" {
   value = azurerm_lb_nat_pool.lb_nat_pool.id
 }
-
+*/
 output "lb_backend_address_pool_id" {
   value = azurerm_lb_backend_address_pool.lb_backend_address_pool.id
 }
@@ -100,7 +100,7 @@ resource "azurerm_lb_backend_address_pool" "lb_backend_address_pool" {
   resource_group_name = var.resource_group.name
   loadbalancer_id     = azurerm_lb.lb.id
 }
-
+/*
 resource "azurerm_lb_nat_pool" "lb_nat_pool" {
   name                           = format("%s-%s-nat-pool", var.base_name, var.lb_name)
   resource_group_name            = var.resource_group.name
@@ -111,7 +111,7 @@ resource "azurerm_lb_nat_pool" "lb_nat_pool" {
   frontend_port_end              = var.nat_pool_frontend_port_end
   backend_port                   = var.nat_pool_backend_port
 }
-
+*/
 #change this port at some point
 resource "azurerm_lb_probe" "probe" {
   name                = format("%s-%s-lb-probe", var.base_name, var.lb_name)

@@ -65,10 +65,11 @@ variable "lb_backend_address_pool_id" {
   type = string
 }
 
+/*
 variable "lb_nat_pool_id" {
   type = string
 }
-
+*/
 variable "health_probe_id" {
   type = string
 }
@@ -125,7 +126,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
       primary                                = true
       subnet_id                              = var.subnet_id
       load_balancer_backend_address_pool_ids = [var.lb_backend_address_pool_id]
-      load_balancer_inbound_nat_rules_ids    = [var.lb_nat_pool_id]
+      #load_balancer_inbound_nat_rules_ids    = [var.lb_nat_pool_id]
 
       public_ip_address {
         name              = "vmss_public_ip"

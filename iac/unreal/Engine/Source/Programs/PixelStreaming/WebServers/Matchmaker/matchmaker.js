@@ -68,8 +68,10 @@ const msRestNodeAuth = require('@azure/ms-rest-nodeauth');
 const logger = require('@azure/logger');
 logger.setLogLevel('info');
 const appInsights = require('applicationinsights');
-appInsights.setup(config.appInsightsId).setSendLiveMetrics(true).start();
 
+if (config.appInsightsId) {
+	appInsights.setup(config.appInsightsId).setSendLiveMetrics(true).start();
+}
 if (!appInsights || !appInsights.defaultClient) {
 	console.log("No valid appInsights object to use");
 }
@@ -146,8 +148,6 @@ function getVMSSNodeCountAndState(subscriptionId, resourceGroup, virtualMachineS
 
 		// Get the latest details about the VMSS in Azure
 		vmss.get(resourceGroup, virtualMachineScaleSet).then((result) => {
-			console.log(`Success getting VMSS info: ${result}`);
-
 			if (result == null || result.sku == null) {
 				console.error(`ERROR getting VMSS sku info`);
 				return;
@@ -262,6 +262,12 @@ app.get('/custom_html/:htmlFilename', (req, res) => {
 	}
 });
 
+// Added for health check of the VM
+app.get('/ping', (req, res) => {
+
+	console.log(`app.get() ping hit!`);
+});
+
 //
 // Connection to Cirrus.
 //
@@ -350,6 +356,8 @@ function evaluateAutoScalePolicy() {
 	totalConnectedClients = getConnectedClients();
 
 	console.log(`Current Servers Connected: ${totalInstances} Current Clients Connected: ${totalConnectedClients}`);
+	appInsightsLogMetric("TotalInstances", totalInstances);
+	appInsightsLogMetric("TotalConnectedClients", totalConnectedClients);
 
 	var availableConnections = Math.max(totalInstances - totalConnectedClients, 0);
 
@@ -367,12 +375,15 @@ function evaluateAutoScalePolicy() {
 		remainingUtilization = 100 - percentUtilized;
 	}
 
-	console.log(`Elapsed minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availableConnections: ${availableConnections} and % used: ${percentUtilized}`);
+	console.log(`Minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availConnections: ${availableConnections} and % used: ${percentUtilized}`);
+	appInsightsLogMetric("PercentUtilized", percentUtilized);
+	appInsightsLogMetric("AvailableConnections", availableConnections);
 
 	// Don't try and scale up/down if there is already a scaling operation in progress
 	if (currentVMSSProvisioningState != 'Succeeded') {
 		console.log(`Ignoring scale check as VMSS provisioning state isn't in Succeeded state: ${currentVMSSProvisioningState}`);
 		appInsightsLogMetric("VMSSProvisioningStateNotReady", 1);
+		appInsightsLogEvent("VMSSNotReady", currentVMSSProvisioningState);
 		return;
 	}	
 

@@ -71,10 +71,11 @@ variable "lb_backend_address_pool_id" {
   type = string
 }
 
+/*
 variable "lb_nat_pool_id" {
   type = string
 }
-
+*/
 variable "ip_configuration_name" {
   type = string
 }

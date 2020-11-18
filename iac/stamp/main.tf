@@ -328,8 +328,8 @@ module "matchmaker-vm" {
   vm_version   = var.matchmaker_vm_version
 
   lb_backend_address_pool_id = module.matchmaker-elb.lb_backend_address_pool_id
-  lb_nat_pool_id             = module.matchmaker-elb.lb_nat_pool_id
-  ip_configuration_name      = format("%s-mm-config-%s", var.base_name, var.index)
+  #lb_nat_pool_id             = module.matchmaker-elb.lb_nat_pool_id
+  ip_configuration_name = format("%s-mm-config-%s", var.base_name, var.index)
 }
 
 # add the matchmaker vm to the elb
@@ -630,8 +630,8 @@ module "compute-vmss" {
   vm_version   = var.vmss_source_image_version
 
   lb_backend_address_pool_id = module.ue4-elb.lb_backend_address_pool_id
-  lb_nat_pool_id             = module.ue4-elb.lb_nat_pool_id
-  health_probe_id            = module.ue4-elb.health_probe_id
+  #lb_nat_pool_id             = module.ue4-elb.lb_nat_pool_id
+  health_probe_id = module.ue4-elb.health_probe_id
 
   network_security_group_id = module.ue4_nsg.network_security_group_id
 }
@@ -657,7 +657,7 @@ module "mm-extension" {
   git-pat                  = var.git-pat
 }
 
-/*
+
 module "mm-vm-monitoring-extension" {
   source              = "../extensions/vmmonitoringagent"
   virtual_machine_ids = module.matchmaker-vm.vms
@@ -671,6 +671,7 @@ module "mm-vm-DependencyAgentWindows" {
   virtual_machine_ids = module.matchmaker-vm.vms
 }
 
+/*
 module "mm-vm-diag-extension" {
   source                   = "../extensions/vmazurediags"
   virtual_machine_ids      = module.matchmaker-vm.vms
