@@ -710,7 +710,6 @@ module "ue4-vmss-ManagedIdentity" {
 }
 */
 
-/*
 module "ue4-vmss-MonitoringAgentWindows" {
   source                       = "../extensions/vmssmonitoringagent"
   virtual_machine_scale_set_id = module.compute-vmss.id
@@ -724,6 +723,7 @@ module "ue4-vmss-DependencyAgentWindows" {
   virtual_machine_scale_set_id = module.compute-vmss.id
 }
 
+/*
 module "ue4-vmss-diag-extension" {
   source                       = "../extensions/vmssazurediags"
   virtual_machine_scale_set_id = module.compute-vmss.id
