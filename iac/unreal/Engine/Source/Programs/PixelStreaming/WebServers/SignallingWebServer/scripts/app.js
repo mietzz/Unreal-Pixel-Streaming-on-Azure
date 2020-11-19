@@ -751,6 +751,9 @@ function resizePlayerStyle(event) {
 	if (!playerElement)
 		return;
 
+	// set resolution to WQHD - best compromise quality/performance
+	setRes(2560, 1440);
+
 	updateVideoStreamSize();
 
 	if (playerElement.classList.contains('fixed-size'))
@@ -774,6 +777,15 @@ function resizePlayerStyle(event) {
 	setupNormalizeAndQuantize();
 	resizeFreezeFrameOverlay();
 }
+
+function setRes(width, height) 
+{
+    let descriptor = {
+        Console: 'setres ' + width + 'x' + height
+    };
+    emitUIInteraction(descriptor);
+}
+
 
 function updateVideoStreamSize() {
 	if (!matchViewportResolution) {
