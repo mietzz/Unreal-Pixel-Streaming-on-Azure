@@ -40,8 +40,8 @@ resource "azurerm_traffic_manager_profile" "traffic_manager_profile" {
 
   monitor_config {
     protocol = "http"
-    port     = 80
-    path     = "/"
+    port     = 90
+    path     = "/ping"
   }
 }
 
