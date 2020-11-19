@@ -466,11 +466,11 @@ const matchmaker = net.createServer((connection) => {
 				numConnectedClients: 0
 			};
 
-			// Make sure we don't add a server address that already exists (happens when a Cirrus Server has a reconnect)
-			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
+			// See if we already have this connection in the list
+			var server = cirrusServers.get(connection);
 
 			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
-			if (!server || server.size <= 0) {
+			if (!server) {
 				cirrusServers.set(connection, cirrusServer);
             }				
 			else {
@@ -487,12 +487,19 @@ const matchmaker = net.createServer((connection) => {
 		} else if (message.type === 'clientConnected') {
 			// A client connects to a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
-			cirrusServer.numConnectedClients++;
-			console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+
+			if (cirrusServer) {
+				cirrusServer.numConnectedClients++;
+				console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+				appInsightsLogMetric("ClientConnection", 1);
+				appInsightsLogEvent("ClientConnection", message.address);
+			}
+			else {
+				appInsightsLogMetric("SSUndefined", 1);
+				appInsightsLogEvent("SSUndefined", "clientConnected");
+			}
 
 			evaluateAutoScalePolicy();
-			appInsightsLogMetric("ClientConnection", 1);
-			appInsightsLogEvent("ClientConnection", message.address);
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
