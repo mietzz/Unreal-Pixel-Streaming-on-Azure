@@ -13,7 +13,7 @@ else {
 
 Write-Output "Public IP: $PublicIp"
 
-$peerConnectionOptions = "{ \""iceServers\"": [{\""urls\"": [\""stun:stun.l.google.com:19302\""]}] }"
+$peerConnectionOptions = "{ \""iceServers\"": [{\""urls\"": [\""stun:stun.l.google.com:19302\"",\""turn:turn.rockadman.de:5349\""], \""username\"": \""testuser\"", \""credential\"": \""password123\""}] }"
 
 $ProcessExe = "node.exe"
 $Arguments = @("cirrus", "--peerConnectionOptions=""$peerConnectionOptions""", "--publicIp=$PublicIp")
