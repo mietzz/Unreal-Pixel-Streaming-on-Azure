@@ -23,6 +23,8 @@ $zipfilename = "c:\WindowsNoEditor.zip"
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
+$scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
+$projectDestFolder =  $folder + 'iac\unreal\app\WindowsNoEditor\ProjectEveryWhere'
 
 $blobDestination = $folder + 'iac\unreal\app'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
@@ -165,6 +167,24 @@ Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -forc
 
 $logmessage = "Extracting WindowsNoEditor Complete"
 Add-Content -Path $logoutput -Value $logmessage
+
+try{
+  $logmessage = "Copying OnClientDisconnected :" + $scriptfile
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+  Copy-Item $scriptfile $projectDestFolder
+  $logmessage = "Copying OnClientDisconnected Complete"
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+}
+catch{
+  $logmessage = $_.Exception.Message
+  Write-Output $logmessage 
+  Add-Content -Path $logoutput -Value $logmessage
+}
+finally {
+  $error.clear()
+}
 
 Set-Location -Path $vmServiceFolder 
 
