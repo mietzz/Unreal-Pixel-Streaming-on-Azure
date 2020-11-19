@@ -24,7 +24,7 @@ $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectDestFolder =  $folder + 'iac\unreal\WindowsNoEditor\ProjectEveryWhere'
+$projectFolder =  $folder + 'iac\unreal\ProjectEveryWhere'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 #$blobDestination = $folder + 'iac\unreal\app'
@@ -175,7 +175,7 @@ Write-Output $logmessage
 Add-Content -Path $logoutput -Value $logmessage
 
 try{
-  Copy-Item $projectExecFolder $blobDestination -recurse
+  Copy-Item $projectExecFolder $blobDestination -recurse -force
   $logmessage = "Copying WindowsNoEditor Folder Complete"
   Write-Output $logmessage
   Add-Content -Path $logoutput -Value $logmessage
@@ -191,7 +191,7 @@ finally {
 }
 
 try{
-  Copy-Item $scriptfile $projectDestFolder
+  Copy-Item $scriptfile $projectFolder -force
   $logmessage = "Copying OnClientDisconnected Complete"
   Write-Output $logmessage
   Add-Content -Path $logoutput -Value $logmessage
