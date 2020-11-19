@@ -24,7 +24,7 @@ $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectDestFolder =  $folder + 'iac\unreal\app\WindowsNoEditor\ProjectEveryWhere'
+$projectDestFolder =  $folder + 'iac\unreal\WindowsNoEditor\ProjectEveryWhere'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 #$blobDestination = $folder + 'iac\unreal\app'
@@ -175,7 +175,7 @@ Write-Output $logmessage
 Add-Content -Path $logoutput -Value $logmessage
 
 try{
-  Copy-Item $projectExecFolder $blobDestination
+  Copy-Item $projectExecFolder $blobDestination -recurse
   $logmessage = "Copying WindowsNoEditor Folder Complete"
   Write-Output $logmessage
   Add-Content -Path $logoutput -Value $logmessage
