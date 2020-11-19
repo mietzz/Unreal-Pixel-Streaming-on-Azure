@@ -168,10 +168,11 @@ Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -forc
 $logmessage = "Extracting WindowsNoEditor Complete"
 Add-Content -Path $logoutput -Value $logmessage
 
+$logmessage = "Copying OnClientDisconnected :" + $scriptfile
+Write-Output $logmessage
+Add-Content -Path $logoutput -Value $logmessage
+
 try{
-  $logmessage = "Copying OnClientDisconnected :" + $scriptfile
-  Write-Output $logmessage
-  Add-Content -Path $logoutput -Value $logmessage
   Copy-Item $scriptfile $projectDestFolder
   $logmessage = "Copying OnClientDisconnected Complete"
   Write-Output $logmessage
@@ -179,7 +180,8 @@ try{
 }
 catch{
   $logmessage = $_.Exception.Message
-  Write-Output $logmessage 
+  $logbasemessage = "Copying OnClientDisconnected Failed. Error: "
+  Write-Output $logbasemessage + $logmessage 
   Add-Content -Path $logoutput -Value $logmessage
 }
 finally {
