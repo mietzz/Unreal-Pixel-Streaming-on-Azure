@@ -97,6 +97,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   sku       = var.sku
   instances = var.instances
 
+  eviction_policy = "Deallocate"
+  priority = "Spot"
+  max_bid_price = 1
+
   health_probe_id = var.health_probe_id
   upgrade_mode    = var.upgrade_mode
 
@@ -112,7 +116,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
     caching              = "ReadWrite"
   }
 
