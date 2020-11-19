@@ -471,9 +471,11 @@ const matchmaker = net.createServer((connection) => {
 
 			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
 			if (!server) {
+				console.log("Setting cirrus server as none found for this connection.")
 				cirrusServers.set(connection, cirrusServer);
             }				
 			else {
+				console.log("cirrus server connection already found--not adding to list.")
 				appInsightsLogMetric("DuplicateCirrusConnection", 1);
 				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
 				return;
@@ -495,7 +497,8 @@ const matchmaker = net.createServer((connection) => {
 				appInsightsLogEvent("ClientConnection", message.address);
 			}
 			else {
-				appInsightsLogMetric("SSUndefined", 1);
+				console.log("CirrusServer not found when getting from connection when clientConnected");
+				appInsightsLogMetric("SSUndefinedClientConnect", 1);
 				appInsightsLogEvent("SSUndefined", "clientConnected");
 			}
 
@@ -503,12 +506,20 @@ const matchmaker = net.createServer((connection) => {
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
-			cirrusServer.numConnectedClients--;
-			console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+
+			if (cirrusServer) {
+				cirrusServer.numConnectedClients--;
+				console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+				appInsightsLogEvent("ClientsDisonnected", message.address);
+			} else {
+				console.log("CirrusServer not found when getting from connection when clientConnected");
+				appInsightsLogMetric("SSUndefinedClientDisconnect", 1);
+				appInsightsLogEvent("SSUndefinedClientDisconnect", "clientdisconnected");
+			}
 
 			evaluateAutoScalePolicy();
 			appInsightsLogMetric("ClientDisconnect", 1);
-			appInsightsLogEvent("ClientsDisonnected", message.address);
+			
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);
