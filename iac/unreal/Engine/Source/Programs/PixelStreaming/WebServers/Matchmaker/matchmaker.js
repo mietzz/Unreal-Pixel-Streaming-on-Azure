@@ -466,16 +466,25 @@ const matchmaker = net.createServer((connection) => {
 				numConnectedClients: 0
 			};
 
-			// See if we already have this connection in the list
-			var server = cirrusServers.get(connection);
+			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
 
 			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
-			if (!server) {
+			if (!server || server.size <= 0) {
 				console.log("Setting cirrus server as none found for this connection.")
 				cirrusServers.set(connection, cirrusServer);
-            }				
-			else {
+            } else {
 				console.log("cirrus server connection already found--not adding to list.")
+				var foundServer = cirrusServers.get(server[0]);
+				
+				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
+				if (foundServer) {
+					cirrusServers.set(connection, foundServer);
+					console.log("Replacing servier with original");
+				}
+				else
+					cirrusServers.set(connection, cirrusServer);
+
+				cirrusServers.delete(server[0]);
 				appInsightsLogMetric("DuplicateCirrusConnection", 1);
 				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
 				return;
