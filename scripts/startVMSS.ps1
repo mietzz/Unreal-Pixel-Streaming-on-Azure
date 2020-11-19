@@ -4,7 +4,7 @@
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
 $PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
-$PixelStreamerExecFile = $PixelStreamerFolder + "ProjectEverywhere.exe"
+$PixelStreamerExecFile = $PixelStreamerFolder + "PixelStreamer.exe"
 
 try {
    New-EventLog -Source PixelStreamer -LogName Application -MessageResourceFile $PixelStreamerExecFile -CategoryResourceFile $PixelStreamerExecFile
