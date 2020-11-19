@@ -1527,7 +1527,8 @@ function onExpandOverlay_Click(/* e */) {
 function start() {
 	// update "quality status" to "disconnected" state
 	let qualityStatus = document.getElementById("qualityStatus");
-	qualityStatus.className = "grey-status";
+	// TODO: DJ Hot-fix. Main-tree seems to not have the qualityStatus element
+	//qualityStatus.className = "grey-status";
 
 	let statsDiv = document.getElementById("stats");
 	if (statsDiv) {
