@@ -3,7 +3,8 @@
 #####################################################################################################
 #base variables
 #####################################################################################################
-$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
+#$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
+$PixelStreamerFolder = "C:\Unreal\iac\unreal\WindowsNoEditor\"
 $PixelStreamerExecFile = $PixelStreamerFolder + "ProjectEverywhere.exe"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 
