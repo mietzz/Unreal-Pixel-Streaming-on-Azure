@@ -17,12 +17,12 @@ Param (
 )
 
 #set the base github path for the unreal code
-$gitpath = "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git"
+$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
   #handle if a PAT was passed and use that in the url
-  $gitpath = "https://" + $pat + "@github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git"
+  $gitpath = "https://" + $pat + "@github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 }
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
@@ -129,7 +129,7 @@ try {
     $logmessage = $folder + " doesn't exist"
     Add-Content -Path $logoutput -Value $logmessage
     git clone -q $gitpath $folder
-    #git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
+    #git clone -q https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git $folder
     #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
   }
   else {
@@ -139,7 +139,7 @@ try {
     $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
     Rename-Item -Path $folder  -NewName $endtag -Force
     git clone -q $gitpath $folder
-    #git clone -q https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git $folder
+    #git clone -q https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git $folder
     #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
   }
   $logmessage = "Git cloning Complete"

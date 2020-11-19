@@ -16,12 +16,12 @@ Param (
 )
 
 #set the base github path for the unreal code
-$gitpath = "https://github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
+$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
   #handle if a PAT was passed and use that in the url
-  $gitpath = "https://" + $pat + "@github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
+  $gitpath = "https://" + $pat + "@github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 }
 
 $logsfolder = "c:\gaming\logs"
@@ -145,7 +145,7 @@ finally {
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
 
-Invoke-WebRequest https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectEverywhere.zip -OutFile C:\WindowsNoEditor.zip
+Invoke-WebRequest https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
 Add-Content -Path $logoutput -Value $logmessage

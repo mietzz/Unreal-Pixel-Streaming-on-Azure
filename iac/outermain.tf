@@ -64,7 +64,7 @@ variable "git-pat" {
 module "global_region" {
   source    = "./global"
   base_name = local.base_name
-  location  = "eastus"
+  location  = "westeurope"
   git-pat   = var.git-pat
 }
 
@@ -76,7 +76,7 @@ module "global_region" {
 module "region_1" {
   source       = "./stamp"
   base_name    = local.base_name
-  location     = "eastus"
+  location     = "westeurope"
   index        = "1"
   key_vault_id = module.global_region.key_vault_id
   git-pat      = var.git-pat
@@ -93,56 +93,56 @@ module "region_1" {
   ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
 }
 
-module "region_2" {
-  source                            = "./stamp"
-  base_name                         = local.base_name
-  location                          = "westus"
-  index                             = "2"
-  key_vault_id                      = module.global_region.key_vault_id
-  git-pat                           = var.git-pat
-  vnet_address_space                = "10.101.0.0/16"
-  subnet_address_prefixes           = "10.101.0.0/22"
-  matchmaker_elb_private_ip_address = "10.101.0.100"
-  ue4_elb_private_ip_address        = "10.101.0.110"
+// module "region_2" {
+//   source                            = "./stamp"
+//   base_name                         = local.base_name
+//   location                          = "westeurope"
+//   index                             = "2"
+//   key_vault_id                      = module.global_region.key_vault_id
+//   git-pat                           = var.git-pat
+//   vnet_address_space                = "10.101.0.0/16"
+//   subnet_address_prefixes           = "10.101.0.0/22"
+//   matchmaker_elb_private_ip_address = "10.101.0.100"
+//   ue4_elb_private_ip_address        = "10.101.0.110"
 
-  #variables for the TM
-  global_resource_group_name       = module.global_region.global_resource_group_name
-  mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
-  ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
-}
+//   #variables for the TM
+//   global_resource_group_name       = module.global_region.global_resource_group_name
+//   mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
+//   ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
+// }
 
-module "region_3" {
-  source                            = "./stamp"
-  base_name                         = local.base_name
-  location                          = "westeurope"
-  index                             = "3"
-  key_vault_id                      = module.global_region.key_vault_id
-  git-pat                           = var.git-pat
-  vnet_address_space                = "10.102.0.0/16"
-  subnet_address_prefixes           = "10.102.0.0/22"
-  matchmaker_elb_private_ip_address = "10.102.0.100"
-  ue4_elb_private_ip_address        = "10.102.0.110"
+// module "region_3" {
+//   source                            = "./stamp"
+//   base_name                         = local.base_name
+//   location                          = "westeurope"
+//   index                             = "3"
+//   key_vault_id                      = module.global_region.key_vault_id
+//   git-pat                           = var.git-pat
+//   vnet_address_space                = "10.102.0.0/16"
+//   subnet_address_prefixes           = "10.102.0.0/22"
+//   matchmaker_elb_private_ip_address = "10.102.0.100"
+//   ue4_elb_private_ip_address        = "10.102.0.110"
 
-  #variables for the TM
-  global_resource_group_name       = module.global_region.global_resource_group_name
-  mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
-  ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
-}
+//   #variables for the TM
+//   global_resource_group_name       = module.global_region.global_resource_group_name
+//   mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
+//   ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
+// }
 
-module "region_4" {
-  source                            = "./stamp"
-  base_name                         = local.base_name
-  location                          = "southeastasia"
-  index                             = "4"
-  key_vault_id                      = module.global_region.key_vault_id
-  git-pat                           = var.git-pat
-  vnet_address_space                = "10.103.0.0/16"
-  subnet_address_prefixes           = "10.103.0.0/22"
-  matchmaker_elb_private_ip_address = "10.103.0.100"
-  ue4_elb_private_ip_address        = "10.103.0.110"
+// module "region_4" {
+//   source                            = "./stamp"
+//   base_name                         = local.base_name
+//   location                          = "southeastasia"
+//   index                             = "4"
+//   key_vault_id                      = module.global_region.key_vault_id
+//   git-pat                           = var.git-pat
+//   vnet_address_space                = "10.103.0.0/16"
+//   subnet_address_prefixes           = "10.103.0.0/22"
+//   matchmaker_elb_private_ip_address = "10.103.0.100"
+//   ue4_elb_private_ip_address        = "10.103.0.110"
 
-  #variables for the TM
-  global_resource_group_name       = module.global_region.global_resource_group_name
-  mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
-  ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
-}
+//   #variables for the TM
+//   global_resource_group_name       = module.global_region.global_resource_group_name
+//   mm_traffic_manager_profile_name  = module.global_region.mm_traffic_manager_profile_name
+//   ue4_traffic_manager_profile_name = module.global_region.ue4_traffic_manager_profile_name
+// }

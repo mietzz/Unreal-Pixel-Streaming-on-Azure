@@ -54,9 +54,9 @@ module "loganalytics_global" {
   logA_Name = format("%s-loganalytics-global-%s", var.base_name, lower(var.location))
 }
 
-data "external" "user" {
-  program = ["powershell.exe", "./global/getobjectid.ps1"]
-}
+// data "external" "user" {
+//   program = ["powershell.exe", "./global/getobjectid.ps1"]
+// }
 
 module "akv_global" {
   source              = "../mgmt/akv"
@@ -65,7 +65,9 @@ module "akv_global" {
   location            = var.location
 
   git-pat                     = var.git-pat
-  service_principal_object_id = data.external.user.result.object_id
+  // service_principal_object_id = data.external.user.result.object_id
+  service_principal_object_id = "2af5ba4d-e1ec-45cb-99a4-3d1357511610"
+  
 }
 
 output "key_vault_id" {
