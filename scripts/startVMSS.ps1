@@ -23,8 +23,6 @@ $arg4 = "-RenderOffScreen"
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
-
-
 try {
    New-EventLog -Source PixelStreamer -LogName Application -MessageResourceFile $PixelStreamerExecFile -CategoryResourceFile $PixelStreamerExecFile
 }

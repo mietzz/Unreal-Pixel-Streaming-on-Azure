@@ -265,7 +265,7 @@ app.get('/custom_html/:htmlFilename', (req, res) => {
 // Added for health check of the VM
 app.get('/ping', (req, res) => {
 
-	console.log(`app.get() ping hit!`);
+	res.send('ping');
 });
 
 //
