@@ -25,6 +25,7 @@ $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
 $projectDestFolder =  $folder + 'iac\unreal\app\WindowsNoEditor\ProjectEveryWhere'
+$projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 #$blobDestination = $folder + 'iac\unreal\app'
 $blobDestination = $folder + 'iac\unreal'
@@ -169,9 +170,25 @@ Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -forc
 $logmessage = "Extracting WindowsNoEditor Complete"
 Add-Content -Path $logoutput -Value $logmessage
 
-$logmessage = "Copying OnClientDisconnected :" + $scriptfile
+$logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
 Write-Output $logmessage
 Add-Content -Path $logoutput -Value $logmessage
+
+try{
+  Copy-Item $projectExecFolder $blobDestination
+  $logmessage = "Copying WindowsNoEditor Folder Complete"
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+}
+catch{
+  $logmessage = $_.Exception.Message
+  $logbasemessage = "Copying WindowsNoEditor Failed. Error: "
+  Write-Output $logbasemessage + $logmessage 
+  Add-Content -Path $logoutput -Value $logmessage
+}
+finally {
+  $error.clear()
+}
 
 try{
   Copy-Item $scriptfile $projectDestFolder
