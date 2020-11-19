@@ -367,7 +367,7 @@ function evaluateAutoScalePolicy() {
 	var timeElapsedSinceScaledown = Date.now() - lastScaledownTime;
 	var minutesSinceScaledown = Math.round(((timeElapsedSinceScaledown % 86400000) % 3600000) / 60000);
 	var percentUtilized = 0;
-	var remainingUtilization = 0;
+	var remainingUtilization = 100;
 
 	// Get the percentage of total available signaling servers taken by users
 	if (totalConnectedClients > 0 && totalInstances > 0) {
