@@ -13,4 +13,5 @@
 	"resourceGroup": "",
 	"virtualMachineScaleSet": "",
 	"appInsightsId": ""
+	"EnableWebserver": true
 }
