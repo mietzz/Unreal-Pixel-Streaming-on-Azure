@@ -1,3 +1,7 @@
+Param (
+  [Parameter(Mandatory = $True, HelpMessage = "github personal access token")]
+  [String]$pat = ""
+)
 #this script is to create an environment from absolute scratch
 
 #variables
@@ -15,7 +19,7 @@ If (Test-Path $statebackupfile){
 
 #apply
 Set-Location -Path $rootiacfolder
-terraform apply -var 'git-pat=d7ee9c633cabf02400f838a1bdd430a1fb6e6226' -parallelism=24 --auto-approve
+terraform apply -var 'git-pat=' + $gitpat -parallelism=24 --auto-approve
 
 #get parameters from state file
 $ConfigJson = (Get-Content  $statefile -Raw) | ConvertFrom-Json
