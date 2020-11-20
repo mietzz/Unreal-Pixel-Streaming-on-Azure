@@ -52,13 +52,14 @@ resource "random_string" "admin_password" {
   special     = true
   upper       = true
   number      = true
-  min_special = 4
+  min_special = 1
 }
 
 #base_name = var.base_name == "random" ? random_string.base_id.result : var.base_name
 
 locals {
-  safePWD = replace(replace(random_string.admin_password.result, "{", "!"), "}", "!")
+  #safePWD = replace(replace(random_string.admin_password.result, "{", "!"), "}", "!")
+  safePWD = random_string.admin_password.result
 }
 
 #put this in akv

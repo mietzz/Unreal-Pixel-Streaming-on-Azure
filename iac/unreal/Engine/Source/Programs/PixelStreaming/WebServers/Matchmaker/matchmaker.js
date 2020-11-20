@@ -265,7 +265,7 @@ app.get('/custom_html/:htmlFilename', (req, res) => {
 // Added for health check of the VM
 app.get('/ping', (req, res) => {
 
-	console.log(`app.get() ping hit!`);
+	res.send('ping');
 });
 
 //
@@ -367,7 +367,7 @@ function evaluateAutoScalePolicy() {
 	var timeElapsedSinceScaledown = Date.now() - lastScaledownTime;
 	var minutesSinceScaledown = Math.round(((timeElapsedSinceScaledown % 86400000) % 3600000) / 60000);
 	var percentUtilized = 0;
-	var remainingUtilization = 0;
+	var remainingUtilization = 100;
 
 	// Get the percentage of total available signaling servers taken by users
 	if (totalConnectedClients > 0 && totalInstances > 0) {
@@ -466,14 +466,25 @@ const matchmaker = net.createServer((connection) => {
 				numConnectedClients: 0
 			};
 
-			// Make sure we don't add a server address that already exists (happens when a Cirrus Server has a reconnect)
 			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
 
 			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
 			if (!server || server.size <= 0) {
+				console.log("Setting cirrus server as none found for this connection.")
 				cirrusServers.set(connection, cirrusServer);
-            }				
-			else {
+            } else {
+				console.log("cirrus server connection already found--not adding to list.")
+				var foundServer = cirrusServers.get(server[0]);
+				
+				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
+				if (foundServer) {
+					cirrusServers.set(connection, foundServer);
+					console.log("Replacing servier with original");
+				}
+				else
+					cirrusServers.set(connection, cirrusServer);
+
+				cirrusServers.delete(server[0]);
 				appInsightsLogMetric("DuplicateCirrusConnection", 1);
 				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
 				return;
@@ -487,21 +498,37 @@ const matchmaker = net.createServer((connection) => {
 		} else if (message.type === 'clientConnected') {
 			// A client connects to a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
-			cirrusServer.numConnectedClients++;
-			console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+
+			if (cirrusServer) {
+				cirrusServer.numConnectedClients++;
+				console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+				appInsightsLogMetric("ClientConnection", 1);
+				appInsightsLogEvent("ClientConnection", message.address);
+			}
+			else {
+				console.log("CirrusServer not found when getting from connection when clientConnected");
+				appInsightsLogMetric("SSUndefinedClientConnect", 1);
+				appInsightsLogEvent("SSUndefined", "clientConnected");
+			}
 
 			evaluateAutoScalePolicy();
-			appInsightsLogMetric("ClientConnection", 1);
-			appInsightsLogEvent("ClientConnection", message.address);
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
-			cirrusServer.numConnectedClients--;
-			console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+
+			if (cirrusServer) {
+				cirrusServer.numConnectedClients--;
+				console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
+				appInsightsLogEvent("ClientsDisonnected", message.address);
+			} else {
+				console.log("CirrusServer not found when getting from connection when clientConnected");
+				appInsightsLogMetric("SSUndefinedClientDisconnect", 1);
+				appInsightsLogEvent("SSUndefinedClientDisconnect", "clientdisconnected");
+			}
 
 			evaluateAutoScalePolicy();
 			appInsightsLogMetric("ClientDisconnect", 1);
-			appInsightsLogEvent("ClientsDisonnected", message.address);
+			
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);

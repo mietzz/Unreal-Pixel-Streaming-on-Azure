@@ -9,32 +9,37 @@ Param (
   [String]$vmss_name = "",
   [Parameter(Mandatory = $True, HelpMessage = "application insights key")]
   [String]$application_insights_key = "",
-  #  [Parameter(Mandatory = $True, HelpMessage = "Specify the password for the <run as> user.")]
-  #  [Alias("Password")]  
-  #  [String]$strPass = "",
+
   [Parameter(Mandatory = $False, HelpMessage = "github access token")]
   [String]$pat = ""
 )
 
-#set the base github path for the unreal code
-$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
+#####################################################################################################
+#base variables
+#####################################################################################################
+$logsbasefolder = "C:\gaming"
+$logsfolder = "c:\gaming\logs"
+$folder = "c:\Unreal\"
+$mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
+$executionfilepath = "C:\Unreal\scripts\startMMS.ps1"
+$gitpath = "https://github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
   #handle if a PAT was passed and use that in the url
   $gitpath = "https://" + $pat + "@github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 }
+#####################################################################################################
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
-#Creating a logs folder
-$logsfolder = "c:\gaming\logs"
+#create a log folder if it does not exist
 if (-not (Test-Path -LiteralPath $logsfolder)) {
   Write-Output "creating directory :" + $logsfolder
   $fso = new-object -ComObject scripting.filesystemobject
-  if (-not (Test-Path -LiteralPath "C:\gaming")) {
-    $fso.CreateFolder("c:\gaming\")
+  if (-not (Test-Path -LiteralPath $logsbasefolder)) {
+    $fso.CreateFolder($logsbasefolder)
     Write-Output "created gaming folder"
   }
   $fso.CreateFolder($logsfolder)
@@ -86,14 +91,9 @@ Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Scope Global
 Set-Alias -Name node -Value "$Env:ProgramFiles\nodejs\node.exe" -Scope Global
 Set-Alias -Name npm -Value "$Env:ProgramFiles\nodejs\node_modules\npm" -Scope Global
 
-#$INCLUDE = "C:\Program Files\nodejs;C:\Program Files (x86)\Microsoft SDKs\Azure"
 
-#$OLDPATH = [System.Environment]::GetEnvironmentVariable('PATH', 'machine')
-#$NEWPATH = "$OLDPATH;$INCLUDE"
-#[Environment]::SetEnvironmentVariable("PATH", "$NEWPATH", "Machine")
-
-#sleep for 45 seconds to wait for install processes to complete
-Start-Sleep -s 45
+#sleep for 5 seconds to wait for install processes to complete
+Start-Sleep -s 5
 
 $logmessage = "Refreshing env"
 Add-Content -Path $logoutput -Value $logmessage
@@ -104,29 +104,15 @@ refreshenv
 $logmessage = "Refreshing env complete"
 Add-Content -Path $logoutput -Value $logmessage
 
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-90' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 90
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-9999' -Profile 'Private' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9999
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-90' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 90
+New-NetFirewallRule -DisplayName 'Matchmaker-IB-9999' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9999
 
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-80' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 80
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-7070' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 7070
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-8888' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8888
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8889
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Profile 'Private' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
-
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-90' -Profile 'Public' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 90
-New-NetFirewallRule -DisplayName 'Matchmaker-IB-9999' -Profile 'Public' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9999
-
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-80' -Profile 'Public' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 80
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-7070' -Profile 'Public' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 7070
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-8888' -Profile 'Public' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8888
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Profile 'Public' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8889
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Profile 'Public' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
-New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Profile 'Public' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
-
-#export GITHUB_USER=anonuser
-#export GITHUB_TOKEN=(az keyvault secret show -n thekey --vault-name uegamingakv | ConvertFrom-Json).value
-#export GITHUB_REPOSITORY=Azure/Unreal-Pixel-Streaming-on-Azure
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-80' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 80
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-7070' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 7070
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-8888' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8888
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-8889' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 8889
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-19302' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19302
+New-NetFirewallRule -DisplayName 'Matchmaker-OB-19303' -Direction Outbound -Action Allow -Protocol TCP -LocalPort 19303
 
 $logmessage = "Disabling Windows Firewalls complete"
 Add-Content -Path $logoutput -Value $logmessage
@@ -134,13 +120,10 @@ Add-Content -Path $logoutput -Value $logmessage
 try {
   $logmessage = "Cloning code from git"
   Add-Content -Path $logoutput -Value $logmessage
-  $folder = "c:\Unreal\"
   if (-not (Test-Path -LiteralPath $folder)) {
     $logmessage = $folder + " doesn't exist"
     Add-Content -Path $logoutput -Value $logmessage
     git clone -q $gitpath $folder
-    #git clone -q https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git $folder
-    #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
   }
   else {
     #rename the existing folder
@@ -149,8 +132,6 @@ try {
     $endtag = 'unreal-' + (get-date).ToString('MMddyyhhmmss')
     Rename-Item -Path $folder  -NewName $endtag -Force
     git clone -q $gitpath $folder
-    #git clone -q https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git $folder
-    #git clone -q https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} $folder
   }
   $logmessage = "Git cloning Complete"
   Add-Content -Path $logoutput -Value $logmessage
@@ -164,8 +145,6 @@ finally {
   $error.clear()
 }
 
-
-$mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
 Set-Location -Path $mmServiceFolder 
 
 $logmessage = "Current folder " + $mmServiceFolder
@@ -188,10 +167,9 @@ $mmConfigJson.appInsightsId = $application_insights_key
 
 $mmConfigJson | ConvertTo-Json | set-content "config.json"
 
-// Reading again to confirm the update
+# Reading again to confirm the update
 $mmConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
 Write-Output $mmConfigJson
-
 
 $logMessage = "Writing parameters from extension complete. Updated config :" + $mmConfigJson
 Add-Content -Path $logoutput -Value $logMessage
@@ -199,13 +177,10 @@ Add-Content -Path $logoutput -Value $logMessage
 $logmessage = "Creating a job schedule "
 Add-Content -Path $logoutput -Value $logmessage
 
-#$Cred = Get-Credential azureadmin
-$filePath = "C:\Unreal\scripts\startMMS.ps1"
 $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:10
 try {
-  #Register-ScheduledJob -Trigger $trigger -FilePath $filePath -Name "StartMMS" -Credential $Cred
   $User = "azureadmin"
-  $PS = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy bypass -noprofile -file $filePath"
+  $PS = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy bypass -noprofile -file $executionfilepath"
   Register-ScheduledTask -Trigger $trigger -User $User -TaskName "StartMMS" -Action $PS -RunLevel Highest -Force 
 }
 catch {
@@ -224,8 +199,7 @@ $logmessage = "Starting the MMS Process "
 Add-Content -Path $logoutput -Value $logmessage
 
 #invoke the script to start it this time
-#Start-ScheduledTask -TaskName "StartMMS" -AsJob
-Invoke-Expression -Command $filePath
+Invoke-Expression -Command $executionfilepath
 
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage

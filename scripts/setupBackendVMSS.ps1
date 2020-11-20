@@ -15,21 +15,39 @@ Param (
   [String]$pat = ""
 )
 
-#set the base github path for the unreal code
-$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
+#####################################################################################################
+#base variables
+#####################################################################################################
+$zipfilepath = "https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip"
+$zipfilename = "c:\WindowsNoEditor.zip"
+$logsbasefolder = "C:\gaming"
+$logsfolder = "c:\gaming\logs"
+$folder = "c:\Unreal\"
+$scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
+$projectFolder =  $folder + 'iac\unreal\ProjectEveryWhere'
+$projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
+
+#$blobDestination = $folder + 'iac\unreal\app'
+$blobDestination = $folder + 'iac\unreal'
+$vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+$executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
+$gitpath = "https://github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
   #handle if a PAT was passed and use that in the url
   $gitpath = "https://" + $pat + "@github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 }
+#####################################################################################################
 
-$logsfolder = "c:\gaming\logs"
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+Set-ExecutionPolicy Bypass -Scope Process -Force
+#create a log folder if it does not exist
 if (-not (Test-Path -LiteralPath $logsfolder)) {
   Write-Output "creating directory :" + $logsfolder
   $fso = new-object -ComObject scripting.filesystemobject
-  if (-not (Test-Path -LiteralPath "C:\gaming")) {
-    $fso.CreateFolder("c:\gaming\")
+  if (-not (Test-Path -LiteralPath $logsbasefolder)) {
+    $fso.CreateFolder($logsbasefolder)
     Write-Output "created gaming folder"
   }
   $fso.CreateFolder($logsfolder)
@@ -43,10 +61,6 @@ Write-Output $logoutput
 
 $logmessage = "Starting at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage
-
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
-Set-ExecutionPolicy Bypass -Scope Process -Force
-
 $logmessage = "Downloading Chocolatey"
 Add-Content -Path $logoutput -Value $logmessage
 
@@ -113,7 +127,6 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Cloning the github repo"
 Add-Content -Path $logoutput -Value $logmessage
 
-$folder = "c:\Unreal\"
 try {
   if (-not (Test-Path -LiteralPath $folder)) {
     $logmessage = $folder + "doesn't exist. Adding unreal"
@@ -145,13 +158,10 @@ finally {
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
 
-Invoke-WebRequest https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip -OutFile C:\WindowsNoEditor.zip
+Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
 Add-Content -Path $logoutput -Value $logmessage
-
-$blobDestination = $folder + 'iac\unreal\app'
-$zipFileName = 'C:\WindowsNoEditor.zip'
 
 $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
 Add-Content -Path $logoutput -Value $logmessage
@@ -160,7 +170,42 @@ Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -forc
 $logmessage = "Extracting WindowsNoEditor Complete"
 Add-Content -Path $logoutput -Value $logmessage
 
-$vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+$logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
+Write-Output $logmessage
+Add-Content -Path $logoutput -Value $logmessage
+
+try{
+  Copy-Item $projectExecFolder $blobDestination -recurse -force
+  $logmessage = "Copying WindowsNoEditor Folder Complete"
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+}
+catch{
+  $logmessage = $_.Exception.Message
+  $logbasemessage = "Copying WindowsNoEditor Failed. Error: "
+  Write-Output $logbasemessage + $logmessage 
+  Add-Content -Path $logoutput -Value $logmessage
+}
+finally {
+  $error.clear()
+}
+
+try{
+  Copy-Item $scriptfile $projectFolder -force
+  $logmessage = "Copying OnClientDisconnected Complete"
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+}
+catch{
+  $logmessage = $_.Exception.Message
+  $logbasemessage = "Copying OnClientDisconnected Failed. Error: "
+  Write-Output $logbasemessage + $logmessage 
+  Add-Content -Path $logoutput -Value $logmessage
+}
+finally {
+  $error.clear()
+}
+
 Set-Location -Path $vmServiceFolder 
 
 $logmessage = "Current folder " + $vmServiceFolder
@@ -192,11 +237,10 @@ Add-Content -Path $logoutput -Value $logMessage
 $logmessage = "Creating a job schedule "
 Add-Content -Path $logoutput -Value $logmessage
 
-$filePath = "C:\Unreal\scripts\startVMSS.ps1"
 $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:10
 try {
   $User = "NT AUTHORITY\SYSTEM"
-  $PS = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy bypass -noprofile -file $filePath"
+  $PS = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy bypass -noprofile -file $executionfilepath"
   Register-ScheduledTask -Trigger $trigger -User $User -TaskName "StartVMSS" -Action $PS -RunLevel Highest -AsJob -Force
 }
 catch {
@@ -237,7 +281,7 @@ Add-Content -Path $logoutput -Value $logmessage
 #invoke the script to start it this time
 Set-ExecutionPolicy Bypass -Scope CurrentUser -Force
 
-Invoke-Expression -Command $filePath
+Invoke-Expression -Command $executionfilepath
 
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage

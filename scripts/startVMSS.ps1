@@ -1,28 +1,50 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+#####################################################################################################
+#base variables
+#####################################################################################################
+#$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
+$PixelStreamerFolder = "C:\Unreal\iac\unreal\"
+$PixelStreamerExecFile = $PixelStreamerFolder + "ProjectEverywhere.exe"
+$vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+
+$logsbasefolder = "C:\gaming"
+$logsfolder = "c:\gaming\logs"
+$logoutput = $logsfolder + '\ue4-startVMSS-output' + (get-date).ToString('MMddyyhhmmss') + '.txt'
+$stdout = $logsfolder + '\ue4-signalservice-stdout' + (get-date).ToString('MMddyyhhmmss') + '.txt'
+$stderr = $logsfolder + '\ue4-signalservice-stderr' + (get-date).ToString('MMddyyhhmmss') + '.txt'
+
+#pixelstreamer arguments
+$arg1 = "-AudioMixer"
+$arg2 = "-PixelStreamingIP=localhost"
+$arg3 = "-PixelStreamingPort=8888"
+$arg4 = "-RenderOffScreen"
+#####################################################################################################
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
+<<<<<<< HEAD
 $PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
 $PixelStreamerExecFile = $PixelStreamerFolder + "PixelStreamer.exe"
 
+=======
+>>>>>>> eac1f3fec1433be42059fc9f397afba98d4e0861
 try {
    New-EventLog -Source PixelStreamer -LogName Application -MessageResourceFile $PixelStreamerExecFile -CategoryResourceFile $PixelStreamerExecFile
 }
 catch {
-   #do nothing, this is ok
+   #do nothing, this is ok.
 }
 finally {
    $error.clear()    
 }
  
-# Script to start the PixelStreamer and VMSS Srevice.
-$logsfolder = "c:\gaming\logs"
+#create a log folder if it does not exist
 if (-not (Test-Path -LiteralPath $logsfolder)) {
    Write-Output "creating directory :" + $logsfolder
    $fso = new-object -ComObject scripting.filesystemobject
-   if (-not (Test-Path -LiteralPath "C:\gaming")) {
-      $fso.CreateFolder("c:\gaming\")
+   if (-not (Test-Path -LiteralPath $logsbasefolder)) {
+      $fso.CreateFolder($logsbasefolder)
       Write-Output "created gaming folder"
    }
    $fso.CreateFolder($logsfolder)
@@ -41,10 +63,6 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";
 
 Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False
 
-# Creating output files for logs
-$logoutput = $logsfolder + '\ue4-startVMSS-output' + (get-date).ToString('MMddyyhhmmss') + '.txt'
-$stdout = $logsfolder + '\ue4-signalservice-stdout' + (get-date).ToString('MMddyyhhmmss') + '.txt'
-$stderr = $logsfolder + '\ue4-signalservice-stderr' + (get-date).ToString('MMddyyhhmmss') + '.txt'
 
 Set-Content -Path $logoutput -Value "startingVMSS"
 
@@ -58,10 +76,6 @@ Set-Location -Path $PixelStreamerFolder
 $logMessage = "current folder :" + $PixelStreamerFolder 
 Add-Content -Path $logoutput -Value $logMessage
 
-$arg1 = "-AudioMixer"
-$arg2 = "-PixelStreamingIP=localhost"
-$arg3 = "-PixelStreamingPort=8888"
-$arg4 = "-RenderOffScreen"
 
 & $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -ErrorVariable ProcessError
 if ($ProcessError) {
@@ -75,7 +89,6 @@ else {
 
 Add-Content -Path $logoutput -Value $logMessage
 
-$vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 if (-not (Test-Path -LiteralPath $vmServiceFolder)) {
    $logMessage = "SignalService folder :" + $vmServiceFolder + " doesn't exist" 
    Write-EventLog -LogName "Application" -Source "PixelStreamer" -EventID 3104 -EntryType Error -Message $logMessage
@@ -113,8 +126,6 @@ catch {
    Add-Content -Path $logoutput -Value $logMessage
 }
 
-#need to change this as an exec 
-#start-process "cmd.exe" "/c .\runAzure.bat" -ErrorVariable ProcessError
 start-process "cmd.exe" "/c .\runAzure.bat"  -RedirectStandardOutput $stdout -RedirectStandardError $stderr -ErrorVariable ProcessError
 if ($ProcessError) {
    $logMessage = "Error in starting Signal Service"
