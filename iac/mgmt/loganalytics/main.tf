@@ -52,3 +52,19 @@ resource "azurerm_log_analytics_solution" "sol_vminsights" {
     product   = "OMSGallery/VMInsights"
   }
 }
+
+resource "azurerm_log_analytics_datasource_windows_event" "appevent" {
+  name                = "LogA_app"
+  resource_group_name = var.resource_group_name
+  workspace_name      = azurerm_log_analytics_workspace.logA.name
+  event_log_name      = "Application"
+  event_types         = ["error", "warning"]
+}
+
+resource "azurerm_log_analytics_datasource_windows_event" "appsystem" {
+  name                = "LogA_system"
+  resource_group_name = var.resource_group_name
+  workspace_name      = azurerm_log_analytics_workspace.logA.name
+  event_log_name      = "System"
+  event_types         = ["error", "warning"]
+}
