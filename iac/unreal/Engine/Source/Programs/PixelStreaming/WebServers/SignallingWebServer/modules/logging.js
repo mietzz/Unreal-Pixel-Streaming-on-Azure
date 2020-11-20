@@ -7,15 +7,15 @@ var loggers=[];
 var logFunctions=[];
 var logColorFunctions=[];
 
-console.log = function(msg) {
+console.log = function(msg, ...args) {
 	logFunctions.forEach((logFunction) => {
-		logFunction(msg);
+		logFunction(msg, ...args);
 	});
 }
 
-console.logColor = function(color, msg) {
+console.logColor = function(color, msg, ...args) {
 	logColorFunctions.forEach((logColorFunction) => {
-		logColorFunction(color, msg);
+		logColorFunction(color, msg, ...args);
 	});
 }
 
@@ -67,24 +67,24 @@ function RegisterFileLogger(path) {
 	
 	var output = fs.createWriteStream(`./logs/${dateTimeToString()}.log`);
 	var fileLogger = new Console(output);
-	logFunctions.push(function(msg) {
-		fileLogger.log(`${timeToString()} ${msg}`);
+	logFunctions.push(function(msg, ...args) {
+		fileLogger.log(`${timeToString()} ${msg}`, ...args);
 	});
 	
-	logColorFunctions.push(function(color, msg) {
-		fileLogger.log(`${timeToString()} ${msg}`);
+	logColorFunctions.push(function(color, msg, ...args) {
+		fileLogger.log(`${timeToString()} ${msg}`, ...args);
 	});
 	loggers.push(fileLogger);
 }
 	
 function RegisterConsoleLogger() {
 	var consoleLogger = new Console(process.stdout, process.stderr)
-	logFunctions.push(function(msg) {
-		consoleLogger.log(`${timeToString()} ${msg}`);
+	logFunctions.push(function(msg, ...args) {
+		consoleLogger.log(`${timeToString()} ${msg}`, ...args);
 	});
 	
-	logColorFunctions.push(function(color, msg) {
-		consoleLogger.log(`${BoldOn}${color}${timeToString()} ${msg}${AllAttributesOff}`);
+	logColorFunctions.push(function(color, msg, ...args) {
+		consoleLogger.log(`${BoldOn}${color}${timeToString()} ${msg}${AllAttributesOff}`, ...args);
 	});
 	loggers.push(consoleLogger);
 }
