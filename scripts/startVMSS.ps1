@@ -5,7 +5,7 @@
 #####################################################################################################
 #$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
 $PixelStreamerFolder = "C:\Unreal\iac\unreal\"
-$PixelStreamerExecFile = $PixelStreamerFolder + "ProjectEverywhere.exe"
+$PixelStreamerExecFile = $PixelStreamerFolder + "PixelStreamer.exe"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 
 $logsbasefolder = "C:\gaming"
@@ -23,12 +23,6 @@ $arg4 = "-RenderOffScreen"
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
-<<<<<<< HEAD
-$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
-$PixelStreamerExecFile = $PixelStreamerFolder + "PixelStreamer.exe"
-
-=======
->>>>>>> eac1f3fec1433be42059fc9f397afba98d4e0861
 try {
    New-EventLog -Source PixelStreamer -LogName Application -MessageResourceFile $PixelStreamerExecFile -CategoryResourceFile $PixelStreamerExecFile
 }

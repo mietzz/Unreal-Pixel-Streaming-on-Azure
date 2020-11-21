@@ -24,14 +24,14 @@ $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectFolder =  $folder + 'iac\unreal\ProjectEveryWhere'
+$projectFolder =  $folder + 'iac\unreal\PixelStreamer'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 #$blobDestination = $folder + 'iac\unreal\app'
 $blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 $executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
-$gitpath = "https://github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
+$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {

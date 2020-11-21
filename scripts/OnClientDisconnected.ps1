@@ -4,7 +4,7 @@
 # This is optionally used by a pixel streaming app to reset the UE4 exe when a user disconnects
 
 #Change name for the process to your executable name
-$processes = Get-Process ProjectEverywhere 
+$processes = Get-Process PixelStreamer 
 $processes.Count
 if($processes.Count -gt 0)
 {
@@ -23,5 +23,5 @@ if($processes.Count -gt 0)
     Start-Process -FilePath $path -ArgumentList $cmdline.Split(' ')[1]}
 else
 {
-    write-host "ProjectEverywhere not running when trying to restart"
+    write-host "PixelStreamer not running when trying to restart"
 }

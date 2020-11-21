@@ -22,7 +22,7 @@ $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
 $executionfilepath = "C:\Unreal\scripts\startMMS.ps1"
-$gitpath = "https://github.com/DanManrique/Unreal-Pixel-Streaming-on-Azure.git"
+$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
