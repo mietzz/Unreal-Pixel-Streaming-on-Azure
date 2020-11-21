@@ -1,29 +1,5 @@
-Param (
-  [Parameter(Mandatory = $True, HelpMessage = "github personal access token")]
-  [String]$pat = ""
-)
-#this script is to create an environment from absolute scratch
-
-#variables
-$rootiacfolder = "I:\dlm\Repos\Unreal-Pixel-Streaming-on-Azure\iac\"
-$statefile = $rootiacfolder + "terraform.tfstate"
-$statebackupfile = $rootiacfolder + "terraform.tfstate.backup"
-
-#delete the tf state
-If (Test-Path $statefile){
-	Remove-Item $statefile
-}
-If (Test-Path $statebackupfile){
-	Remove-Item $statebackupfile
-}
-
-#apply
-Set-Location -Path $rootiacfolder
-terraform apply -var 'git-pat=' + $gitpat -parallelism=24 --auto-approve
-
-#get parameters from state file
-$ConfigJson = (Get-Content  $statefile -Raw) | ConvertFrom-Json
-$base_name = $ConfigJson.resources[0].instances[0].attributes.id 
+#set the variable
+$base_name = "82bdz"
 
 #post deployment
 $t = az ad signed-in-user show
@@ -78,10 +54,3 @@ Write-Output $r1 + " password: " + $secretValueText1
 Write-Output $r2 + " password: " + $secretValueText2
 Write-Output $r3 + " password: " + $secretValueText3
 Write-Output $r4 + " password: " + $secretValueText4
-
-$rgname = $base_name + "-global-unreal-rg"
-$tmname = $base_name + "-trafficmgr-mm"
-
-$tm = az network traffic-manager profile show -g $rgname -n $tmname | ConvertFrom-Json
-Write-Output "TM: http://" $tm.dnsConfig.fqdn + ":90"
-

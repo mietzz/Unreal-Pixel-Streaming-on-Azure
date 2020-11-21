@@ -223,7 +223,42 @@ function getConnectedClients() {
 // No servers are available so send some simple JavaScript to the client to make
 // it retry after a short period of time.
 function sendRetryResponse(res) {
-	res.send(`All ${cirrusServers.size} Cirrus servers are in use. Retrying in <span id="countdown">10</span> seconds.
+	res.send(`
+	<html>
+<head>
+<title>Demo Everywhere</title>
+<style>
+ body {background-image: url('https://cdn2.unrealengine.com/unreal-iitsec-header-img-1920x1080-554773395.jpg');text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
+ p {
+   font-family: Verdana, Geneva, sans-serif;
+   font-size: 15px;
+	letter-spacing: 1px;
+	word-spacing: 2px;
+	color: #FFFFFF;
+	font-weight: normal;
+	text-decoration: none;
+	font-style: normal;
+	text-transform: none;}
+a {
+   font-family: Verdana, Geneva, sans-serif;
+   font-size: 15px;
+	letter-spacing: 1px;
+	word-spacing: 2px;
+	color: #0AAFF1;
+	font-weight: bold;
+	text-decoration: underline;
+	font-style: normal;
+	text-transform: none;}
+</style>
+</head>
+?
+<body>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Everywhere demo page. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Thank you for your patience, a large number of visitors is currently  connected.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Register for a private demo or attend our livestreamed demos during vIITSEC using the following link </p><p><a href="https://www.unrealengine.com/en-US/industry/training-simulation"target="_blank">"EVERYWHERE Landing page"</a></p>
+?
+</body>
+</html>
+
 	<script>
 		var countdown = document.getElementById("countdown").textContent;
 		setInterval(function() {
@@ -236,6 +271,31 @@ function sendRetryResponse(res) {
 		}, 1000);
 	</script>`);
 }
+
+// Handle standard URL.
+app.get('/', (req, res) => {
+
+	console.log(`app.get() hit!`);
+
+	cirrusServer = getAvailableCirrusServer();
+	if (cirrusServer != undefined) {
+		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/`);
+		console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+	} else {
+		sendRetryResponse(res);
+	}
+});
+
+// Handle URL with custom HTML.
+app.get('/custom_html/:htmlFilename', (req, res) => {
+	cirrusServer = getAvailableCirrusServer();
+	if (cirrusServer != undefined) {
+		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
+		console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+	} else {
+		sendRetryResponse(res);
+	}
+});
 
 // Handle standard URL.
 app.get('/', (req, res) => {

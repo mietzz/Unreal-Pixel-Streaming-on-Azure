@@ -12,5 +12,6 @@
 	"subscriptionId": "",
 	"resourceGroup": "",
 	"virtualMachineScaleSet": "",
-	"appInsightsId": ""
+	"appInsightsId": "",
+	"EnableWebserver": true
 }
