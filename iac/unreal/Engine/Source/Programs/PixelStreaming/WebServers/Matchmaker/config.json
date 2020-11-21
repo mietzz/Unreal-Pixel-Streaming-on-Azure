@@ -4,7 +4,7 @@
 	"instancesPerNode": 1,
 	"instanceCountBuffer": 1,
 	"percentBuffer": 25,
-	"idleMinutes": 60,
+	"idleMinutes": 1,
 	"connectionIdleRatio": 25,
 	"minIdleInstanceCount": 0,
 	"maxInstanceScaleCount": 250,

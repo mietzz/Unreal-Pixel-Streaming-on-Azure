@@ -16,7 +16,7 @@ logging.RegisterConsoleLogger();
 
 const defaultConfig = {
 	UseFrontend: false,
-	UseMatchmaker: false,
+	UseMatchmaker: true,
 	UseHTTPS: false,
 	UseAuthentication: false,
 	LogToFile: true,

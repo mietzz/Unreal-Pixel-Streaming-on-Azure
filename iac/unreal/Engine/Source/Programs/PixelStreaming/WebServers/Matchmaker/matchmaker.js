@@ -184,7 +184,7 @@ getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.vir
 setInterval(function () {
 
 	getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.virtualMachineScaleSet);
-
+	evaluateAutoScalePolicy();
 }, vmssUpdateStateInterval);
 
 // Get a Cirrus server if there is one available which has no clients connected.
