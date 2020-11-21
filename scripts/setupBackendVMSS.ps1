@@ -158,7 +158,7 @@ finally {
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
 
-# Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
+Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
 Add-Content -Path $logoutput -Value $logmessage
