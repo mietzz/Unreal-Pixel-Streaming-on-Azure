@@ -24,11 +24,11 @@ $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectFolder =  $folder + 'iac\unreal\PixelStreamer'
+$projectFolder =  $folder + 'iac\unreal\WindowsNoEditor'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
-#$blobDestination = $folder + 'iac\unreal\app'
-$blobDestination = $folder + 'iac\unreal'
+$blobDestination = $folder + 'iac\unreal\app'
+#$blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 $executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
 $gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
@@ -158,7 +158,7 @@ finally {
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
 
-Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
+# Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
 Add-Content -Path $logoutput -Value $logmessage
