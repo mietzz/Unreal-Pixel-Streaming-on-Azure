@@ -517,11 +517,10 @@ const matchmaker = net.createServer((connection) => {
 				
 				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
 				if (foundServer) {
-					cirrusServer.numConnectedClients = foundServer.numConnectedClients;
+					cirrusServer.numConnectedClients = 1; // 1 for now as it's not finding 1 every time for some reason
 					cirrusServers.set(connection, foundServer);
 					console.log(`Replacing server with original with numConn: ${cirrusServer.numConnectedClients}`);
 					cirrusServers.delete(server[0]);
-					totalInstances = cirrusServers.size;
 				}
 				else {
 					cirrusServers.set(connection, cirrusServer);
