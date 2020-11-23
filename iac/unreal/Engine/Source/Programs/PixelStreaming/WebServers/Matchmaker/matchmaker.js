@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
-
+var enableRedirectionLinks = true;
+var enableRESTAPI = true;
 // A variable to hold the last time we scaled up, used for determining if we are in a determined idle state and might need to scale down (via idleMinutes and connectionIdleRatio)
 var lastScaleupTime = Date.now();
 // A varible to the last time we scaled down, used for a reference to know how quick we should consider scaling down again (to avoid multiple scale downs too soon)
@@ -59,6 +60,7 @@ const config = require('./modules/config.js').init(configFile, defaultConfig);
 console.log("Config: " + JSON.stringify(config, null, '\t'));
 
 const express = require('express');
+var cors = require('cors');
 const app = express();
 const http = require('http').Server(app);
 
@@ -119,12 +121,8 @@ if (typeof argv.matchmakerPort != 'undefined') {
 	config.matchmakerPort = argv.matchmakerPort;
 }
 
-//
-// Connect to browser.
-//
-
 http.listen(config.httpPort, () => {
-	console.log('HTTP listening on *:' + config.httpPort);
+    console.log('HTTP listening on *:' + config.httpPort);
 });
 
 function validateConfigs() {
@@ -186,23 +184,6 @@ setInterval(function () {
 	getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.virtualMachineScaleSet);
 
 }, vmssUpdateStateInterval);
-
-// Get a Cirrus server if there is one available which has no clients connected.
-function getAvailableCirrusServer() {
-
-	for (cirrusServer of cirrusServers.values()) {
-
-		console.log(`getAvailableCirrusServer: ${cirrusServer.address} and numConnectedClients: ${cirrusServer.numConnectedClients}`);
-
-		if (cirrusServer.numConnectedClients === 0) {
-			console.log(`Returning server ${cirrusServer.address} to send a user to`);
-			return cirrusServer;
-		}
-	}
-
-	console.log('WARNING: No empty Cirrus servers are available');
-	return undefined;
-}
 
 function getConnectedClients() {
 
@@ -272,61 +253,56 @@ a {
 	</script>`);
 }
 
-// Handle standard URL.
-app.get('/', (req, res) => {
-
-	console.log(`app.get() hit!`);
-
-	cirrusServer = getAvailableCirrusServer();
-	if (cirrusServer != undefined) {
-		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/`);
-		console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
-	} else {
-		sendRetryResponse(res);
+// Get a Cirrus server if there is one available which has no clients connected.
+function getAvailableCirrusServer() {
+	for (cirrusServer of cirrusServers.values()) {
+		if (cirrusServer.numConnectedClients === 0 && cirrusServer.ready === true) {
+			return cirrusServer;
+		}
 	}
-});
+	
+	console.log('WARNING: No empty Cirrus servers are available');
+	return undefined;
+}
 
-// Handle URL with custom HTML.
-app.get('/custom_html/:htmlFilename', (req, res) => {
-	cirrusServer = getAvailableCirrusServer();
-	if (cirrusServer != undefined) {
-		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
-		console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
-	} else {
-		sendRetryResponse(res);
-	}
-});
+if(enableRESTAPI) {
+	// Handle REST signalling server only request.
+	app.options('/signallingserver', cors())
+	app.get('/signallingserver', cors(),  (req, res) => {
+		cirrusServer = getAvailableCirrusServer();
+		if (cirrusServer != undefined) {
+			res.json({ signallingServer: `${cirrusServer.address}:${cirrusServer.port}`});
+			console.log(`Returning ${cirrusServer.address}:${cirrusServer.port}`);
+		} else {
+			res.json({ signallingServer: '', error: 'No signalling servers available'});
+		}
+	});
+}
 
-// Handle standard URL.
-app.get('/', (req, res) => {
+if(enableRedirectionLinks) {
+	// Handle standard URL.
+	app.get('/', (req, res) => {
+		cirrusServer = getAvailableCirrusServer();
+		if (cirrusServer != undefined) {
+			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/`);
+			console.log(req);
+			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+		} else {
+			sendRetryResponse(res);
+		}
+	});
 
-	console.log(`app.get() hit!`);
-
-	cirrusServer = getAvailableCirrusServer();
-	if (cirrusServer != undefined) {
-		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/`);
-		console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
-	} else {
-		sendRetryResponse(res);
-	}
-});
-
-// Handle URL with custom HTML.
-app.get('/custom_html/:htmlFilename', (req, res) => {
-	cirrusServer = getAvailableCirrusServer();
-	if (cirrusServer != undefined) {
-		res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
-		console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
-	} else {
-		sendRetryResponse(res);
-	}
-});
-
-// Added for health check of the VM
-app.get('/ping', (req, res) => {
-
-	res.send('ping');
-});
+	// Handle URL with custom HTML.
+	app.get('/custom_html/:htmlFilename', (req, res) => {
+		cirrusServer = getAvailableCirrusServer();
+		if (cirrusServer != undefined) {
+			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
+			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+		} else {
+			sendRetryResponse(res);
+		}
+	});
+}
 
 //
 // Connection to Cirrus.
@@ -507,17 +483,17 @@ function evaluateAutoScalePolicy() {
 	}
 }
 
+
 const matchmaker = net.createServer((connection) => {
 	connection.on('data', (data) => {
 		try {
 			message = JSON.parse(data);
-		} catch (e) {
+		} catch(e) {
 			console.log(`ERROR (${e.toString()}): Failed to parse Cirrus information from data: ${data.toString()}`);
 			disconnect(connection);
 			appInsightsLogError(e);
 			return;
 		}
-
 		if (message.type === 'connect') {
 			// A Cirrus server connects to this Matchmaker server.
 			cirrusServer = {
@@ -525,82 +501,62 @@ const matchmaker = net.createServer((connection) => {
 				port: message.port,
 				numConnectedClients: 0
 			};
+			cirrusServer.ready = message.ready === true;
 
-			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
-
-			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
-			if (!server || server.size <= 0) {
-				console.log("Setting cirrus server as none found for this connection.")
-				cirrusServers.set(connection, cirrusServer);
-            } else {
-				console.log("cirrus server connection already found--not adding to list.")
-				var foundServer = cirrusServers.get(server[0]);
-				
-				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
-				if (foundServer) {
-					cirrusServers.set(connection, foundServer);
-					console.log("Replacing servier with original");
-				}
-				else
-					cirrusServers.set(connection, cirrusServer);
-
-				cirrusServers.delete(server[0]);
-				appInsightsLogMetric("DuplicateCirrusConnection", 1);
-				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
-				return;
+			cirrusServers.set(connection, cirrusServer);
+			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker, ready: ${cirrusServer.ready}`);
+		} else if (message.type === 'streamerConnected') {
+			// The stream connects to a Cirrus server and so is ready to be used
+			cirrusServer = cirrusServers.get(connection);
+			if(cirrusServer) {
+				cirrusServer.ready = true;
+				console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} ready for use`);
+			} else {
+				disconnect(connection);
 			}
-
-			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker`);
-
-			evaluateAutoScalePolicy();
-			appInsightsLogMetric("CirrusConnection", 1);
-			appInsightsLogEvent("CirrusConnection", message.address);
+		} else if (message.type === 'streamerDisconnected') {
+			// The stream connects to a Cirrus server and so is ready to be used
+			cirrusServer = cirrusServers.get(connection);
+			if(cirrusServer) {
+				cirrusServer.ready = false;
+				console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} no longer ready for use`);
+			} else {
+				disconnect(connection);
+			}
 		} else if (message.type === 'clientConnected') {
 			// A client connects to a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
-
-			if (cirrusServer) {
+			if(cirrusServer) {
 				cirrusServer.numConnectedClients++;
-				console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
-				appInsightsLogMetric("ClientConnection", 1);
-				appInsightsLogEvent("ClientConnection", message.address);
+				console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
+			} else {
+				disconnect(connection);
 			}
-			else {
-				console.log("CirrusServer not found when getting from connection when clientConnected");
-				appInsightsLogMetric("SSUndefinedClientConnect", 1);
-				appInsightsLogEvent("SSUndefined", "clientConnected");
-			}
-
-			evaluateAutoScalePolicy();
 		} else if (message.type === 'clientDisconnected') {
 			// A client disconnects from a Cirrus server.
 			cirrusServer = cirrusServers.get(connection);
-
-			if (cirrusServer) {
+			if(cirrusServer) {
 				cirrusServer.numConnectedClients--;
-				console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port} numConnectedClients: ${cirrusServer.numConnectedClients}`);
-				appInsightsLogEvent("ClientsDisonnected", message.address);
+				console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
 			} else {
-				console.log("CirrusServer not found when getting from connection when clientConnected");
-				appInsightsLogMetric("SSUndefinedClientDisconnect", 1);
-				appInsightsLogEvent("SSUndefinedClientDisconnect", "clientdisconnected");
+				disconnect(connection);
 			}
-
-			evaluateAutoScalePolicy();
-			appInsightsLogMetric("ClientDisconnect", 1);
-			
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);
 		}
+		evaluateAutoScalePolicy();
 	});
 
 	// A Cirrus server disconnects from this Matchmaker server.
 	connection.on('error', () => {
+		cirrusServer = cirrusServers.get(connection);
 		cirrusServers.delete(connection);
-		console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
-		appInsightsLogMetric("CirrusDisconnect", 1);
-		appInsightsLogEvent("CirrusDisconnect", cirrusServer.address);
+		if(cirrusServer) {
+			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+		} else {
+			console.log(`Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
+		}
 	});
 });
 
