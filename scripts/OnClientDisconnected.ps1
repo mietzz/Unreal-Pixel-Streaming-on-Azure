@@ -4,7 +4,7 @@
 # This is optionally used by a pixel streaming app to reset the UE4 exe when a user disconnects
 
 #Change name for the process to your executable name
-$processes = Get-Process ProjectEverywhere 
+$processes = Get-Process ProjectEverywhere* 
 $processes.Count
 if($processes.Count -gt 0)
 {
@@ -12,15 +12,17 @@ if($processes.Count -gt 0)
     $procID = $processes[0].Id
     $cmdline = (Get-WMIObject Win32_Process -Filter "Handle=$procID").CommandLine
 
-    write-host "Restarting UE4 app: " + $processes[0].MainWindowTitle
+    write-host "Restarting UE4 app: " $processes[0].MainWindowTitle
     write-host "Command Line: " + $cmdline
+    write-host "Command Line Split Args: " $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
     
     $processes[0].Kill()
     $processes[0].WaitForExit()
     
-    Start-Sleep -s 1
+    Start-Sleep -s 3
 
-    Start-Process -FilePath $path -ArgumentList $cmdline.Split(' ')[1]}
+    Start-Process -FilePath $path -ArgumentList $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
+}
 else
 {
     write-host "ProjectEverywhere not running when trying to restart"
