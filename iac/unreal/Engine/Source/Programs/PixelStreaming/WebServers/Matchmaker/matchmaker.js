@@ -505,13 +505,19 @@ const matchmaker = net.createServer((connection) => {
 
 			cirrusServers.set(connection, cirrusServer);
 			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker, ready: ${cirrusServer.ready}`);
+			appInsightsLogMetric("CirrusConnection", 1);
+			appInsightsLogEvent("CirrusConnection", message.address);
 		} else if (message.type === 'streamerConnected') {
 			// The stream connects to a Cirrus server and so is ready to be used
 			cirrusServer = cirrusServers.get(connection);
 			if(cirrusServer) {
 				cirrusServer.ready = true;
 				console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} ready for use`);
+				appInsightsLogMetric("StreamerConnected", 1);
+				appInsightsLogEvent("StreamerConnected", cirrusServer.address);
 			} else {
+				appInsightsLogMetric("CirrusServerUndefined", 1);
+				appInsightsLogEvent("CirrusServerUndefined", `No cirrus server found on streamer connect: ${connection.remoteAddress}`);
 				disconnect(connection);
 			}
 		} else if (message.type === 'streamerDisconnected') {
@@ -520,7 +526,11 @@ const matchmaker = net.createServer((connection) => {
 			if(cirrusServer) {
 				cirrusServer.ready = false;
 				console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} no longer ready for use`);
+				appInsightsLogMetric("StreamerDisconnected", 1);
+				appInsightsLogEvent("StreamerDisconnected", cirrusServer.address);
 			} else {
+				appInsightsLogMetric("CirrusServerUndefined", 1);
+				appInsightsLogEvent("CirrusServerUndefined", `No cirrus server found on streamer disconnect: ${connection.remoteAddress}`);
 				disconnect(connection);
 			}
 		} else if (message.type === 'clientConnected') {
@@ -529,7 +539,11 @@ const matchmaker = net.createServer((connection) => {
 			if(cirrusServer) {
 				cirrusServer.numConnectedClients++;
 				console.log(`Client connected to Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
+				appInsightsLogMetric("ClientConnection", 1);
+				appInsightsLogEvent("ClientConnection", cirrusServer.address);
 			} else {
+				appInsightsLogMetric("CirrusServerUndefined", 1);
+				appInsightsLogEvent("CirrusServerUndefined", `No cirrus server found on client connect: ${connection.remoteAddress}`);
 				disconnect(connection);
 			}
 		} else if (message.type === 'clientDisconnected') {
@@ -538,12 +552,18 @@ const matchmaker = net.createServer((connection) => {
 			if(cirrusServer) {
 				cirrusServer.numConnectedClients--;
 				console.log(`Client disconnected from Cirrus server ${cirrusServer.address}:${cirrusServer.port}`);
-			} else {
+				appInsightsLogMetric("ClientDisconnected", 1);
+				appInsightsLogEvent("ClientDisconnected", cirrusServer.address);
+			} else {				
+				appInsightsLogMetric("CirrusServerUndefined", 1);
+				appInsightsLogEvent("CirrusServerUndefined", `No cirrus server found on client disconnect: ${connection.remoteAddress}`);
 				disconnect(connection);
 			}
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);
+			appInsightsLogMetric("MMBadMessageType", 1);
+			appInsightsLogEvent("MMBadMessageType", JSON.stringify(message));
 		}
 		evaluateAutoScalePolicy();
 	});
@@ -554,9 +574,12 @@ const matchmaker = net.createServer((connection) => {
 		cirrusServers.delete(connection);
 		if(cirrusServer) {
 			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+			appInsightsLogEvent("MMCirrusDisconnect", `Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
 		} else {
 			console.log(`Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
+			appInsightsLogEvent("MMCirrusDisconnect", `Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
 		}
+		appInsightsLogMetric("MMCirrusDisconnect", 1);
 	});
 });
 
