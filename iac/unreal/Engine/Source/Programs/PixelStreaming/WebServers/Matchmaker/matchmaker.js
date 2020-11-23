@@ -256,7 +256,9 @@ a {
 // Get a Cirrus server if there is one available which has no clients connected.
 function getAvailableCirrusServer() {
 	for (cirrusServer of cirrusServers.values()) {
+		console.log(`getAvailableCirrusServers testing ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients} ready: ${cirrusServer.ready}`);
 		if (cirrusServer.numConnectedClients === 0 && cirrusServer.ready === true) {
+			console.log(`FOUND: getAvailableCirrusServers ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients}`);
 			return cirrusServer;
 		}
 	}
@@ -285,7 +287,7 @@ if(enableRedirectionLinks) {
 		cirrusServer = getAvailableCirrusServer();
 		if (cirrusServer != undefined) {
 			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/`);
-			console.log(req);
+			//console.log(req);
 			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
 		} else {
 			sendRetryResponse(res);
@@ -503,10 +505,39 @@ const matchmaker = net.createServer((connection) => {
 			};
 			cirrusServer.ready = message.ready === true;
 
+			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
+
+			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
+			if (!server || server.size <= 0) {
+				console.log("Setting cirrus server as none found for this connection.")
+				cirrusServers.set(connection, cirrusServer);
+            } else {
+				console.log("WARNING::::::cirrus server connection already found--not adding to list.")
+				var foundServer = cirrusServers.get(server[0]);
+				
+				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
+				if (foundServer) {
+					cirrusServer.numConnectedClients = foundServer.numConnectedClients;
+					cirrusServers.set(connection, foundServer);
+					console.log(`Replacing server with original with numConn: ${cirrusServer.numConnectedClients}`);
+					cirrusServers.delete(server[0]);
+					totalInstances = cirrusServers.size;
+				}
+				else {
+					cirrusServers.set(connection, cirrusServer);
+					console.log("Connection not found in Map() -- adding a new one");
+				}
+				
+				appInsightsLogMetric("DuplicateCirrusConnection", 1);
+				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
+			}
+
+			/*
 			cirrusServers.set(connection, cirrusServer);
 			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker, ready: ${cirrusServer.ready}`);
 			appInsightsLogMetric("CirrusConnection", 1);
 			appInsightsLogEvent("CirrusConnection", message.address);
+			*/
 		} else if (message.type === 'streamerConnected') {
 			// The stream connects to a Cirrus server and so is ready to be used
 			cirrusServer = cirrusServers.get(connection);
