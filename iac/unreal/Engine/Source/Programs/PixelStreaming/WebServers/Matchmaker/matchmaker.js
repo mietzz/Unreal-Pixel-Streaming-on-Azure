@@ -388,7 +388,7 @@ function scaledownInstances(newNodeCount) {
 // Called when we want to review the autoscale policy to see if there needs to be scaling up or down
 function evaluateAutoScalePolicy() {
 
-	console.log(`Evaluating AutoScale Policy....`);
+	//console.log(`Evaluating AutoScale Policy....`);
 
 	totalInstances = cirrusServers.size;
 	totalConnectedClients = getConnectedClients();
@@ -413,9 +413,11 @@ function evaluateAutoScalePolicy() {
 		remainingUtilization = 100 - percentUtilized;
 	}
 
-	console.log(`Minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availConnections: ${availableConnections} and % used: ${percentUtilized}`);
+	//console.log(`Minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availConnections: ${availableConnections} and % used: ${percentUtilized}`);
 	appInsightsLogMetric("PercentUtilized", percentUtilized);
 	appInsightsLogMetric("AvailableConnections", availableConnections);
+
+	return;
 
 	// Don't try and scale up/down if there is already a scaling operation in progress
 	if (currentVMSSProvisioningState != 'Succeeded') {
@@ -518,7 +520,7 @@ const matchmaker = net.createServer((connection) => {
 				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
 				if (foundServer) {
 					cirrusServer.numConnectedClients = 1; // 1 for now as it's not finding 1 every time for some reason
-					cirrusServers.set(connection, foundServer);
+					cirrusServers.set(connection, cirrusServer);
 					console.log(`Replacing server with original with numConn: ${cirrusServer.numConnectedClients}`);
 					cirrusServers.delete(server[0]);
 				}
