@@ -514,14 +514,14 @@ const matchmaker = net.createServer((connection) => {
 				console.log("Setting cirrus server as none found for this connection.")
 				cirrusServers.set(connection, cirrusServer);
             } else {
-				console.log("WARNING::::::cirrus server connection already found--not adding to list.")
+				console.log("WARNING::::::cirrus server connection already found--replacing with new one.")
 				var foundServer = cirrusServers.get(server[0]);
 				
 				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
 				if (foundServer) {
-					cirrusServer.numConnectedClients = 1; // 1 for now as it's not finding 1 every time for some reason
+					cirrusServer.numConnectedClients = foundServer.numConnectedClients;
 					cirrusServers.set(connection, cirrusServer);
-					console.log(`Replacing server with original with numConn: ${cirrusServer.numConnectedClients}`);
+					console.log(`Replacing server with original with numConn: ${foundServer.numConnectedClients}`);
 					cirrusServers.delete(server[0]);
 				}
 				else {
