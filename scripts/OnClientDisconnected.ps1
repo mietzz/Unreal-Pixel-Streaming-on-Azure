@@ -3,27 +3,51 @@
 
 # This is optionally used by a pixel streaming app to reset the UE4 exe when a user disconnects
 
-#Change name for the process to your executable name
-$processes = Get-Process ProjectEverywhere* 
-$processes.Count
-if($processes.Count -gt 0)
-{
-    $path = $processes[0].Path
-    $procID = $processes[0].Id
-    $cmdline = (Get-WMIObject Win32_Process -Filter "Handle=$procID").CommandLine
+try {
+    #Change name for the process to your executable name
+    $processes = Get-Process ProjectEverywhere* 
+    write-host "Processes: " $processes.Count
+    $finalPath = ""
+    $finalArgs = ""
+    if($processes.Count -gt 0)
+    {
+        foreach($process in $processes)
+        {
+            $path = $process.Path
+            $procID = $process.Id
+            $cmdline = (Get-WMIObject Win32_Process -Filter "Handle=$procID").CommandLine
 
-    write-host "Restarting UE4 app: " $processes[0].MainWindowTitle
-    write-host "Command Line: " + $cmdline
-    write-host "Command Line Split Args: " $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
+            write-host "Restarting UE4 app: " $process.MainWindowTitle
+            write-host "Command Line: " + $cmdline
+            write-host "Command Line Split Args: " $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
     
-    $processes[0].Kill()
-    $processes[0].WaitForExit()
+            $process.Kill()
+            $process.WaitForExit()
     
-    Start-Sleep -s 3
+            Start-Sleep -s 1
 
-    Start-Process -FilePath $path -ArgumentList $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
+            if($cmdline -Match "ProjectEverywhere.exe")
+            {
+                $finalPath = $path
+                $finalArgs = $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
+            }
+            else
+            {
+                Write-Host "Not restarting this process: " $procID
+            }
+        }
+
+        #STart the final application
+        Start-Process -FilePath $finalPath -ArgumentList $finalArgs
+    }
+    else
+    {
+        write-host "ProjectEverywhere not running when trying to restart"
+    }
 }
-else
+catch 
 {
-    write-host "ProjectEverywhere not running when trying to restart"
+  Write-Host "ERROR:::An error occurred:"
+  Write-Host $_
+  Write-Host $_.ScriptStackTrace
 }

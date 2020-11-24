@@ -283,34 +283,6 @@ if (config.UseHTTPS) {
 	});
 }
 
-/*
-app.get('/:sessionId', isAuthenticated('/login'), function(req, res){
-	let sessionId = req.params.sessionId;
-	console.log(sessionId);
-	
-	//For now don't verify session id is valid, just send player.htm if they get the right server
-  res.sendFile(__dirname + '/player.htm');
-});
-*/
-
-/* 
-app.get('/custom_html/:htmlFilename', isAuthenticated('/login'), function(req, res){
-	let htmlFilename = req.params.htmlFilename;
-	
-	let htmlPathname = __dirname + '/custom_html/' + htmlFilename;
-
-	console.log(htmlPathname);
-	fs.access(htmlPathname, (err) => {
-		if (err) {
-			res.status(404).send('Unable to locate file ' + htmlPathname);
-		}
-		else {
-			res.sendFile(htmlPathname);
-		}
-	});
-});
-*/
-
 let WebSocket = require('ws');
 
 let streamerServer = new WebSocket.Server({ port: streamerPort, backlog: 1 });
@@ -450,6 +422,26 @@ playerServer.on('connection', function (ws, req) {
 		sendPlayerDisconnectedToMatchmaker();
 		sendPlayersCount();
 		appInsightsLogMetric("SSPlayerDisconnected", 1);
+
+		// Call the restart PowerShell script
+		try {
+			var spawn = require("child_process").spawn,child;
+			//child = spawn("powershell.exe",["D:\\Git\\Demo\\Unreal-Pixel-Streaming-on-Azure\\scripts\\OnClientDisconnected.ps1"]);
+			child = spawn("powershell.exe",["C:\\Unreal\\scripts\\OnClientDisconnected.ps1"]);		
+			child.stdout.on("data", function(data) {
+				console.log("Powershell: " + data);
+			});
+			child.stderr.on("data", function(data) {
+				console.log("Errors: " + data);
+			});
+			child.on("exit",function(){
+				console.log("Powershell Script finished");
+			});
+			child.stdin.end();
+		} catch(e) {
+			console.log(`ERROR: Failed to execute Powershell with message -- ${e.toString()}`);
+			appInsightsLogError(e);
+		}
 	}
 
 	ws.on('close', function(code, reason) {
