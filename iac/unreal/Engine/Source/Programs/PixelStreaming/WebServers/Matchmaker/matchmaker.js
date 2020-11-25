@@ -235,7 +235,7 @@ a {
 ?
 <body>
 <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
-<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Everywhere demo page. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Thank you for your patience, a large number of visitors is currently  connected.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Register for a private demo or attend our livestreamed demos during vIITSEC using the following link </p><p><a href="https://www.unrealengine.com/en-US/industry/training-simulation"target="_blank">"EVERYWHERE Landing page"</a></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Anywhere demo page. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Thank you for your patience, a large number of visitors are currently connected.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Register for a private demo or attend our livestreamed demos during vIITSEC using the following link </p><p><a href="http://unrealengine.com/industry/project-anywhere/"target="_blank">"ANYWHERE Landing page"</a></p>
 ?
 </body>
 </html>
@@ -388,7 +388,7 @@ function scaledownInstances(newNodeCount) {
 // Called when we want to review the autoscale policy to see if there needs to be scaling up or down
 function evaluateAutoScalePolicy() {
 
-	console.log(`Evaluating AutoScale Policy....`);
+	//console.log(`Evaluating AutoScale Policy....`);
 
 	totalInstances = cirrusServers.size;
 	totalConnectedClients = getConnectedClients();
@@ -413,9 +413,11 @@ function evaluateAutoScalePolicy() {
 		remainingUtilization = 100 - percentUtilized;
 	}
 
-	console.log(`Minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availConnections: ${availableConnections} and % used: ${percentUtilized}`);
+	//console.log(`Minutes since last scaleup: ${minutesSinceScaleup} and scaledown: ${minutesSinceScaledown} and availConnections: ${availableConnections} and % used: ${percentUtilized}`);
 	appInsightsLogMetric("PercentUtilized", percentUtilized);
 	appInsightsLogMetric("AvailableConnections", availableConnections);
+
+	return;
 
 	// Don't try and scale up/down if there is already a scaling operation in progress
 	if (currentVMSSProvisioningState != 'Succeeded') {
@@ -490,6 +492,9 @@ const matchmaker = net.createServer((connection) => {
 	connection.on('data', (data) => {
 		try {
 			message = JSON.parse(data);
+
+			if(message)
+				console.log(`Message TYPE: ${message.type}`);
 		} catch(e) {
 			console.log(`ERROR (${e.toString()}): Failed to parse Cirrus information from data: ${data.toString()}`);
 			disconnect(connection);
@@ -505,6 +510,11 @@ const matchmaker = net.createServer((connection) => {
 			};
 			cirrusServer.ready = message.ready === true;
 
+			// BENH: Check if player is connected and doing a reconnect
+			if(message.playerConnected == true) {
+				cirrusServer.numConnectedClients = 1;
+			}
+
 			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
 
 			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
@@ -512,14 +522,17 @@ const matchmaker = net.createServer((connection) => {
 				console.log("Setting cirrus server as none found for this connection.")
 				cirrusServers.set(connection, cirrusServer);
             } else {
-				console.log("WARNING::::::cirrus server connection already found--not adding to list.")
+				console.log("WARNING::::::cirrus server connection already found--replacing with new one.")
 				var foundServer = cirrusServers.get(server[0]);
 				
 				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
 				if (foundServer) {
-					cirrusServer.numConnectedClients = 1; // 1 for now as it's not finding 1 every time for some reason
-					cirrusServers.set(connection, foundServer);
-					console.log(`Replacing server with original with numConn: ${cirrusServer.numConnectedClients}`);
+					// Only take the old one if we don't already know the player is connected
+					if( cirrusServer.numConnectedClients <= 0) {
+						cirrusServer.numConnectedClients = foundServer.numConnectedClients;
+					}
+					cirrusServers.set(connection, cirrusServer);
+					console.log(`Replacing server with original with numConn: ${foundServer.numConnectedClients}`);
 					cirrusServers.delete(server[0]);
 				}
 				else {
@@ -530,13 +543,6 @@ const matchmaker = net.createServer((connection) => {
 				appInsightsLogMetric("DuplicateCirrusConnection", 1);
 				appInsightsLogEvent("DuplicateCirrusConnection", message.address);
 			}
-
-			/*
-			cirrusServers.set(connection, cirrusServer);
-			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} connected to Matchmaker, ready: ${cirrusServer.ready}`);
-			appInsightsLogMetric("CirrusConnection", 1);
-			appInsightsLogEvent("CirrusConnection", message.address);
-			*/
 		} else if (message.type === 'streamerConnected') {
 			// The stream connects to a Cirrus server and so is ready to be used
 			cirrusServer = cirrusServers.get(connection);

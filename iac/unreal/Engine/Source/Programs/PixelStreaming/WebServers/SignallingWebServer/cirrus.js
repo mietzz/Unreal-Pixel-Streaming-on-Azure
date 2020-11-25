@@ -479,11 +479,19 @@ if (config.UseMatchmaker) {
 
 	matchmaker.on('connect', function() {
 		console.log(`Cirrus connected to Matchmaker ${matchmakerAddress}:${matchmakerPort}`);
+
+		var playerConnected = false;
+
+		if( players && players.size > 0) {
+			playerConnected = true;
+		}
+
 		message = {
 			type: 'connect',
 			address: typeof serverPublicIp === 'undefined' ? '127.0.0.1' : serverPublicIp,
 			port: httpPort,
-			ready: streamer && streamer.readyState === 1
+			ready: streamer && streamer.readyState === 1,
+			playerConnected: playerConnected
 		};
 		matchmaker.write(JSON.stringify(message));
 		appInsightsLogMetric("SSMatchmakerConnected", 1);

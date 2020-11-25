@@ -18,13 +18,13 @@ Param (
 #####################################################################################################
 #base variables
 #####################################################################################################
-$zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectEverywhere.zip"
+$zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectAnywhere.zip"
 $zipfilename = "c:\WindowsNoEditor.zip"
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectFolder =  $folder + 'iac\unreal\ProjectEveryWhere'
+$projectFolder =  $folder + 'iac\unreal\ProjectAnywhere'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 #$blobDestination = $folder + 'iac\unreal\app'
