@@ -261,7 +261,7 @@ function getAvailableCirrusServer() {
 
 			// Check if we had at least 30 seconds since the last redirect
 			if( cirrusServer.lastRedirect ) {
-				if( ((Date.now() - cirrusServer.lastRedirect) / 1000) < 30 )
+				if( ((Date.now() - cirrusServer.lastRedirect) / 1000) < 45 )
 					continue;
 			}
 			console.log(`FOUND: getAvailableCirrusServers ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients}`);
