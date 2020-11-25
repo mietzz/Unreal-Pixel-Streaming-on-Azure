@@ -5,7 +5,7 @@
 
 try {
     #Change name for the process to your executable name
-    $processes = Get-Process ProjectEverywhere* 
+    $processes = Get-Process ProjectAnywhere* 
     write-host "Processes: " $processes.Count
     $finalPath = ""
     $finalArgs = ""
@@ -21,12 +21,32 @@ try {
             write-host "Command Line: " + $cmdline
             write-host "Command Line Split Args: " $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
     
-            $process.Kill()
-            $process.WaitForExit()
-    
+            try 
+            {
+                $process | Stop-Process -Force
+            }
+            catch 
+            {
+                Write-Host "ERROR:::An error occurred when stopping process: "
+                Write-Host $_
+
+                try 
+                {
+                    Start-Sleep -s 1
+                    
+                    $process.Kill()
+                    $process.WaitForExit(1000)
+                }
+                catch 
+                {
+                    Write-Host "ERROR:::An error occurred when killing process: "
+                    Write-Host $_
+                }
+            }
+
             Start-Sleep -s 1
 
-            if($cmdline -Match "ProjectEverywhere.exe")
+            if($cmdline -Match "ProjectAnywhere.exe")
             {
                 $finalPath = $path
                 $finalArgs = $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
@@ -37,12 +57,20 @@ try {
             }
         }
 
-        #STart the final application
-        Start-Process -FilePath $finalPath -ArgumentList $finalArgs
+        try 
+        {
+            #Start the final application
+            Start-Process -FilePath $finalPath -ArgumentList $finalArgs
+        }
+        catch 
+        {
+            Write-Host "ERROR:::An error occurred when starting the process: " $finalPath $finalArgs
+            Write-Host $_
+        }
     }
     else
     {
-        write-host "ProjectEverywhere not running when trying to restart"
+        write-host "ProjectAnywhere not running when trying to restart"
     }
 }
 catch 

@@ -159,7 +159,7 @@ video{
 	font-family: var(--inputFont);
 	width: 100%;
 	height: 100%;
-	background-color: rgba(100, 100, 100, 0.7);
+	background-color: rgba(0, 0, 0, 0.7);
 }
 
 /* State for element to be clickable */
@@ -186,8 +186,8 @@ video{
 }
 
 img#playButton{
-	max-width: 241px;
-	width: 10%;
+	max-width: 512px;
+	width: 100%;
 }
 
 #UIInteraction{
