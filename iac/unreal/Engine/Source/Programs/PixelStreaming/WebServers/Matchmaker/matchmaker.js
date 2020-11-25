@@ -258,7 +258,14 @@ function getAvailableCirrusServer() {
 	for (cirrusServer of cirrusServers.values()) {
 		console.log(`getAvailableCirrusServers testing ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients} ready: ${cirrusServer.ready}`);
 		if (cirrusServer.numConnectedClients === 0 && cirrusServer.ready === true) {
+
+			// Check if we had at least 30 seconds since the last redirect
+			if( cirrusServer.lastRedirect ) {
+				if( ((Date.now() - cirrusServer.lastRedirect) / 1000) < 30 )
+					continue;
+			}
 			console.log(`FOUND: getAvailableCirrusServers ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients}`);
+			cirrusServer.lastRedirect = Date.now();
 			return cirrusServer;
 		}
 	}
@@ -515,27 +522,23 @@ const matchmaker = net.createServer((connection) => {
 				cirrusServer.numConnectedClients = 1;
 			}
 
+			// Find if we already have a ciruss server address connected to (possibly a reconnect happening)
 			let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
 
 			// if a duplicate server with the same address isn't found -- add it to the map as an availble server to send users to
 			if (!server || server.size <= 0) {
-				console.log("Setting cirrus server as none found for this connection.")
+				console.log(`Adding connection for ${cirrusServer.address.split(".")[0]} with playerConnected: ${message.playerConnected}`)
 				cirrusServers.set(connection, cirrusServer);
             } else {
-				console.log("WARNING::::::cirrus server connection already found--replacing with new one.")
+				console.log(`RECONNECT::::::cirrus server address ${cirrusServer.address.split(".")[0]} already found--replacing. playerConnected: ${message.playerConnected}`)
 				var foundServer = cirrusServers.get(server[0]);
 				
 				// Make sure to retain the numConnectedClients from the last one before the reconnect to MM
-				if (foundServer) {
-					// Only take the old one if we don't already know the player is connected
-					if( cirrusServer.numConnectedClients <= 0) {
-						cirrusServer.numConnectedClients = foundServer.numConnectedClients;
-					}
+				if (foundServer) {					
 					cirrusServers.set(connection, cirrusServer);
-					console.log(`Replacing server with original with numConn: ${foundServer.numConnectedClients}`);
+					console.log(`Replacing server with original with numConn: ${cirrusServer.numConnectedClients}`);
 					cirrusServers.delete(server[0]);
-				}
-				else {
+				} else {
 					cirrusServers.set(connection, cirrusServer);
 					console.log("Connection not found in Map() -- adding a new one");
 				}

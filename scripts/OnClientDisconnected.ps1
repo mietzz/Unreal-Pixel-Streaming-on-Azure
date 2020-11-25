@@ -55,22 +55,22 @@ try {
             {
                 Write-Host "Not restarting this process: " $procID
             }
-        }
-
-        try 
-        {
-            #Start the final application
-            Start-Process -FilePath $finalPath -ArgumentList $finalArgs
-        }
-        catch 
-        {
-            Write-Host "ERROR:::An error occurred when starting the process: " $finalPath $finalArgs
-            Write-Host $_
-        }
+        }        
     }
     else
     {
         write-host "ProjectAnywhere not running when trying to restart"
+    }
+
+    try 
+    {
+        #Start the final application
+        Start-Process -FilePath "C:\Unreal\iac\unreal\ProjectAnywhere.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen"
+    }
+    catch 
+    {
+        Write-Host "ERROR:::An error occurred when starting the process: " "C:\Unreal\iac\unreal\ProjectAnywhere.exe" "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen"
+        Write-Host $_
     }
 }
 catch 

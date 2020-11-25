@@ -305,28 +305,32 @@ streamerServer.on('connection', function (ws, req) {
 			return;
 		}
 	
-		if (msg.type == 'ping') {
-			streamer.send(JSON.stringify({ type: "pong", time: msg.time}));
-			return;
-		}
+		try {
+			if (msg.type == 'ping') {
+				streamer.send(JSON.stringify({ type: "pong", time: msg.time}));
+				return;
+			}
 
-		let playerId = msg.playerId;
-		delete msg.playerId; // no need to send it to the player
-		let player = players.get(playerId);
-		if (!player) {
-			console.log(`dropped message ${msg.type} as the player ${playerId} is not found`);
-			return;
-		}
+			let playerId = msg.playerId;
+			delete msg.playerId; // no need to send it to the player
+			let player = players.get(playerId);
+			if (!player) {
+				console.log(`dropped message ${msg.type} as the player ${playerId} is not found`);
+				return;
+			}
 
-		if (msg.type == 'answer') {
-			player.ws.send(JSON.stringify(msg));
-		} else if (msg.type == 'iceCandidate') {
-			player.ws.send(JSON.stringify(msg));
-		} else if (msg.type == 'disconnectPlayer') {
-			player.ws.close(1011 /* internal error */, msg.reason);
-		} else {
-			console.error(`unsupported Streamer message type: ${msg.type}`);
-			streamer.close(1008, 'Unsupported message type');
+			if (msg.type == 'answer') {
+				player.ws.send(JSON.stringify(msg));
+			} else if (msg.type == 'iceCandidate') {
+				player.ws.send(JSON.stringify(msg));
+			} else if (msg.type == 'disconnectPlayer') {
+				player.ws.close(1011 /* internal error */, msg.reason);
+			} else {
+				console.error(`unsupported Streamer message type: ${msg.type}`);
+				streamer.close(1008, 'Unsupported message type');
+			}
+		} catch(err) {
+			console.error(`ERROR: ws.on message error: ${err.message}`);
 		}
 	});
 
@@ -337,14 +341,22 @@ streamerServer.on('connection', function (ws, req) {
 	}
 	
 	ws.on('close', function(code, reason) {
-		console.error(`streamer disconnected: ${code} - ${reason}`);
-		onStreamerDisconnected();
+		try {
+			console.error(`streamer disconnected: ${code} - ${reason}`);
+			onStreamerDisconnected();
+		} catch(err) {
+			console.error(`ERROR: ws.on close error: ${err.message}`);
+		}
 	});
 
 	ws.on('error', function(error) {
-		console.error(`streamer connection error: ${error}`);
-		ws.close(1006 /* abnormal closure */, error);
-		onStreamerDisconnected();
+		try {
+			console.error(`streamer connection error: ${error}`);
+			ws.close(1006 /* abnormal closure */, error);
+			onStreamerDisconnected();
+		} catch(err) {
+			console.error(`ERROR: ws.on error: ${err.message}`);
+		}
 	});
 
 	streamer = ws;
@@ -415,14 +427,7 @@ playerServer.on('connection', function (ws, req) {
 		}
 	});
 
-	function onPlayerDisconnected() {
-		players.delete(playerId);
-		streamer.send(JSON.stringify({type: 'playerDisconnected', playerId: playerId}));
-		sendPlayerDisconnectedToFrontend();
-		sendPlayerDisconnectedToMatchmaker();
-		sendPlayersCount();
-		appInsightsLogMetric("SSPlayerDisconnected", 1);
-
+	function restartUnrealApp() {
 		// Call the restart PowerShell script
 		try {
 			var spawn = require("child_process").spawn,child;
@@ -444,9 +449,26 @@ playerServer.on('connection', function (ws, req) {
 		}
 	}
 
+	function onPlayerDisconnected() {
+
+		try {
+			console.log("calling onPlayerDisconnected...");
+			players.delete(playerId);
+			streamer.send(JSON.stringify({type: 'playerDisconnected', playerId: playerId}));
+			sendPlayerDisconnectedToFrontend();
+			sendPlayerDisconnectedToMatchmaker();
+			sendPlayersCount();
+			appInsightsLogMetric("SSPlayerDisconnected", 1);
+			console.log("CALLED onPlayerDisconnected");
+		} catch(err) {
+			console.logColor(loggin.Red, `ERROR:: onPlayerDisconnected error: ${err.message}`);
+		}
+	}
+
 	ws.on('close', function(code, reason) {
 		console.logColor(logging.Yellow, `player ${playerId} connection closed: ${code} - ${reason}`);
 		onPlayerDisconnected();
+		setTimeout(restartUnrealApp, 500);
 	});
 
 	ws.on('error', function(error) {
@@ -595,26 +617,32 @@ function sendServerDisconnect() {
 	if (!config.UseFrontend)
 		return;
 
-	webRequest.get(`${FRONTEND_WEBSERVER}/server/serverDisconnected?gameSessionId=${gameSessionId}&appName=${querystring.escape(clientConfig.AppName)}`,
-		function (response, body) {
-			if (response.statusCode === 200) {
-				console.log('serverDisconnected acknowledged by Frontend');
-			} else {
-				console.error('Status code: ' + response.statusCode);
-				console.error(body);
-			}
-		},
-		function (err) {
-			//Repeatedly try in cases where the connection timed out or never connected
-			if (err.code === "ECONNRESET") {
-				//timeout
-				sendServerDisconnect();
-			} else if (err.code === 'ECONNREFUSED') {
-				console.error('Frontend server not running, unable to setup user session');
-			} else {
-				console.error(err);
-			}
-		});
+	try {
+		console.log("calling sendServerDisconnect...");
+		webRequest.get(`${FRONTEND_WEBSERVER}/server/serverDisconnected?gameSessionId=${gameSessionId}&appName=${querystring.escape(clientConfig.AppName)}`,
+			function (response, body) {
+				if (response.statusCode === 200) {
+					console.log('serverDisconnected acknowledged by Frontend');
+				} else {
+					console.error('Status code: ' + response.statusCode);
+					console.error(body);
+				}
+			},
+			function (err) {
+				//Repeatedly try in cases where the connection timed out or never connected
+				if (err.code === "ECONNRESET") {
+					//timeout
+					sendServerDisconnect();
+				} else if (err.code === 'ECONNREFUSED') {
+					console.error('Frontend server not running, unable to setup user session');
+				} else {
+					console.error(err);
+				}
+			});
+		console.log("calling sendServerDisconnect...");
+	} catch(err) {
+		console.logColor(logging.Red, `ERROR::: sendServerDisconnect error: ${err.message}`);
+	}
 }
 
 function sendPlayerConnectedToFrontend() {
@@ -622,75 +650,101 @@ function sendPlayerConnectedToFrontend() {
 	if (!config.UseFrontend)
 		return;
 
-	webRequest.get(`${FRONTEND_WEBSERVER}/server/clientConnected?gameSessionId=${gameSessionId}&appName=${querystring.escape(clientConfig.AppName)}`,
-		function (response, body) {
-			if (response.statusCode === 200) {
-				console.log('clientConnected acknowledged by Frontend');
-			} else {
-				console.error('Status code: ' + response.statusCode);
-				console.error(body);
-			}
-		},
-		function (err) {
-			//Repeatedly try in cases where the connection timed out or never connected
-			if (err.code === "ECONNRESET") {
-				//timeout
-				sendPlayerConnectedToFrontend();
-			} else if (err.code === 'ECONNREFUSED') {
-				console.error('Frontend server not running, unable to setup game session');
-			} else {
-				console.error(err);
-			}
-		});
+	try {
+		console.log("calling sendPlayerConnectedToFrontend...");
+		webRequest.get(`${FRONTEND_WEBSERVER}/server/clientConnected?gameSessionId=${gameSessionId}&appName=${querystring.escape(clientConfig.AppName)}`,
+			function (response, body) {
+				if (response.statusCode === 200) {
+					console.log('clientConnected acknowledged by Frontend');
+				} else {
+					console.error('Status code: ' + response.statusCode);
+					console.error(body);
+				}
+			},
+			function (err) {
+				//Repeatedly try in cases where the connection timed out or never connected
+				if (err.code === "ECONNRESET") {
+					//timeout
+					sendPlayerConnectedToFrontend();
+				} else if (err.code === 'ECONNREFUSED') {
+					console.error('Frontend server not running, unable to setup game session');
+				} else {
+					console.error(err);
+				}
+			});
+		console.log("CALLED sendPlayerConnectedToFrontend");
+	} catch(err) {
+		console.logColor(logging.Red, `ERROR::: sendPlayerConnectedToFrontend error: ${err.message}`);
+	}
 }
 
 function sendPlayerDisconnectedToFrontend() {
 	//If we are not using the frontend web server don't try and make requests to it
 	if (!config.UseFrontend)
 		return;
-
-	webRequest.get(`${FRONTEND_WEBSERVER}/server/clientDisconnected?gameSessionId=${gameSessionId}&appName=${querystring.escape(clientConfig.AppName)}`,
-		function (response, body) {
-			if (response.statusCode === 200) {
-				console.log('clientDisconnected acknowledged by Frontend');
-				appInsightsLogMetric("SSPlayerDisconnectedFrontEnd", 1);
-			}
-			else {
-				console.error('Status code: ' + response.statusCode);
-				console.error(body);
-			}
-		},
-		function (err) {
-			//Repeatedly try in cases where the connection timed out or never connected
-			if (err.code === "ECONNRESET") {
-				//timeout
-				sendPlayerDisconnectedToFrontend();
-			} else if (err.code === 'ECONNREFUSED') {
-				console.error('Frontend server not running, unable to setup game session');
-			} else {
-				console.error(err);
-			}
-		});
+	try {
+		console.log("calling sendPlayerDisconnectedToFrontend...");
+		webRequest.get(`${FRONTEND_WEBSERVER}/server/clientDisconnected?gameSessionId=${gameSessionId}&appName=${querystring.escape(clientConfig.AppName)}`,
+			function (response, body) {
+				if (response.statusCode === 200) {
+					console.log('clientDisconnected acknowledged by Frontend');
+					appInsightsLogMetric("SSPlayerDisconnectedFrontEnd", 1);
+				}
+				else {
+					console.error('Status code: ' + response.statusCode);
+					console.error(body);
+				}
+			},
+			function (err) {
+				//Repeatedly try in cases where the connection timed out or never connected
+				if (err.code === "ECONNRESET") {
+					//timeout
+					sendPlayerDisconnectedToFrontend();
+				} else if (err.code === 'ECONNREFUSED') {
+					console.error('Frontend server not running, unable to setup game session');
+				} else {
+					console.error(err);
+				}
+			});
+		console.log("CALLED sendPlayerDisconnectedToFrontend");
+	} catch(err) {
+		console.logColor(logging.Red, `ERROR::: sendPlayerDisconnectedToFrontend error: ${err.message}`);
+	}
 }
 
 function sendStreamerConnectedToMatchmaker() {
 	if (!config.UseMatchmaker)
 		return;
 
-	message = {
-		type: 'streamerConnected'
-	};
-	matchmaker.write(JSON.stringify(message));
+	try {
+		console.log("sendStreamerConnectedToMatchmaker started...");
+		message = {
+			type: 'streamerConnected'
+		};
+		matchmaker.write(JSON.stringify(message));
+		console.log("sendStreamerConnectedToMatchmaker FINISHED");
+	} catch (err) {
+		console.logColor(logging.Red, `ERROR sending streamerConnected: ${err.message}`);
+	}
 }
 
 function sendStreamerDisconnectedToMatchmaker() {
 	if (!config.UseMatchmaker)
+	{
+		console.log("WARNING:::sendStreamerDisconnectedToMatchmaker not using matchmaker for some reason???");
 		return;
+	}
 
-	message = {
-		type: 'streamerDisconnected'
-	};
-	matchmaker.write(JSON.stringify(message));
+	try {
+		console.log("sendStreamerDisconnectedToMatchmaker started...");
+		message = {
+			type: 'streamerDisconnected'
+		};
+		matchmaker.write(JSON.stringify(message));	
+		console.log("sendStreamerDisconnectedToMatchmaker FINISHED");
+	} catch (err) {
+		console.logColor(logging.Red, `ERROR sending streamerDisconnected: ${err.message}`);
+	}
 }
 
 // The Matchmaker will not re-direct clients to this Cirrus server if any client
@@ -698,11 +752,17 @@ function sendStreamerDisconnectedToMatchmaker() {
 function sendPlayerConnectedToMatchmaker() {
 	if (!config.UseMatchmaker)
 		return;
-
-	message = {
-		type: 'clientConnected'
-	};
-	matchmaker.write(JSON.stringify(message));
+	
+	try {
+		console.log("sendPlayerConnectedToMatchmaker started...");
+		message = {
+			type: 'clientConnected'
+		};
+		matchmaker.write(JSON.stringify(message));
+		console.log("sendPlayerConnectedToMatchmaker FINISHED");
+	} catch (err) {
+		console.logColor(logging.Red, `ERROR sending clientConnected: ${err.message}`);
+	}
 }
 
 // The Matchmaker is interested when nobody is connected to a Cirrus server
@@ -711,8 +771,14 @@ function sendPlayerDisconnectedToMatchmaker() {
 	if (!config.UseMatchmaker)
 		return;
 
-	message = {
-		type: 'clientDisconnected'
-	};
-	matchmaker.write(JSON.stringify(message));
+	try {
+		console.log("sendPlayerDisconnectedToMatchmaker started...");
+		message = {
+			type: 'clientDisconnected'
+		};
+		matchmaker.write(JSON.stringify(message));
+		console.log("sendPlayerDisconnectedToMatchmaker FINISHED");
+	} catch (err) {
+		console.logColor(logging.Red, `ERROR sending clientDisconnected: ${err.message}`);
+	}
 }

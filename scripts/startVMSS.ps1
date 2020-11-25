@@ -71,7 +71,7 @@ $logMessage = "current folder :" + $PixelStreamerFolder
 Add-Content -Path $logoutput -Value $logMessage
 
 
-& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -ErrorVariable ProcessError
+& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ErrorVariable ProcessError
 if ($ProcessError) {
    $logMessage = "Error in starting Pixel Streamer"
    Write-EventLog -LogName "Application" -Source "PixelStreamer" -EventID 3102 -EntryType Error -Message "PixelStream Service Failed to Start."
