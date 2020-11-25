@@ -70,16 +70,17 @@ Set-Location -Path $PixelStreamerFolder
 $logMessage = "current folder :" + $PixelStreamerFolder 
 Add-Content -Path $logoutput -Value $logMessage
 
-
-& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ErrorVariable ProcessError
-if ($ProcessError) {
-   $logMessage = "Error in starting Pixel Streamer"
-   Write-EventLog -LogName "Application" -Source "PixelStreamer" -EventID 3102 -EntryType Error -Message "PixelStream Service Failed to Start."
+try {
+& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 
+$logMessage = "started :" + $PixelStreamerExecFile 
 }
-else {
-   $logMessage = "started :" + $PixelStreamerExecFile  
-   Write-EventLog -LogName "Application" -Source "PixelStreamer" -EventID 3103 -EntryType Information -Message "PixelStream Service Started."
-}
+catch {
+   $logMessage = "Exception in starting Pixel Streamer : " + $_.Exception.Message
+   Write-Output $logmessage
+ }
+ finally {
+   $error.clear()
+ }
 
 Add-Content -Path $logoutput -Value $logMessage
 
