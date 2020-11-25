@@ -3,7 +3,7 @@
 var webRtcPlayerObj = null;
 var print_stats = false;
 var print_inputs = false;
-var connect_on_load = false;
+var connect_on_load = true;
 
 var is_reconnection = false;
 var ws;
@@ -32,8 +32,8 @@ var freezeFrame = {
 
 // Optionally detect if the user is not interacting (AFK) and disconnect them.
 var afk = {
-	enabled: false,   // Set to true to enable the AFK system.
-	warnTimeout: 120,   // The time to elapse before warning the user they are inactive.
+	enabled: true,   // Set to true to enable the AFK system.
+	warnTimeout: 60,   // The time to elapse before warning the user they are inactive.
 	closeTimeout: 10,   // The time after the warning when we disconnect the user.
 
 	active: false,   // Whether the AFK system is currently looking for inactivity.
@@ -234,7 +234,7 @@ function setOverlay(htmlClass, htmlElement, onClickFunction) {
 function showConnectOverlay() {
 	var startText = document.createElement('div');
 	startText.id = 'playButton';
-	startText.innerHTML = 'Click to start';
+	startText.innerHTML = 'Click to start the Anywhere experience';
 
 	setOverlay('clickableState', startText, event => {
 		connect();
@@ -1633,6 +1633,12 @@ function myHandleResponseFunction(data) {
             url = "http://" + location.host + ":4244/screenshot";
 			//console.warn("received a Screenshot request " + url);
 			window.open(url,"_self")
+		break;
+		case "MailToAnywhere":
+			window.open("mailto:anywhere@epicgames.com","_self")
+			break;
+		case "EndExperience":
+			window.open("http://unrealengine.com/industry/project-anywhere/","_self")
 			break;
 		default:
 		console.warn(`ERROR: Unknown Response received!`);

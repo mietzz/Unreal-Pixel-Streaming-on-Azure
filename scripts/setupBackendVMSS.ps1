@@ -18,14 +18,23 @@ Param (
 #####################################################################################################
 #base variables
 #####################################################################################################
+<<<<<<< HEAD
 $zipfilepath = "https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip"
+=======
+$zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectAnywhere.zip"
+>>>>>>> upstream/main
 $zipfilename = "c:\WindowsNoEditor.zip"
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
+<<<<<<< HEAD
 $projectFolder =  $folder + 'iac\app\unreal\WindowsNoEditor'
 $projectExecFolder =  $folder + 'iac\app\unreal\WindowsNoEditor\*'
+=======
+$projectFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
+>>>>>>> upstream/main
 
 $blobDestination = $folder + 'iac\unreal\app'
 #$blobDestination = $folder + 'iac\unreal'
@@ -206,33 +215,43 @@ finally {
   $error.clear()
 }
 
-Set-Location -Path $vmServiceFolder 
+try{
+   Set-Location -Path $vmServiceFolder 
 
-$logmessage = "Current folder " + $vmServiceFolder
-Add-Content -Path $logoutput -Value $logmessage
+   $logmessage = "Current folder " + $vmServiceFolder
+   Add-Content -Path $logoutput -Value $logmessage
 
-$logmessage = "Writing paramters from extension " + $vmServiceFolder
-Add-Content -Path $logoutput -Value $logmessage
+   $logmessage = "Writing paramters from extension " + $vmServiceFolder
+   Add-Content -Path $logoutput -Value $logmessage
 
-$vmssConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
-Write-Output $vmssConfigJson
+   $vmssConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
+   Write-Output $vmssConfigJson
 
-$logMessage = "current config :" + $vmssConfigJson
-Add-Content -Path $logoutput -Value $logMessage
+   $logMessage = "current config :" + $vmssConfigJson
+   Add-Content -Path $logoutput -Value $logMessage
 
-$vmssConfigJson.resourceGroup = $resource_group_name
-$vmssConfigJson.subscriptionId = $subscription_id
-$vmssConfigJson.virtualMachineScaleSet = $vmss_name
-$vmssConfigJson.appInsightsId = $application_insights_key
-$vmssConfigJson.matchmakerAddress = $mm_lb_fqdn
-$vmssConfigJson.publicIp = $thispublicip
+   $vmssConfigJson.resourceGroup = $resource_group_name
+   $vmssConfigJson.subscriptionId = $subscription_id
+   $vmssConfigJson.virtualMachineScaleSet = $vmss_name
+   $vmssConfigJson.appInsightsId = $application_insights_key
+   $vmssConfigJson.matchmakerAddress = $mm_lb_fqdn
+   $vmssConfigJson.publicIp = $thispublicip
 
-$vmssConfigJson | ConvertTo-Json | set-content "config.json"
-$vmssConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
-Write-Output $vmssConfigJson
+   $vmssConfigJson | ConvertTo-Json | set-content "config.json"
+   $vmssConfigJson = (Get-Content  "config.json" -Raw) | ConvertFrom-Json
+   Write-Output $vmssConfigJson
 
-$logMessage = "Writing parameters from extension complete. Updated config :" + $vmssConfigJson
-Add-Content -Path $logoutput -Value $logMessage
+   $logMessage = "Writing parameters from extension complete. Updated config :" + $vmssConfigJson
+   Add-Content -Path $logoutput -Value $logMessage
+}
+catch {
+  $logmessage = "Exception: " + $_.Exception
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+}
+finally {
+  $error.clear()    
+}
 
 $logmessage = "Creating a job schedule "
 Add-Content -Path $logoutput -Value $logmessage
