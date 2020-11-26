@@ -4,9 +4,17 @@
 #base variables
 #####################################################################################################
 #$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
+$folder = "c:\Unreal\"
 $PixelStreamerFolder = "C:\Unreal\iac\unreal\"
 $PixelStreamerExecFile = $PixelStreamerFolder + "ProjectAnywhere.exe"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+
+$zipfilename = "c:\WindowsNoEditor.zip"
+$blobDestination = $folder + 'iac\unreal'
+$scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
+$projectFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
+
 
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
@@ -69,6 +77,64 @@ if (-not (Test-Path -LiteralPath $PixelStreamerFolder)) {
 Set-Location -Path $PixelStreamerFolder 
 $logMessage = "current folder :" + $PixelStreamerFolder 
 Add-Content -Path $logoutput -Value $logMessage
+
+if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
+   $logMessage = "PixelStreamer Exec file :" + $PixelStreamerExecFile + " doesn't exist" 
+   Add-Content -Path $logoutput -Value $logMessage
+   
+   $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
+   Add-Content -Path $logoutput -Value $logmessage
+   Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
+   
+   # Adding a wait for zipfile download to complete
+   #sleep for 15 seconds to wait for install processes to complete
+   Start-Sleep -s 15
+   
+   $logmessage = "Extracting WindowsNoEditor Complete"
+   Add-Content -Path $logoutput -Value $logmessage
+   
+   $logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
+   Write-Output $logmessage
+   Add-Content -Path $logoutput -Value $logmessage
+   
+   try{
+     Copy-Item $projectExecFolder $blobDestination -recurse -force
+     $logmessage = "Copying WindowsNoEditor Folder Complete"
+   
+     # Adding a wait for zipfile download to complete
+     #sleep for 15 seconds to wait for install processes to complete
+     Start-Sleep -s 15
+     Write-Output $logmessage
+     Add-Content -Path $logoutput -Value $logmessage
+   }
+   catch{
+     $logmessage = $_.Exception.Message
+     $logbasemessage = "Copying WindowsNoEditor Failed. Error: "
+     Write-Output $logbasemessage + $logmessage 
+     Add-Content -Path $logoutput -Value $logmessage
+   }
+   finally {
+     $error.clear()
+   }
+   
+   try{
+     Copy-Item $scriptfile $projectFolder -force
+     $logmessage = "Copying OnClientDisconnected Complete"
+     Write-Output $logmessage
+     Add-Content -Path $logoutput -Value $logmessage
+   }
+   catch{
+     $logmessage = $_.Exception.Message
+     $logbasemessage = "Copying OnClientDisconnected Failed. Error: "
+     Write-Output $logbasemessage + $logmessage 
+     Add-Content -Path $logoutput -Value $logmessage
+   }
+   finally {
+     $error.clear()
+   }
+
+
+}
 
 try {
 & $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 
