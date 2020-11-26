@@ -168,7 +168,7 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
 }
 
 try {
-& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 
+& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ForceRes
 $logMessage = "started :" + $PixelStreamerExecFile 
 }
 catch {
