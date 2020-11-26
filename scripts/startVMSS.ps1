@@ -9,6 +9,7 @@ $PixelStreamerFolder = "C:\Unreal\iac\unreal\"
 $PixelStreamerExecFile = $PixelStreamerFolder + "ProjectAnywhere.exe"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 
+$zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectAnywhere.zip"
 $zipfilename = "c:\WindowsNoEditor.zip"
 $blobDestination = $folder + 'iac\unreal'
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
@@ -82,22 +83,52 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
    $logMessage = "PixelStreamer Exec file :" + $PixelStreamerExecFile + " doesn't exist" 
    Add-Content -Path $logoutput -Value $logMessage
    
-   $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
-   Add-Content -Path $logoutput -Value $logmessage
-   Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
-   
-   # Adding a wait for zipfile download to complete
-   #sleep for 15 seconds to wait for install processes to complete
-   Start-Sleep -s 15
-   
-   $logmessage = "Extracting WindowsNoEditor Complete"
-   Add-Content -Path $logoutput -Value $logmessage
-   
-   $logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
-   Write-Output $logmessage
-   Add-Content -Path $logoutput -Value $logmessage
-   
-   try{
+   try
+   {
+      $logmessage = "Downloading again WindowsNoEditor binaries from blob storage"
+      Add-Content -Path $logoutput -Value $logmessage
+
+      Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
+      # Adding a wait for zipfile download to complete
+      #sleep for 15 seconds to wait for install processes to complete
+      Start-Sleep -s 15
+
+      $checkFile = $zipFileName
+
+      [Int]$zipFileSize = (Get-Item $checkFile).length
+
+      $logmessage = "Zipfile size" + $zipFileSize
+
+      Add-Content -Path $logoutput -Value $logmessage
+
+      if($zipFileSize -lt 100000) {
+         $logmessage = "Error:Zip file not downloaded correctly"
+         Write-Output $logmessage
+         Add-Content -Path $logoutput -Value $logmessage
+      } else {
+         $logmessage = "Zip file downloaded correctly"
+         Write-Output $logmessage
+         Add-Content -Path $logoutput -Value $logmessage
+      }
+
+      $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
+      Add-Content -Path $logoutput -Value $logmessage
+
+      $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
+      Add-Content -Path $logoutput -Value $logmessage
+      Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
+      
+      # Adding a wait for zipfile download to complete
+      #sleep for 15 seconds to wait for install processes to complete
+      Start-Sleep -s 15
+      
+      $logmessage = "Extracting WindowsNoEditor Complete"
+      Add-Content -Path $logoutput -Value $logmessage
+      
+      $logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
+      Write-Output $logmessage
+      Add-Content -Path $logoutput -Value $logmessage
+
      Copy-Item $projectExecFolder $blobDestination -recurse -force
      $logmessage = "Copying WindowsNoEditor Folder Complete"
    
