@@ -313,6 +313,12 @@ if(enableRedirectionLinks) {
 	});
 }
 
+// Added for health check of the VM
+app.get('/ping', (req, res) => {
+
+	res.send('ping');
+});
+
 //
 // Connection to Cirrus.
 //
