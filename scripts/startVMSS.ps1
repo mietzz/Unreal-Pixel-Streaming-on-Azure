@@ -13,8 +13,8 @@ $zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/
 $zipfilename = "c:\WindowsNoEditor.zip"
 $blobDestination = $folder + 'iac\unreal'
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectFolder =  $folder + 'iac\unreal\ProjectAnywhere'
-$projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
+$newProjectAWFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$projectAWFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 
 $logsbasefolder = "C:\gaming"
@@ -85,13 +85,17 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
    
    try
    {
+      Remove-Item $zipFileName -recurse -force
+      $logmessage = "Deleting Old zipFiler Complete"
+      Add-Content -Path $logoutput -Value $logmessage
+
       $logmessage = "Downloading again WindowsNoEditor binaries from blob storage"
       Add-Content -Path $logoutput -Value $logmessage
 
       Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
       # Adding a wait for zipfile download to complete
       #sleep for 15 seconds to wait for install processes to complete
-      Start-Sleep -s 15
+      #Start-Sleep -s 15
 
       $checkFile = $zipFileName
 
@@ -108,35 +112,33 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
       } else {
          $logmessage = "Zip file downloaded correctly"
          Write-Output $logmessage
+               
+         Remove-Item $PixelStreamerFolder+"Project*" -recurse -force
+         $logmessage = "Deleting Old Files ProjectAnywhere Folder Complete"
          Add-Content -Path $logoutput -Value $logmessage
+
+         $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
+         Add-Content -Path $logoutput -Value $logmessage
+         Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
+      
+         $logmessage = "Extracting WindowsNoEditor Complete"
+         Add-Content -Path $logoutput -Value $logmessage
+         $logmessage = "Move Contents of WindowsNoEditor Folder to :" + $blobDestination
+         #Write-Output $logmessage
+         Add-Content -Path $logoutput -Value $logmessage
+
+         Move-Item $projectAWFolder $blobDestination  -force
+         $logmessage = "Moving Contents of WindowsNoEditor Folder Complete"
+         Add-Content -Path $logoutput -Value $logmessage
+
+         Copy-Item $scriptfile $newProjectAWFolder -force
+         $logmessage = "Copying OnClientDisconnected Complete"
+         
+         Add-Content -Path $logoutput -Value $logmessage
+
+
       }
-
-      $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
-      Add-Content -Path $logoutput -Value $logmessage
-
-      $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
-      Add-Content -Path $logoutput -Value $logmessage
-      Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
       
-      # Adding a wait for zipfile download to complete
-      #sleep for 15 seconds to wait for install processes to complete
-      Start-Sleep -s 15
-      
-      $logmessage = "Extracting WindowsNoEditor Complete"
-      Add-Content -Path $logoutput -Value $logmessage
-      
-      $logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
-      Write-Output $logmessage
-      Add-Content -Path $logoutput -Value $logmessage
-
-     Copy-Item $projectExecFolder $blobDestination -recurse -force
-     $logmessage = "Copying WindowsNoEditor Folder Complete"
-   
-     # Adding a wait for zipfile download to complete
-     #sleep for 15 seconds to wait for install processes to complete
-     Start-Sleep -s 15
-     Write-Output $logmessage
-     Add-Content -Path $logoutput -Value $logmessage
    }
    catch{
      $logmessage = $_.Exception.Message
@@ -148,22 +150,6 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
      $error.clear()
    }
    
-   try{
-     Copy-Item $scriptfile $projectFolder -force
-     $logmessage = "Copying OnClientDisconnected Complete"
-     Write-Output $logmessage
-     Add-Content -Path $logoutput -Value $logmessage
-   }
-   catch{
-     $logmessage = $_.Exception.Message
-     $logbasemessage = "Copying OnClientDisconnected Failed. Error: "
-     Write-Output $logbasemessage + $logmessage 
-     Add-Content -Path $logoutput -Value $logmessage
-   }
-   finally {
-     $error.clear()
-   }
-
 
 }
 
