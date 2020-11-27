@@ -112,9 +112,11 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
       } else {
          $logmessage = "Zip file downloaded correctly"
          Write-Output $logmessage
-               
-         Remove-Item $PixelStreamerFolder+"Project*" -recurse -force
-         $logmessage = "Deleting Old Files ProjectAnywhere Folder Complete"
+         
+         $removeFiles = $PixelStreamerFolder+"Project*"
+         Remove-Item $removeFiles -recurse -force
+         
+         $logmessage = "Deleted Old Files ProjectAnywhere Folder Complete :"+$removeFiles
          Add-Content -Path $logoutput -Value $logmessage
 
          $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
