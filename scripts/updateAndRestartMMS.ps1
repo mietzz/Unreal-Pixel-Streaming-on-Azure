@@ -12,28 +12,24 @@ Param (
   [Parameter(Mandatory = $False, HelpMessage = "github access token")]
   [String]$pat = ""
 )
-Write-Output ]$subscription_id 
-
-Write-Output ]$resource_group_name 
-
-Write-Output ]$vmss_name
-
-Write-Output ]$application_insights_key
-
-Write-Output ]$pat
-
-Write-Output ]$pat.Length
-
+Write-Output $subscription_id 
+Write-Output $resource_group_name 
+Write-Output $vmss_name
+Write-Output $application_insights_key
+Write-Output $pat
+Write-Output $pat.Length
 
 #####################################################################################################
 #base variables
 #####################################################################################################
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
+$stdout = $logsfolder + '\ue4-startMMS-stdout' + (get-date).ToString('MMddyyhhmmss') + '.txt'
+$stderr = $logsfolder + '\ue4-startMMS-stderr' + (get-date).ToString('MMddyyhhmmss') + '.txt'
+
 $folder = "c:\Unreal\"
 $mmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
-$oldmmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\Matchmaker"
-$executionfilepath = "C:\Unreal\scripts\startMMS.ps1"
+
 #$gitpath = "https://github.com/Azure/Unreal-Pixel-Streaming-on-Azure.git"
 $gitpath = "https://github.com/danmanrique/Unreal-Pixel-Streaming-on-Azure/"
 
@@ -45,6 +41,8 @@ if ($pat.Length -gt 0) {
 }
 
 #####################################################################################################
+
+
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -69,6 +67,63 @@ Write-Output $logoutput
 $logmessage = "Starting at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage
 
+Write-Output $logoutput
+
+$nodeProcesses = Get-Process node* 
+
+$logmessage = "Processes: " +  $nodeProcesses.Count
+Add-Content -Path $logoutput -Value $logmessage
+Write-Output $logmessage
+
+if($nodeProcesses.Count -gt 0)
+{
+    foreach($process in $nodeProcesses)
+    {
+        $path = $process.Path
+        $procID = $process.Id
+        
+        
+        $logmessage = "Stoping UE4 app: " +  $process.MainWindowTitle
+        Add-Content -Path $logoutput -Value $logmessage
+        Write-Output $logmessage
+
+        $logmessage = "Stopping Node processId " + $procID
+        Add-Content -Path $logoutput -Value $logmessage
+        Write-Output $logmessage
+
+        try 
+        {
+            $process | Stop-Process -Force
+            $logmessage = "Stopped UE4 app: Successful"
+            Add-Content -Path $logoutput -Value $logmessage
+            Write-Output $logmessage
+        }
+        catch 
+        {
+            $logmessage = "ERROR:::An error occurred when stopping process: "
+            Add-Content -Path $logoutput -Value $logmessage
+            Write-Output $logmessage
+            try 
+            {
+                $logmessage = "Stoping UE4 app try2: "
+                Add-Content -Path $logoutput -Value $logmessage
+                Write-Output $logmessage
+                Start-Sleep -s 1                
+                $process.Kill()
+                $process.WaitForExit(1000)
+                $logmessage = "Stopped UE4 app try2: Successful"
+                Add-Content -Path $logoutput -Value $logmessage
+                Write-Output $logmessage
+            }
+            catch 
+            {
+              $logmessage = "Error in killing the process try2" + $_.Exception.Message
+              Write-Output $logmessage
+              Add-Content -Path $logoutput -Value $logmessage
+            }
+        }
+    }
+ }
 
 try {
   $logmessage = "Refreshing the environment variable"
@@ -133,8 +188,7 @@ try {
   $logmessage = "Starting the MMS Process "
   Add-Content -Path $logoutput -Value $logmessage
 
-  #invoke the script to start it this time
-  #Invoke-Expression -Command $executionfilepath
+  start-process "cmd.exe" "/c .\run.bat" -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 
   $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
   Add-Content -Path $logoutput -Value $logmessage
