@@ -183,7 +183,7 @@ Add-Content -Path $logoutput -Value $logmessage
 
 $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:10
 try {
-  $User = "azureadmin"
+  $User = "NT AUTHORITY\SYSTEM"
   $PS = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy bypass -noprofile -file $executionfilepath"
   Register-ScheduledTask -Trigger $trigger -User $User -TaskName "StartMMS" -Action $PS -RunLevel Highest -Force 
 }
