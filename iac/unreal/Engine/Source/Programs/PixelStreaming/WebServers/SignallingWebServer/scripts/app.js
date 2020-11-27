@@ -1225,16 +1225,22 @@ function registerLockedMouseEvents(playerElement) {
 		x += e.movementX;
 		y += e.movementY;
 		if (x > styleWidth) {
-			x -= styleWidth;
+			//x -= styleWidth;
+			e.movementX = x-styleWidth-1;
+			x = styleWidth-1;
 		}
 		if (y > styleHeight) {
-			y -= styleHeight;
+			//y -= styleHeight;
+			e.movementY = y-styleHeight-1;
+			y = styleHeight-1;
 		}
 		if (x < 0) {
-			x = styleWidth + x;
+			//x = styleWidth + x;
+			x=0;
 		}
 		if (y < 0) {
-			y = styleHeight - y;
+			//y = styleHeight - y;
+			y=0;
 		}
 		emitMouseMove(x, y, e.movementX, e.movementY);
 	}
