@@ -74,7 +74,11 @@ finally {
 try {
   $logmessage = "Installing prerequisites"
   Add-Content -Path $logoutput -Value $logmessage
-  choco upgrade filezilla git nodejs vcredist2017 directx -y --no-progress
+  choco upgrade filezilla -y --no-progress
+  choco upgrade git -y --no-progress
+  choco upgrade nodejs -y --no-progress
+  choco upgrade vcredist2017 -y --no-progress
+  choco upgrade directx -y --no-progress
   $logmessage = "Installing prerequisites Complete"
   Add-Content -Path $logoutput -Value $logmessage
 }
