@@ -4,14 +4,18 @@
 #base variables
 #####################################################################################################
 #$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
-<<<<<<< HEAD
-$PixelStreamerFolder = "C:\Unreal\iac\unreal\WindowsNoEditor\"
-$PixelStreamerExecFile = $PixelStreamerFolder + "PixelStreamer.exe"
-=======
+$folder = "c:\Unreal\"
 $PixelStreamerFolder = "C:\Unreal\iac\unreal\"
 $PixelStreamerExecFile = $PixelStreamerFolder + "ProjectAnywhere.exe"
->>>>>>> upstream/main
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+
+$zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectAnywhere.zip"
+$zipfilename = "c:\WindowsNoEditor.zip"
+$blobDestination = $folder + 'iac\unreal'
+$scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
+$newProjectAWFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$projectAWFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
+
 
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
@@ -75,16 +79,91 @@ Set-Location -Path $PixelStreamerFolder
 $logMessage = "current folder :" + $PixelStreamerFolder 
 Add-Content -Path $logoutput -Value $logMessage
 
+if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
+   $logMessage = "PixelStreamer Exec file :" + $PixelStreamerExecFile + " doesn't exist" 
+   Add-Content -Path $logoutput -Value $logMessage
+   
+   try
+   {
+      Remove-Item $zipFileName -recurse -force
+      $logmessage = "Deleting Old zipFiler Complete"
+      Add-Content -Path $logoutput -Value $logmessage
 
-& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ErrorVariable ProcessError
-if ($ProcessError) {
-   $logMessage = "Error in starting Pixel Streamer"
-   Write-EventLog -LogName "Application" -Source "PixelStreamer" -EventID 3102 -EntryType Error -Message "PixelStream Service Failed to Start."
+      $logmessage = "Downloading again WindowsNoEditor binaries from blob storage"
+      Add-Content -Path $logoutput -Value $logmessage
+
+      Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
+      # Adding a wait for zipfile download to complete
+      #sleep for 15 seconds to wait for install processes to complete
+      #Start-Sleep -s 15
+
+      $checkFile = $zipFileName
+
+      [Int]$zipFileSize = (Get-Item $checkFile).length
+
+      $logmessage = "Zipfile size" + $zipFileSize
+
+      Add-Content -Path $logoutput -Value $logmessage
+
+      if($zipFileSize -lt 100000) {
+         $logmessage = "Error:Zip file not downloaded correctly"
+         Write-Output $logmessage
+         Add-Content -Path $logoutput -Value $logmessage
+      } else {
+         $logmessage = "Zip file downloaded correctly"
+         Write-Output $logmessage
+               
+         Remove-Item $PixelStreamerFolder+"Project*" -recurse -force
+         $logmessage = "Deleting Old Files ProjectAnywhere Folder Complete"
+         Add-Content -Path $logoutput -Value $logmessage
+
+         $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
+         Add-Content -Path $logoutput -Value $logmessage
+         Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
+      
+         $logmessage = "Extracting WindowsNoEditor Complete"
+         Add-Content -Path $logoutput -Value $logmessage
+         $logmessage = "Move Contents of WindowsNoEditor Folder to :" + $blobDestination
+         #Write-Output $logmessage
+         Add-Content -Path $logoutput -Value $logmessage
+
+         Move-Item $projectAWFolder $blobDestination  -force
+         $logmessage = "Moving Contents of WindowsNoEditor Folder Complete"
+         Add-Content -Path $logoutput -Value $logmessage
+
+         Copy-Item $scriptfile $newProjectAWFolder -force
+         $logmessage = "Copying OnClientDisconnected Complete"
+         
+         Add-Content -Path $logoutput -Value $logmessage
+
+
+      }
+      
+   }
+   catch{
+     $logmessage = $_.Exception.Message
+     $logbasemessage = "Copying WindowsNoEditor Failed. Error: "
+     Write-Output $logbasemessage + $logmessage 
+     Add-Content -Path $logoutput -Value $logmessage
+   }
+   finally {
+     $error.clear()
+   }
+   
+
 }
-else {
-   $logMessage = "started :" + $PixelStreamerExecFile  
-   Write-EventLog -LogName "Application" -Source "PixelStreamer" -EventID 3103 -EntryType Information -Message "PixelStream Service Started."
+
+try {
+& $PixelStreamerExecFile $arg1 $arg2 $arg3 $arg4 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ForceRes
+$logMessage = "started :" + $PixelStreamerExecFile 
 }
+catch {
+   $logMessage = "Exception in starting Pixel Streamer : " + $_.Exception.Message
+   Write-Output $logmessage
+ }
+ finally {
+   $error.clear()
+ }
 
 Add-Content -Path $logoutput -Value $logMessage
 

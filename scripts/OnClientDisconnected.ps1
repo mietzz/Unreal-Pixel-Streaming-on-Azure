@@ -76,11 +76,11 @@ try {
     try 
     {
         #Start the final application
-        Start-Process -FilePath "C:\Unreal\iac\unreal\ProjectAnywhere.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen"
+        Start-Process -FilePath "C:\Unreal\iac\unreal\ProjectAnywhere.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
     }
     catch 
     {
-        Write-Host "ERROR:::An error occurred when starting the process: " "C:\Unreal\iac\unreal\ProjectAnywhere.exe" "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen"
+        Write-Host "ERROR:::An error occurred when starting the process: " "C:\Unreal\iac\unreal\ProjectAnywhere.exe" "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
         Write-Host $_
     }
 }

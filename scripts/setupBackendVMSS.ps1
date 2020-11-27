@@ -168,6 +168,9 @@ $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
 Add-Content -Path $logoutput -Value $logmessage
 
 Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
+# Adding a wait for zipfile download to complete
+#sleep for 15 seconds to wait for install processes to complete
+Start-Sleep -s 15
 
 $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
 Add-Content -Path $logoutput -Value $logmessage
@@ -175,6 +178,10 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
 Add-Content -Path $logoutput -Value $logmessage
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
+
+# Adding a wait for zipfile download to complete
+#sleep for 15 seconds to wait for install processes to complete
+Start-Sleep -s 15
 
 $logmessage = "Extracting WindowsNoEditor Complete"
 Add-Content -Path $logoutput -Value $logmessage
@@ -186,6 +193,10 @@ Add-Content -Path $logoutput -Value $logmessage
 try{
   Copy-Item $projectExecFolder $blobDestination -recurse -force
   $logmessage = "Copying WindowsNoEditor Folder Complete"
+
+  # Adding a wait for zipfile download to complete
+  #sleep for 15 seconds to wait for install processes to complete
+  Start-Sleep -s 15
   Write-Output $logmessage
   Add-Content -Path $logoutput -Value $logmessage
 }

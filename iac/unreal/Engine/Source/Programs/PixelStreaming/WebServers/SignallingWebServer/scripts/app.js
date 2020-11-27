@@ -3,7 +3,7 @@
 var webRtcPlayerObj = null;
 var print_stats = false;
 var print_inputs = false;
-var connect_on_load = true;
+var connect_on_load = false;
 
 var is_reconnection = false;
 var ws;
@@ -33,7 +33,7 @@ var freezeFrame = {
 // Optionally detect if the user is not interacting (AFK) and disconnect them.
 var afk = {
 	enabled: true,   // Set to true to enable the AFK system.
-	warnTimeout: 60,   // The time to elapse before warning the user they are inactive.
+	warnTimeout: 30,   // The time to elapse before warning the user they are inactive.
 	closeTimeout: 10,   // The time after the warning when we disconnect the user.
 
 	active: false,   // Whether the AFK system is currently looking for inactivity.
@@ -236,9 +236,10 @@ function showConnectOverlay() {
 	startText.id = 'playButton';
 	startText.innerHTML = 'Click to start the Anywhere experience';
 
+	startAfkWarningTimer();
 	setOverlay('clickableState', startText, event => {
 		connect();
-		startAfkWarningTimer();
+		// Move earlier startAfkWarningTimer();
 	});
 }
 
@@ -296,6 +297,8 @@ function showAfkOverlay() {
 		if (afk.countdown == 0) {
 			// The user failed to click so disconnect them.
 			hideOverlay();
+			// Redirect to the Anywhere landing page
+			window.open("http://unrealengine.com/industry/project-anywhere/","_self")
 			ws.close();
 		} else {
 			// Update the countdown message.
