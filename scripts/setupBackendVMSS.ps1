@@ -155,40 +155,41 @@ finally {
 }
 
 
-$logmessage = "Downloading WindowsNoEditor binaries from blob storage"
-Add-Content -Path $logoutput -Value $logmessage
-
-Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
-# Adding a wait for zipfile download to complete
-#sleep for 15 seconds to wait for install processes to complete
-Start-Sleep -s 15
-
-$logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
-Add-Content -Path $logoutput -Value $logmessage
-
-$logmessage = "Extracting WindowsNoEditor to " + $blobDestination
-Add-Content -Path $logoutput -Value $logmessage
-Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
-
-# Adding a wait for zipfile download to complete
-#sleep for 15 seconds to wait for install processes to complete
-Start-Sleep -s 15
-
-$logmessage = "Extracting WindowsNoEditor Complete"
-Add-Content -Path $logoutput -Value $logmessage
-
-$logmessage = "Copying WindowsNoEditor Folder:" + $scriptfile
-Write-Output $logmessage
-Add-Content -Path $logoutput -Value $logmessage
-
 try{
-  Copy-Item $projectExecFolder $blobDestination -recurse -force
-  $logmessage = "Copying WindowsNoEditor Folder Complete"
+  $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
+  Add-Content -Path $logoutput -Value $logmessage
+
+  Invoke-WebRequest $zipfilepath -OutFile $zipfilename 
+  # Adding a wait for zipfile download to complete
+  #sleep for 2 seconds to wait for install processes to complete
+  Start-Sleep -s 2
+
+  $logmessage = "Downloading WindowsNoEditor binaries from blob storage complete"
+  Add-Content -Path $logoutput -Value $logmessage
+
+  $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
+  Add-Content -Path $logoutput -Value $logmessage
+  Expand-Archive -LiteralPath $zipFileName -DestinationPath $blobDestination -force
 
   # Adding a wait for zipfile download to complete
-  #sleep for 15 seconds to wait for install processes to complete
-  Start-Sleep -s 15
+  #sleep for 2 seconds to wait for install processes to complete
+  Start-Sleep -s 2
+
+  $logmessage = "Extracting WindowsNoEditor Complete"
+  Add-Content -Path $logoutput -Value $logmessage
+
+  $logmessage = "Copying WindowsNoEditor Folder:" 
   Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+
+  Move-Item $projectExecFolder $blobDestination -force
+  $logmessage = "Copying WindowsNoEditor Folder Complete"
+
+  Add-Content -Path $logoutput -Value $logmessage
+
+  Copy-Item $scriptfile $projectFolder -force
+  $logmessage = "Copying OnClientDisconnected Complete"
+  
   Add-Content -Path $logoutput -Value $logmessage
 }
 catch{
@@ -201,21 +202,6 @@ finally {
   $error.clear()
 }
 
-try{
-  Copy-Item $scriptfile $projectFolder -force
-  $logmessage = "Copying OnClientDisconnected Complete"
-  Write-Output $logmessage
-  Add-Content -Path $logoutput -Value $logmessage
-}
-catch{
-  $logmessage = $_.Exception.Message
-  $logbasemessage = "Copying OnClientDisconnected Failed. Error: "
-  Write-Output $logbasemessage + $logmessage 
-  Add-Content -Path $logoutput -Value $logmessage
-}
-finally {
-  $error.clear()
-}
 
 try{
    Set-Location -Path $vmServiceFolder 
