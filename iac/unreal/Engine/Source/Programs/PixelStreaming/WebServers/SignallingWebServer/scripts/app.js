@@ -1606,7 +1606,7 @@ function onConfig(config) {
 	let playerDiv = document.getElementById('player');
 	let playerElement = setupWebRtcPlayer(playerDiv, config);
   emitUIInteraction("PlayerConnected");
-	openFullscreen();
+	//openFullscreen();
 	resizePlayerStyle();
 
 	switch (inputOptions.controlScheme) {
