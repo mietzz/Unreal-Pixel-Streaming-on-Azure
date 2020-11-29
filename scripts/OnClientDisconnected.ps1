@@ -65,7 +65,7 @@ try {
     try 
     {
         #Start the final application
-        Start-Process -FilePath "C:\Unreal\iac\unreal\ProjectAnywhere.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
+        #Start-Process -FilePath "C:\Unreal\iac\unreal\ProjectAnywhere.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
     }
     catch 
     {
