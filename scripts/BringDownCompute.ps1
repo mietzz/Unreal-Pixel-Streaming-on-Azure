@@ -73,8 +73,8 @@ function handleenv() {
 }
 
 handleenv $rg1 $eastusinstances;
-handleenv $rg2 $weinstances;
 handleenv $rg3 $westusinstances;
+handleenv $rg2 $weinstances;
 handleenv $rg4 $seainstances;
 
 Write-Output "Date/Time (UTC): " + (get-date).ToString('MM/dd/yy hh:mm:ss')
