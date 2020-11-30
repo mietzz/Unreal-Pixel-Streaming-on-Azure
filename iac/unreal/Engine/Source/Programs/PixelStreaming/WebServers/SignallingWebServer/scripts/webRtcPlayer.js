@@ -121,7 +121,7 @@
             		// (andriy): increase start bitrate from 300 kbps to 20 mbps and max bitrate from 2.5 mbps to 100 mbps
                     // (100 mbps means we don't restrict encoder at all)
                     // after we `setLocalDescription` because other browsers are not c happy to see google-specific config
-            		offer.sdp = offer.sdp.replace(/(a=fmtp:\d+ .*level-asymmetry-allowed=.*)\r\n/gm, "$1;x-google-start-bitrate=10000;x-google-max-bitrate=20000\r\n");
+            		offer.sdp = offer.sdp.replace(/(a=fmtp:\d+ .*level-asymmetry-allowed=.*)\r\n/gm, "$1;x-google-start-bitrate=15000;x-google-max-bitrate=100000\r\n");
             		self.onWebRtcOffer(offer);
                 }
             },

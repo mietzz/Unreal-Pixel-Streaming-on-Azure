@@ -30,7 +30,7 @@ $arg3 = "-PixelStreamingPort=8888"
 $arg4 = "-RenderOffScreen"
 #####################################################################################################
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
-Set-ExecutionPolicy Bypass -Scope Process -Force
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope LocalMachine -Force
 
 try {
    New-EventLog -Source PixelStreamer -LogName Application -MessageResourceFile $PixelStreamerExecFile -CategoryResourceFile $PixelStreamerExecFile
