@@ -13,7 +13,15 @@ $RG4 = $rootvariable + "-southeastasia-unreal-rg"
 $vmScaleSet = $rootvariable + "vmss";
 
 
-az vmss list-instances -g $RG1 --name $vmScaleSet --output table --query "[].name" -o tsv
+$vmnames = az vmss list-instances -g $RG1 --name $vmScaleSet --output table --query "[].name" -o tsv
+
+foreach($vmname in $vmnames)
+{
+    Write-Output "Processing for vm "+$vmname
+
+}
+
+
 
 
 #$vmname = az vmss list-instances --resource-group  $RG1 --name $--query "[].name" -o tsv
