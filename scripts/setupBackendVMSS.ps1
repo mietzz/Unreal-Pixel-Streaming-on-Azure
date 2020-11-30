@@ -25,7 +25,7 @@ $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$projectFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$projectFolder =  $folder + 'iac\unreal\ClemensMessestand'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 $blobDestination = $folder + 'iac\unreal\app'
