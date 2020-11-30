@@ -1,0 +1,17 @@
+{
+	"UseFrontend": false,
+	"UseMatchmaker": true,
+	"UseHTTPS": false,
+	"UseAuthentication": false,
+	"LogToFile": true,
+	"HomepageFile": "player.htm",
+	"AdditionalRoutes": {},
+	"EnableWebserver": true,
+	"matchmakerAddress": "",
+	"matchmakerPort": "9999",
+	"publicIp": "localhost",
+	"subscriptionId": "",
+	"resourceGroup": "",
+	"virtualMachineScaleSet": "",
+	"appInsightsId": ""
+}

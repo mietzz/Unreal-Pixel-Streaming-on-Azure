@@ -28,8 +28,8 @@ $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
 $projectFolder =  $folder + 'iac\unreal\ClemensMessestand'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
-$blobDestination = $folder + 'iac\unreal\app'
-#$blobDestination = $folder + 'iac\unreal'
+#$blobDestination = $folder + 'iac\unreal\app'
+$blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 $executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
 $gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
