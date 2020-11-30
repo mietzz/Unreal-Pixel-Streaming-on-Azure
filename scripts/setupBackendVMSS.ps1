@@ -18,23 +18,15 @@ Param (
 #####################################################################################################
 #base variables
 #####################################################################################################
-<<<<<<< HEAD
+
 $zipfilepath = "https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip"
-=======
-$zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/WindowsNoEditor_ProjectAnywhere.zip"
->>>>>>> upstream/main
 $zipfilename = "c:\WindowsNoEditor.zip"
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-<<<<<<< HEAD
-$projectFolder =  $folder + 'iac\app\unreal\WindowsNoEditor'
-$projectExecFolder =  $folder + 'iac\app\unreal\WindowsNoEditor\*'
-=======
 $projectFolder =  $folder + 'iac\unreal\ProjectAnywhere'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
->>>>>>> upstream/main
 
 $blobDestination = $folder + 'iac\unreal\app'
 #$blobDestination = $folder + 'iac\unreal'
