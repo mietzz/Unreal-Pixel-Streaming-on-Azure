@@ -30,7 +30,7 @@ $arg3 = "-PixelStreamingPort=8888"
 $arg4 = "-RenderOffScreen"
 #####################################################################################################
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
-Set-ExecutionPolicy Bypass -Scope Process -Force
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope LocalMachine -Force
 
 try {
    New-EventLog -Source PixelStreamer -LogName Application -MessageResourceFile $PixelStreamerExecFile -CategoryResourceFile $PixelStreamerExecFile
@@ -112,9 +112,11 @@ if (-not (Test-Path -LiteralPath $PixelStreamerExecFile)) {
       } else {
          $logmessage = "Zip file downloaded correctly"
          Write-Output $logmessage
-               
-         Remove-Item $PixelStreamerFolder+"Project*" -recurse -force
-         $logmessage = "Deleting Old Files ProjectAnywhere Folder Complete"
+         
+         $removeFiles = $PixelStreamerFolder+"Project*"
+         Remove-Item $removeFiles -recurse -force
+         
+         $logmessage = "Deleted Old Files ProjectAnywhere Folder Complete :"+$removeFiles
          Add-Content -Path $logoutput -Value $logmessage
 
          $logmessage = "Extracting WindowsNoEditor to " + $blobDestination
