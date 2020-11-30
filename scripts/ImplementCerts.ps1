@@ -10,17 +10,15 @@ $policy = New-AzKeyVaultCertificatePolicy -SubjectName $SubjectName -IssuerName 
 Add-AzKeyVaultCertificate -VaultName $VaultName -Name $CertName -CertificatePolicy $policy
 
 #Update virtual machine scale sets profile with certificate
-$ResourceGroupName = "fx38w-eastus-unreal-rg"
+$ResourceGroupName = "fx38w-westus-unreal-rg"
 $VMSSName = "fx38wvmss"
 $CertStore = "My" # Update this with the store you want your certificate placed in, this is LocalMachine\My
 
 # If you have added your certificate to the keyvault certificates, use
 $CertConfig = New-AzVmssVaultCertificateConfig -CertificateUrl (Get-AzKeyVaultCertificate -VaultName $VaultName -Name $CertName).SecretId -CertificateStore $CertStore
 
-# Otherwise, if you have added your certificate to the keyvault secrets, use
-#$CertConfig = New-AzVmssVaultCertificateConfig -CertificateUrl (Get-AzKeyVaultSecret -VaultName $VaultName -Name $CertName).Id -CertificateStore $CertStore
-
 $VMSS = Get-AzVmss -ResourceGroupName $ResourceGroupName -VMScaleSetName $VMSSName
+#$VMSS = az vmss show --name $VMSSName --resource-group $ResourceGroupName
 
 # If this KeyVault is already known by the virtual machine scale set, for example if the cluster certificate is deployed from this keyvault, use
 $VMSS.virtualmachineprofile.osProfile.secrets[0].vaultCertificates.Add($CertConfig)

@@ -378,4 +378,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-scripts\ImplementCerts.ps1
+ImplementCerts.ps1
