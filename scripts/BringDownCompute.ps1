@@ -1,12 +1,26 @@
-#variables
-$rootvariable = "j6693"
+Param (
+    [Parameter(Mandatory = $True, HelpMessage = "5 Character Env Prefix")]
+    [String]$rootvariable = "",
+    [Parameter(Mandatory = $True, HelpMessage = "Instances")]
+    [int]$instances = 0
+)
 
-#step 1 delete the resource groups
+#check for 5 characters
+if ($rootvariable.Length -ne 5) {
+    Write-Output "Please enter the 5 character prefix (ex j6693)"
+    return
+}
+
+#check for an int between 0 and 200
+If ($instances -lt 0 -OR $instances -gt 200) {
+    Write-Output "The second value is not a between 0 and 200"
+    return
+}
+
 $rg1 = $rootvariable + "-eastus-unreal-rg"
 $rg2 = $rootvariable + "-westeurope-unreal-rg"
 $rg3 = $rootvariable + "-westus-unreal-rg"
 $rg4 = $rootvariable + "-southeastasia-unreal-rg"
-$rg5 = $rootvariable + "-global-unreal-rg"
 
 $vm = $rootvariable + "-mm-vm0"
 $vmss = $rootvariable + "vmss"
@@ -21,16 +35,16 @@ function handleenv($rg) {
     Write-Output ""
 
     #change instance count to 2
-    Write-Output "Scaling down VMSS"
-    az vmss scale --name $vmss --new-capacity 2 --resource-group $rg --only-show-errors
+    Write-Output "Scaling VMSS to: " + $instances.ToString()
+    #    az vmss scale --name $vmss --new-capacity $instances --resource-group $rg --only-show-errors
 
     #restart vm
     Write-Output "Restarting VM"
-    az vm restart -g $rg -n $vm --only-show-errors
+    #    az vm restart -g $rg -n $vm --only-show-errors
 
     #restart vmss
     Write-Output "Restarting VMSS"
-    az vmss restart --name $vmss --resource-group $rg --only-show-errors
+    #    az vmss restart --name $vmss --resource-group $rg --only-show-errors
     return
 }
 
