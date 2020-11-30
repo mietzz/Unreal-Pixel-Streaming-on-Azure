@@ -1,5 +1,5 @@
 #variables
-$rootvariable = "fx38w"
+$rootvariable = "j6693"
 
 #step 1 delete the resource groups
 $rg1 = $rootvariable + "-eastus-unreal-rg"
