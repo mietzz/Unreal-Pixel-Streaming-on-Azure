@@ -6,14 +6,14 @@
 #$PixelStreamerFolder = "C:\Unreal\iac\unreal\App\WindowsNoEditor\"
 $folder = "c:\Unreal\"
 $PixelStreamerFolder = "C:\Unreal\iac\unreal\"
-$PixelStreamerExecFile = $PixelStreamerFolder + "ProjectAnywhere.exe"
+$PixelStreamerExecFile = $PixelStreamerFolder + "ClemensMessestand.exe"
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 
 $zipfilepath = "https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip"
 $zipfilename = "c:\WindowsNoEditor.zip"
 $blobDestination = $folder + 'iac\unreal'
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$newProjectAWFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$newProjectAWFolder =  $folder + 'iac\unreal\ClemensMessestand'
 $projectAWFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 
