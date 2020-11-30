@@ -1,3 +1,6 @@
+#TEST CODE--- 
+#NOT VALID
+
 #Create a certificate in Key Vault
 $VaultName = "akv-fx38w-eastus"
 $CertName = "ue4-backend-vmss-cert"
@@ -29,14 +32,3 @@ $VMSS = Add-AzVmssSecret -VirtualMachineScaleSet $VMSS -SourceVaultId (Get-AzKey
 Update-AzVmss -ResourceGroupName $ResourceGroupName -VirtualMachineScaleSet $VMSS -VMScaleSetName $VMSSName
 
 
-az network nsg rule delete -g fx38w-eastus-unreal-rg --nsg-name fx38w-ue4-nsg -n Open7070
-az network nsg rule delete -g fx38w-eastus-unreal-rg --nsg-name fx38w-ue4-nsg -n Open888x
-
-az network nsg rule delete -g fx38w-westus-unreal-rg --nsg-name fx38w-ue4-nsg -n Open7070
-az network nsg rule delete -g fx38w-westus-unreal-rg --nsg-name fx38w-ue4-nsg -n Open888x
-
-az network nsg rule delete -g fx38w-westeurope-unreal-rg --nsg-name fx38w-ue4-nsg -n Open7070
-az network nsg rule delete -g fx38w-westeurope-unreal-rg --nsg-name fx38w-ue4-nsg -n Open888x
-
-az network nsg rule delete -g fx38w-southeastasia-unreal-rg --nsg-name fx38w-ue4-nsg -n Open7070
-az network nsg rule delete -g fx38w-southeastasia-unreal-rg --nsg-name fx38w-ue4-nsg -n Open888x
