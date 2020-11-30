@@ -5,7 +5,7 @@
 
 try {
     #Change name for the process to your executable name
-    $processes = Get-Process ProjectAnywhere* 
+    $processes = Get-Process ClemensMessestand* 
     write-host "Processes: " $processes.Count
     $finalPath = ""
     $finalArgs = ""
@@ -46,7 +46,7 @@ try {
 
             Start-Sleep -s 1
 
-            if($cmdline -Match "ProjectAnywhere.exe")
+            if($cmdline -Match "ClemensMessestand.exe")
             {
                 $finalPath = $path
                 $finalArgs = $cmdline.substring($cmdline.IndexOf("-AudioMixer"))
@@ -59,24 +59,24 @@ try {
     }
     else
     {
-        write-host "ProjectAnywhere not running when trying to restart"
+        write-host "ClemensMessestand not running when trying to restart"
     }
 
     try 
     {
         Start-Sleep -s 5
 
-        $newProcesses = Get-Process ProjectAnywhere*
+        $newProcesses = Get-Process ClemensMessestand*
         Write-Host "Checking processes restarted: " $newProcesses.Count
         if($newProcesses.Count -le 0)
         {
             #Start the final application if not already restarted
-            Start-Process -FilePath "C:\Unreal\iac\unreal\ProjectAnywhere.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
+            Start-Process -FilePath "C:\Unreal\iac\unreal\ClemensMessestand.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
         }
     }
     catch 
     {
-        Write-Host "ERROR:::An error occurred when starting the process: " "C:\Unreal\iac\unreal\ProjectAnywhere.exe" "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
+        Write-Host "ERROR:::An error occurred when starting the process: " "C:\Unreal\iac\unreal\ClemensMessestand.exe" "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
         Write-Host $_
     }
 }
