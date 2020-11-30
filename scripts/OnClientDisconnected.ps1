@@ -3,16 +3,6 @@
 
 # This is optionally used by a pixel streaming app to reset the UE4 exe when a user disconnects
 
-<<<<<<< HEAD
-#Change name for the process to your executable name
-$processes = Get-Process PixelStreamer 
-$processes.Count
-if($processes.Count -gt 0)
-{
-    $path = $processes[0].Path
-    $procID = $processes[0].Id
-    $cmdline = (Get-WMIObject Win32_Process -Filter "Handle=$procID").CommandLine
-=======
 try {
     #Change name for the process to your executable name
     $processes = Get-Process ProjectAnywhere* 
@@ -26,7 +16,6 @@ try {
             $path = $process.Path
             $procID = $process.Id
             $cmdline = (Get-WMIObject Win32_Process -Filter "Handle=$procID").CommandLine
->>>>>>> upstream/main
 
             write-host "Restarting UE4 app: " $process.MainWindowTitle
             write-host "Command Line: " + $cmdline
@@ -93,12 +82,7 @@ try {
 }
 catch 
 {
-<<<<<<< HEAD
-    write-host "PixelStreamer not running when trying to restart"
-}
-=======
   Write-Host "ERROR:::An error occurred:"
   Write-Host $_
   Write-Host $_.ScriptStackTrace
 }
->>>>>>> upstream/main
