@@ -97,7 +97,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   sku       = var.sku
   instances = var.instances
 
-  eviction_policy = "Deallocate"
+  eviction_policy = "Delete"
   priority = "Spot"
   max_bid_price = 1
 
