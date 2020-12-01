@@ -12,7 +12,7 @@ $zipfilepath = "https://unrealbackendfiles.blob.core.windows.net/ourpublicblobs/
 $zipfilename = "c:\WindowsNoEditor.zip"
 $blobDestination = $folder + 'iac\unreal'
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
-$newProjectAWFolder =  $folder + 'iac\unreal\ProjectAnywhere'
+$newProjectAWFolder =  $folder + 'iac\unreal\ClemensMessestand'
 $projectAWFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 
 
