@@ -31,5 +31,5 @@ Write-Output "Processing for vm instanceIds :"$vmInstanceIds
 foreach($vmid in $vmInstanceIds)
 {
     Write-Output "Processing for vm instance id:"$vmid
-    az vmss run-command  invoke -g $RG1 -name $vmSacleSet --command-id RunPowerShellScript --instance-id  $vmid  --scripts "@./updateProjectAnywhere.ps1"
+    az vmss run-command  invoke --command-id RunPowerShellScript --instance-id  $vmid -n $vmScaleSet -g $RG1 --scripts "@./updateProjectAnywhere.ps1"
 }
