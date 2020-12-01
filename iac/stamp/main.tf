@@ -467,6 +467,7 @@ module "ue4_nsg" {
   log_analytics_workspace_id = module.loganalytics.id
 }
 
+/*
 module "ue4_security_rule_7070" {
   source                      = "../networking/security_rule"
   resource_group              = module.unreal-rg.resource_group
@@ -498,6 +499,7 @@ module "ue4_security_rule_888x" {
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }
+*/
 
 module "ue4_security_rule_80" {
   source                      = "../networking/security_rule"
