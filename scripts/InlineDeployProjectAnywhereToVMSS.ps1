@@ -12,20 +12,24 @@ $RG4 = $rootvariable + "-southeastasia-unreal-rg"
 
 $vmScaleSet = $rootvariable + "vmss";
 
+$vmnames = az vmss list-instances -g $RG1 --name $vmScaleSet --output table
+Write-Output "Processing for vm :"$vmnames
 
-$vmnames = az vmss list-instances -g $RG1 --name $vmScaleSet --output table --query "[].name" -o tsv
 
 foreach($vmname in $vmnames)
 {
-    Write-Output "Processing for vm "+$vmname
-
+    Write-Output "Processing for vm name :"$vmname
 }
 
 
+$vmInstanceIds = az vmss list-instances -g $RG1 --name $vmScaleSet --output table --query "[].instanceId" -o tsv
+Write-Output "Processing for vm instanceIds :"$vmInstanceIds
 
 
-#$vmname = az vmss list-instances --resource-group  $RG1 --name $--query "[].name" -o tsv
 
-#Write-Output $vmname
 
-#Set-VMVideo -VMName $vmname -HorizontalResolution 1920 -VerticalResolution 1200
+foreach($vmid in $vmInstanceIds)
+{
+    Write-Output "Processing for vm instance id:"$vmid
+    az vmss run-command  invoke -g $RG1 -name $vmSacleSet --command-id RunPowerShellScript --instance-id  $vmid  --scripts "@./updateProjectAnywhere.ps1"
+}
