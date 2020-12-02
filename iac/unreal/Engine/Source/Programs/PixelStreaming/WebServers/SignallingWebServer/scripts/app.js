@@ -234,7 +234,7 @@ function setOverlay(htmlClass, htmlElement, onClickFunction) {
 function showConnectOverlay() {
 	var startText = document.createElement('div');
 	startText.id = 'playButton';
-	startText.innerHTML = 'Click to start the Anywhere experience';
+	startText.innerHTML = 'Click to start the Clemens experience';
 
 	startAfkWarningTimer();
 	setOverlay('clickableState', startText, event => {
@@ -298,7 +298,7 @@ function showAfkOverlay() {
 			// The user failed to click so disconnect them.
 			hideOverlay();
 			// Redirect to the Anywhere landing page
-			window.open("http://unrealengine.com/industry/project-anywhere/","_self")
+			window.open("https://www.clemens-online.com/","_self")
 			ws.close();
 		} else {
 			// Update the countdown message.
@@ -1644,10 +1644,10 @@ function myHandleResponseFunction(data) {
 			window.open(url,"_self")
 		break;
 		case "MailToAnywhere":
-			window.open("mailto:anywhere@epicgames.com","_self")
+			window.open("mailto:info@clemens-online.com","_self")
 			break;
 		case "EndExperience":
-			window.open("http://unrealengine.com/industry/project-anywhere/","_self")
+			window.open("https://www.clemens-online.com/","_self")
 			break;
 		default:
 		console.warn(`ERROR: Unknown Response received!`);
