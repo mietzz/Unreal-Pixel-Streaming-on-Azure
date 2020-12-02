@@ -209,7 +209,7 @@ function sendRetryResponse(res) {
 <head>
 <title>Demo Everywhere</title>
 <style>
- body {background-image: url('https://cdn2.unrealengine.com/unreal-iitsec-header-img-1920x1080-554773395.jpg');text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
+ body {text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
  p {
    font-family: Verdana, Geneva, sans-serif;
    font-size: 15px;
