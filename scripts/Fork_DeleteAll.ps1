@@ -1,7 +1,8 @@
 #this script is to delete an environment
 
 #variables
-$rootvariable = "6kboy"
+#$rootvariable = "6kboy"
+$rootvariable = "fx38w"
 #$vnetname = "jumpbox-vnet" 
 $vnetname = "jumpbox-forked-vnet" 
 
