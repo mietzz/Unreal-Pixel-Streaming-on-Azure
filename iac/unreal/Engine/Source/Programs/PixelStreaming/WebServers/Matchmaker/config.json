@@ -1,5 +1,6 @@
 {
 	"httpPort": 90,
+	"UseHTTPS": false,
 	"matchmakerPort": 9999,
 	"instancesPerNode": 1,
 	"instanceCountBuffer": 1,
