@@ -1,7 +1,12 @@
+Param (
+    [Parameter(Mandatory = $True, HelpMessage = "root environment prefix")]
+    [String]$rootvariable = ""
+)
+
 #this script is to delete an environment
 
 #variables
-$rootvariable = "jk07k"
+#$rootvariable = "jk07k"
 $vnetname = "jumpbox-vnet" 
 #$vnetname = "jumpbox-fork-vnet" 
 

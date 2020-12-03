@@ -1,6 +1,6 @@
 Param (
-  [Parameter(Mandatory = $True, HelpMessage = "github personal access token")]
-  [String]$pat = ""
+   [Parameter(Mandatory = $True, HelpMessage = "github personal access token")]
+   [String]$pat = ""
 )
 #this script is to create an environment from absolute scratch
 
@@ -10,11 +10,11 @@ $statefile = $rootiacfolder + "terraform.tfstate"
 $statebackupfile = $rootiacfolder + "terraform.tfstate.backup"
 
 #delete the tf state
-If (Test-Path $statefile){
-	Remove-Item $statefile
+If (Test-Path $statefile) {
+   Remove-Item $statefile
 }
-If (Test-Path $statebackupfile){
-	Remove-Item $statebackupfile
+If (Test-Path $statebackupfile) {
+   Remove-Item $statebackupfile
 }
 
 #apply
@@ -43,7 +43,8 @@ $kv1 = Get-AzKeyVaultSecret -Name $r1 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv1.SecretValue)
 try {
    $secretValueText1 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -52,7 +53,8 @@ $kv2 = Get-AzKeyVaultSecret -Name $r2 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv2.SecretValue)
 try {
    $secretValueText2 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -61,7 +63,8 @@ $kv3 = Get-AzKeyVaultSecret -Name $r3 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv3.SecretValue)
 try {
    $secretValueText3 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -70,7 +73,8 @@ $kv4 = Get-AzKeyVaultSecret -Name $r4 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv4.SecretValue)
 try {
    $secretValueText4 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -84,4 +88,3 @@ $tmname = $base_name + "-trafficmgr-mm"
 
 $tm = az network traffic-manager profile show -g $rgname -n $tmname | ConvertFrom-Json
 Write-Output "TM: http://" $tm.dnsConfig.fqdn + ":90"
-

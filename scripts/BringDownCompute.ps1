@@ -65,6 +65,7 @@ function handleenv() {
     #restart vm
     Write-Output "Restarting VM"
     az vm restart -g $rg -n $vm --only-show-errors
+    start-sleep -s 15
 
     #restart vmss
     Write-Output "Restarting VMSS"
