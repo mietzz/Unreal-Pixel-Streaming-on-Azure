@@ -15,7 +15,18 @@ try {
         {
             $path = $process.Path
             $procID = $process.Id
-            $cmdline = (Get-WMIObject Win32_Process -Filter "Handle=$procID").CommandLine
+            $wmiObject = (Get-WMIObject Win32_Process -Filter "Handle=$procID")
+            write-host "test: " $wmiObject
+            write-host "processID: " $process.Id
+            write-host "path: " $path
+
+            if(!$wmiObject)
+            {
+                write-host "wmiObject is null"
+                continue;
+            }
+
+            $cmdline = $wmiObject.CommandLine
 
             write-host "Restarting UE4 app: " $process.MainWindowTitle
             write-host "Command Line: " + $cmdline
@@ -71,7 +82,7 @@ try {
         if($newProcesses.Count -le 0)
         {
             #Start the final application if not already restarted
-            Start-Process -FilePath "C:\Unreal\iac\unreal\ClemensMessestand.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScreen -ForceRes"
+            Start-Process -FilePath "C:\Unreal\iac\unreal\ClemensMessestand.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ForceRes"
         }
     }
     catch 
