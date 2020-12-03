@@ -82,7 +82,7 @@ try {
         if($newProcesses.Count -le 0)
         {
             #Start the final application if not already restarted
-            Start-Process -FilePath "C:\Unreal\iac\unreal\ClemensMessestand.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -ForceRes"
+            Start-Process -FilePath "C:\Unreal\iac\unreal\ClemensMessestand.exe" -ArgumentList "-AudioMixer -PixelStreamingIP=localhost -PixelStreamingPort=8888 -WinX=0 -WinY=0 -ResX=1920 -ResY=1080 -Windowed -TimeLimit=300 -RenderOffScree -ForceRes"
         }
     }
     catch 
