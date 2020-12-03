@@ -19,7 +19,9 @@ If (Test-Path $statebackupfile) {
 
 #apply
 Set-Location -Path $rootiacfolder
-terraform apply -var 'git-pat=' + $gitpat -parallelism=24 --auto-approve
+
+$var = 'git-pat=' + $pat
+terraform apply -var $var -parallelism=24 -auto-approve
 
 #get parameters from state file
 $ConfigJson = (Get-Content  $statefile -Raw) | ConvertFrom-Json
