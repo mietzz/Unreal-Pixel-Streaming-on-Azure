@@ -70,29 +70,13 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Downloading Chocolatey complete"
 Add-Content -Path $logoutput -Value $logmessage
 
-try {
-  $logmessage = "Installing prerequisites"
-  Add-Content -Path $logoutput -Value $logmessage
-  
-  $logmessage = "Installing Azure CLI"
-  Add-Content -Path $logoutput -Value $logmessage
+$logmessage = "Installing prerequisites"
+Add-Content -Path $logoutput -Value $logmessage
 
-  choco upgrade git -y --no-progress
-  choco upgrade nodejs -y --no-progress
-  choco upgrade vcredist2017 -y --no-progress
-  choco upgrade directx -y --no-progress
-  choco upgrade azure-cli -y --no-progress
-  $logmessage = "Installing prerequisites Complete"
-  Add-Content -Path $logoutput -Value $logmessage
-}
-catch {
-  $logmessage = $_.Exception.Message
-  Write-Output $logmessage
-  Add-Content -Path $logoutput -Value $logmessage
-}
-finally {
-  $error.clear()
-}
+$logmessage = "Installing Azure CLI"
+Add-Content -Path $logoutput -Value $logmessage
+
+choco upgrade git nodejs vcredist2017 directx azure-cli -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Scope Global
 Set-Alias -Name node -Value "$Env:ProgramFiles\nodejs\node.exe" -Scope Global
