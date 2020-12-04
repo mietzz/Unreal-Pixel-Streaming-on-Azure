@@ -1,5 +1,10 @@
+Param (
+   [Parameter(Mandatory = $True, HelpMessage = "root environment prefix")]
+   [String]$base_name = ""
+)
+
 #set the variable
-$base_name = "82bdz"
+#$base_name = "82bdz"
 
 #post deployment
 $t = az ad signed-in-user show
@@ -19,7 +24,8 @@ $kv1 = Get-AzKeyVaultSecret -Name $r1 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv1.SecretValue)
 try {
    $secretValueText1 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -28,7 +34,8 @@ $kv2 = Get-AzKeyVaultSecret -Name $r2 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv2.SecretValue)
 try {
    $secretValueText2 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -37,7 +44,8 @@ $kv3 = Get-AzKeyVaultSecret -Name $r3 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv3.SecretValue)
 try {
    $secretValueText3 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 
@@ -46,7 +54,8 @@ $kv4 = Get-AzKeyVaultSecret -Name $r4 -VaultName $akv
 $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($kv4.SecretValue)
 try {
    $secretValueText4 = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-} finally {
+}
+finally {
    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
 }
 

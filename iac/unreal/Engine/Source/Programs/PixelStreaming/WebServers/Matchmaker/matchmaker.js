@@ -26,6 +26,7 @@ var scaleUpNodeCount = 5;
 const defaultConfig = {
 	// The port clients connect to the matchmaking service over HTTP
 	httpPort: 90,
+	UseHTTPS: false,
 	// The matchmaking port the signaling service connects to the matchmaker
 	matchmakerPort: 9999,
 	// The amount of instances deployed per node, to be used in the autoscale policy (i.e., 1 unreal app running per GPU VM) -- FUTURE
@@ -63,6 +64,8 @@ const express = require('express');
 var cors = require('cors');
 const app = express();
 const http = require('http').Server(app);
+const fs = require('fs');
+const path = require('path');
 
 // Azure SDK Clients
 const { ComputeManagementClient, VirtualMachineScaleSets } = require('@azure/arm-compute');
@@ -70,6 +73,37 @@ const msRestNodeAuth = require('@azure/ms-rest-nodeauth');
 const logger = require('@azure/logger');
 logger.setLogLevel('info');
 const appInsights = require('applicationinsights');
+
+if (config.UseHTTPS) {
+	//HTTPS certificate details
+	const options = {
+		key: fs.readFileSync(path.join(__dirname, './certificates/client-key.pem')),
+		cert: fs.readFileSync(path.join(__dirname, './certificates/client-cert.pem'))
+	};
+
+	var https = require('https').Server(options, app);
+}
+
+if (config.UseHTTPS) {
+	//Setup http -> https redirect
+	console.log('Redirecting http->https');
+	app.use(function (req, res, next) {
+		if (!req.secure) {
+			if (req.get('Host')) {
+				var hostAddressParts = req.get('Host').split(':');
+				var hostAddress = hostAddressParts[0];
+				if (httpsPort != 443) {
+					hostAddress = `${hostAddress}:${httpsPort}`;
+				}
+				return res.redirect(['https://', hostAddress, req.originalUrl].join(''));
+			} else {
+				console.error(`unable to get host name from header. Requestor ${req.ip}, url path: '${req.originalUrl}', available headers ${JSON.stringify(req.headers)}`);
+				return res.status(400).send('Bad Request');
+			}
+		}
+		next();
+	});
+}
 
 if (config.appInsightsId) {
 	appInsights.setup(config.appInsightsId).setSendLiveMetrics(true).start();
@@ -124,6 +158,12 @@ if (typeof argv.matchmakerPort != 'undefined') {
 http.listen(config.httpPort, () => {
     console.log('HTTP listening on *:' + config.httpPort);
 });
+
+if (config.UseHTTPS) {
+	https.listen(443, function () {
+		console.log('Https listening on 443');
+	});
+}
 
 function validateConfigs() {
 	// TODO: Do validations on config params to ensure valid data

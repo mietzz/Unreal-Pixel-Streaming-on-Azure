@@ -1,5 +1,9 @@
-#variables to set
-$rootvariable = "82bdz"
+Param (
+    [Parameter(Mandatory = $True, HelpMessage = "root environment prefix")]
+    [String]$rootvariable = ""
+)
+
+#variables
 $jumpboxvnet = "jumpbox-forked-vnet"
 
 #variables
@@ -14,11 +18,11 @@ $VNET3 = $rootvariable + "-vnet-westeurope"
 $VNET4 = $rootvariable + "-vnet-southeastasia"
 
 #script
-$VNet1Id=(az network vnet show --resource-group OtherAssets --name $jumpboxvnet --query id --out tsv)
-$VNet2Id=(az network vnet show --resource-group $RG1 --name $VNET1 --query id --out tsv)
-$VNet3Id=(az network vnet show --resource-group $RG2 --name $VNET2 --query id --out tsv)
-$VNet4Id=(az network vnet show --resource-group $RG3 --name $VNET3 --query id --out tsv)
-$VNet5Id=(az network vnet show --resource-group $RG4 --name $VNET4 --query id --out tsv)
+$VNet1Id = (az network vnet show --resource-group OtherAssets --name $jumpboxvnet --query id --out tsv)
+$VNet2Id = (az network vnet show --resource-group $RG1 --name $VNET1 --query id --out tsv)
+$VNet3Id = (az network vnet show --resource-group $RG2 --name $VNET2 --query id --out tsv)
+$VNet4Id = (az network vnet show --resource-group $RG3 --name $VNET3 --query id --out tsv)
+$VNet5Id = (az network vnet show --resource-group $RG4 --name $VNET4 --query id --out tsv)
 
 az network vnet peering create --name LinkVnet1ToVnet2 --resource-group OtherAssets --vnet-name $jumpboxvnet --remote-vnet $VNet2Id --allow-vnet-access
 az network vnet peering create --name LinkVnet2ToVnet1 --resource-group $RG1 --vnet-name $VNET1 --remote-vnet $VNet1Id --allow-vnet-access
