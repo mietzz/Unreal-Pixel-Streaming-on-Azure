@@ -430,8 +430,6 @@ function evaluateAutoScalePolicy() {
 	appInsightsLogMetric("PercentUtilized", percentUtilized);
 	appInsightsLogMetric("AvailableConnections", availableConnections);
 
-	return;
-
 	// Don't try and scale up/down if there is already a scaling operation in progress
 	if (currentVMSSProvisioningState != 'Succeeded') {
 		console.log(`Ignoring scale check as VMSS provisioning state isn't in Succeeded state: ${currentVMSSProvisioningState}`);
