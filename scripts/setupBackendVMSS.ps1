@@ -294,9 +294,3 @@ Invoke-Expression -Command $executionfilepath
 
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage
-
-$logmessage = "Restarting computer"
-Add-Content -Path $logoutput -Value $logmessage
-
-# seems to be necessary to update/install nvidia driver properly
-Restart-Computer
