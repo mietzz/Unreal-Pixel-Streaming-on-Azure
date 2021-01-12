@@ -359,6 +359,11 @@ streamerServer.on('connection', function (ws, req) {
 		}
 	});
 
+	process.on('SIGINT', function() {
+		streamerServer.close();
+		process.exit()
+	  });
+
 	streamer = ws;
 
 	streamer.send(JSON.stringify(clientConfig));
@@ -535,11 +540,18 @@ if (config.UseMatchmaker) {
 		appInsightsLogMetric("SSMatchmakerConnectionClosed", 1);
 	});
 
+	matchmaker.on('disconnect', function () {
+		console.log(`Matchmaker connection disconnected`);
+		reconnect();
+		appInsightsLogMetric("SSMatchmakerConnectionDisconnected", 1);
+	});
+
 	// Attempt to connect to the Matchmaker
 	function connect() {
 		matchmaker.connect(matchmakerPort, matchmakerAddress);
 	}
 
+	
 	// Try to reconnect to the Matchmaker after a given period of time
 	function reconnect() {
 		console.log(`Try reconnect to Matchmaker in ${matchmakerRetryInterval} seconds`)
@@ -782,3 +794,4 @@ function sendPlayerDisconnectedToMatchmaker() {
 		console.logColor(logging.Red, `ERROR sending clientDisconnected: ${err.message}`);
 	}
 }
+

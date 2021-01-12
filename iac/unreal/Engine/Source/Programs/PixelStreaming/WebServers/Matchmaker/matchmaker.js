@@ -26,6 +26,7 @@ var scaleUpNodeCount = 5;
 const defaultConfig = {
 	// The port clients connect to the matchmaking service over HTTP
 	httpPort: 90,
+	httpsPort: 443,
 	UseHTTPS: false,
 	// The matchmaking port the signaling service connects to the matchmaker
 	matchmakerPort: 9999,
@@ -50,7 +51,9 @@ const defaultConfig = {
 	// The Azure VMSS name used for scaling the Signaling Service / Unreal App compute
 	virtualMachineScaleSet: "",
 	// Azure App Insights ID for logging
-	appInsightsId: ""
+	appInsightsId: "",
+	// passphrase for pfx
+	passphrase: "",
 };
 
 const argv = require('yargs').argv;
@@ -77,8 +80,8 @@ const appInsights = require('applicationinsights');
 if (config.UseHTTPS) {
 	//HTTPS certificate details
 	const options = {
-		key: fs.readFileSync(path.join(__dirname, './certificates/client-key.pem')),
-		cert: fs.readFileSync(path.join(__dirname, './certificates/client-cert.pem'))
+		pfx: fs.readFileSync(path.join(__dirname, './certificates/appservicecertificate.pfx')),
+		passphrase: passphrase
 	};
 
 	var https = require('https').Server(options, app);
@@ -92,7 +95,7 @@ if (config.UseHTTPS) {
 			if (req.get('Host')) {
 				var hostAddressParts = req.get('Host').split(':');
 				var hostAddress = hostAddressParts[0];
-				if (httpsPort != 443) {
+				if (config.httpsPort != 443) {
 					hostAddress = `${hostAddress}:${httpsPort}`;
 				}
 				return res.redirect(['https://', hostAddress, req.originalUrl].join(''));
@@ -151,6 +154,11 @@ var cirrusServers = new Map();
 if (typeof argv.httpPort != 'undefined') {
 	config.httpPort = argv.httpPort;
 }
+
+if (typeof argv.httpsPort != 'undefined') {
+	config.httpsPort = argv.httpsPort;
+}
+
 if (typeof argv.matchmakerPort != 'undefined') {
 	config.matchmakerPort = argv.matchmakerPort;
 }
@@ -560,7 +568,6 @@ const matchmaker = net.createServer((connection) => {
 				numConnectedClients: 0
 			};
 			cirrusServer.ready = message.ready === true;
-
 			// BENH: Check if player is connected and doing a reconnect
 			if(message.playerConnected == true) {
 				cirrusServer.numConnectedClients = 1;
@@ -664,8 +671,15 @@ const matchmaker = net.createServer((connection) => {
 		}
 		appInsightsLogMetric("MMCirrusDisconnect", 1);
 	});
+
 });
 
 matchmaker.listen(config.matchmakerPort, () => {
 	console.log('Matchmaker listening on *:' + config.matchmakerPort);
 });
+
+process.on('SIGINT', function() {
+	console.log('Do something useful here.');
+	matchmaker.close();
+	process.exit()
+  });
