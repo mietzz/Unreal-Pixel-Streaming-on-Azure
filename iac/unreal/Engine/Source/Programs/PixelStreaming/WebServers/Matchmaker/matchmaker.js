@@ -81,7 +81,7 @@ if (config.UseHTTPS) {
 	//HTTPS certificate details
 	const options = {
 		pfx: fs.readFileSync(path.join(__dirname, './certificates/appservicecertificate.pfx')),
-		passphrase: passphrase
+		passphrase: config.passphrase
 	};
 
 	var https = require('https').Server(options, app);
@@ -546,7 +546,6 @@ function evaluateAutoScalePolicy() {
 	}
 }
 
-
 const matchmaker = net.createServer((connection) => {
 	connection.on('data', (data) => {
 		try {
@@ -565,7 +564,8 @@ const matchmaker = net.createServer((connection) => {
 			cirrusServer = {
 				address: message.address,
 				port: message.port,
-				numConnectedClients: 0
+				numConnectedClients: 0,
+				socket: connection
 			};
 			cirrusServer.ready = message.ready === true;
 			// BENH: Check if player is connected and doing a reconnect
@@ -672,13 +672,27 @@ const matchmaker = net.createServer((connection) => {
 		appInsightsLogMetric("MMCirrusDisconnect", 1);
 	});
 
+	connection.on('disconnect', () =>
+	{
+		cirrusServer = cirrusServers.get(connection);
+		cirrusServers.delete(connection);
+		if(cirrusServer) {
+			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+			appInsightsLogEvent("MMCirrusDisconnect", `Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+		} else {
+			console.log(`Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
+			appInsightsLogEvent("MMCirrusDisconnect", `Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
+		}
+		appInsightsLogMetric("MMCirrusDisconnect", 1);
+	})
+
 });
 
 matchmaker.listen(config.matchmakerPort, () => {
 	console.log('Matchmaker listening on *:' + config.matchmakerPort);
 });
 
-process.on('SIGINT', function() {
+process.on('SIGTERM', function() {
 	console.log('Do something useful here.');
 	matchmaker.close();
 	process.exit()

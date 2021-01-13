@@ -359,7 +359,7 @@ streamerServer.on('connection', function (ws, req) {
 		}
 	});
 
-	process.on('SIGINT', function() {
+	process.on('SIGTERM', function() {
 		streamerServer.close();
 		process.exit()
 	  });
