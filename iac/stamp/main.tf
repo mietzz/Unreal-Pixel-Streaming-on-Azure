@@ -698,13 +698,13 @@ module "ue4-extension" {
   admin_password               = local.safePWD
 }
 
-/*
+
 module "ue4-nvidia-extension" {
   source                       = "../extensions/nvidiaext"
   virtual_machine_scale_set_id = module.compute-vmss.id
   extension_name               = "ue4_nvidia_driver"
 }
-*/
+
 
 /*
 module "ue4-vmss-ManagedIdentity" {
