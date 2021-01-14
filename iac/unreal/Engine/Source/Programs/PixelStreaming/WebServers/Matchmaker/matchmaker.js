@@ -307,6 +307,13 @@ function getAvailableCirrusServer() {
 		console.log(`getAvailableCirrusServers testing ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients} ready: ${cirrusServer.ready}`);
 		if (cirrusServer.numConnectedClients === 0 && cirrusServer.ready === true) {
 
+			const connection = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address)[0];
+
+			if (connection && connection.readyState !== 'open')
+			{
+				console.log(connection.readyState);
+				continue;
+			}
 			// Check if we had at least 30 seconds since the last redirect
 			if( cirrusServer.lastRedirect ) {
 				if( ((Date.now() - cirrusServer.lastRedirect) / 1000) < 45 )
@@ -564,8 +571,7 @@ const matchmaker = net.createServer((connection) => {
 			cirrusServer = {
 				address: message.address,
 				port: message.port,
-				numConnectedClients: 0,
-				socket: connection
+				numConnectedClients: 0
 			};
 			cirrusServer.ready = message.ready === true;
 			// BENH: Check if player is connected and doing a reconnect
@@ -658,34 +664,21 @@ const matchmaker = net.createServer((connection) => {
 		evaluateAutoScalePolicy();
 	});
 
+	function deleteServer() {
+		cirrusServer = cirrusServers.get(connection);
+		cirrusServers.delete(connection);
+		if(cirrusServer) {
+			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+			appInsightsLogEvent("MMCirrusDisconnect", `Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
+		} else {
+			console.log(`Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
+			appInsightsLogEvent("MMCirrusDisconnect", `Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
+		}
+		appInsightsLogMetric("MMCirrusDisconnect", 1);
+	}
 	// A Cirrus server disconnects from this Matchmaker server.
-	connection.on('error', () => {
-		cirrusServer = cirrusServers.get(connection);
-		cirrusServers.delete(connection);
-		if(cirrusServer) {
-			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
-			appInsightsLogEvent("MMCirrusDisconnect", `Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
-		} else {
-			console.log(`Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
-			appInsightsLogEvent("MMCirrusDisconnect", `Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
-		}
-		appInsightsLogMetric("MMCirrusDisconnect", 1);
-	});
-
-	connection.on('disconnect', () =>
-	{
-		cirrusServer = cirrusServers.get(connection);
-		cirrusServers.delete(connection);
-		if(cirrusServer) {
-			console.log(`Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
-			appInsightsLogEvent("MMCirrusDisconnect", `Cirrus server ${cirrusServer.address}:${cirrusServer.port} disconnected from Matchmaker`);
-		} else {
-			console.log(`Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
-			appInsightsLogEvent("MMCirrusDisconnect", `Disconnected machine that wasn't a registered cirrus server, remote address: ${connection.remoteAddress}`);
-		}
-		appInsightsLogMetric("MMCirrusDisconnect", 1);
-	})
-
+	connection.on('error', deleteServer);
+	connection.on('disconnect', deleteServer);
 });
 
 matchmaker.listen(config.matchmakerPort, () => {
@@ -693,7 +686,11 @@ matchmaker.listen(config.matchmakerPort, () => {
 });
 
 process.on('SIGTERM', function() {
-	console.log('Do something useful here.');
 	matchmaker.close();
 	process.exit()
   });
+
+process.on('SIGINT', function() {
+	matchmaker.close();
+	process.exit()
+});

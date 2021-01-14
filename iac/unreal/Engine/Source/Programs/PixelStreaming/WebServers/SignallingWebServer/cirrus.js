@@ -359,11 +359,6 @@ streamerServer.on('connection', function (ws, req) {
 		}
 	});
 
-	process.on('SIGTERM', function() {
-		streamerServer.close();
-		process.exit()
-	  });
-
 	streamer = ws;
 
 	streamer.send(JSON.stringify(clientConfig));
@@ -795,3 +790,13 @@ function sendPlayerDisconnectedToMatchmaker() {
 	}
 }
 
+
+process.on('SIGTERM', function() {
+	onStreamerDisconnected();
+	process.exit();
+  });
+
+process.on('SIGINT', function() {
+	onStreamerDisconnected();
+	process.exit();
+});
