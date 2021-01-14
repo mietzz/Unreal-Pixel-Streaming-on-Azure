@@ -273,7 +273,7 @@ function sendRetryResponse(res) {
 <head>
 <title>Clemens Messestand</title>
 <style>
- body {text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
+ body {background-image: url('https://clemens-online.com/docs/landing-page')text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
  p {
    font-family: Verdana, Geneva, sans-serif;
    font-size: 15px;
@@ -299,7 +299,7 @@ a {
 ?
 <body>
 <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
-<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Clemens experience. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Thank you for your patience, a large number of visitors are currently connected.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Register for a private demo or attend using the following link </p><p><a href="https://www.clemens-online.com/"target="_blank">"Clemens Landing page"</a></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Clemens experience. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>The maximum number of users entering the fair has been reached. Please try again later.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
 ?
 </body>
 </html>
