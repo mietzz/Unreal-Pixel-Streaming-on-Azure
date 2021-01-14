@@ -792,11 +792,13 @@ function sendPlayerDisconnectedToMatchmaker() {
 
 
 process.on('SIGTERM', function() {
-	onStreamerDisconnected();
+	disconnectAllPlayers();
+	matchmaker.close();
 	process.exit();
   });
 
 process.on('SIGINT', function() {
-	onStreamerDisconnected();
+	disconnectAllPlayers();
+	matchmaker.close();
 	process.exit();
 });

@@ -262,7 +262,6 @@ function checkConnections()
 		}
 
 		connection.isAlive = false;
-		conenction.ping(null, false, true);
 	}
 }
 
@@ -359,11 +358,8 @@ if(enableRedirectionLinks) {
 		cirrusServer = getAvailableCirrusServer();
 		if (cirrusServer != undefined) 
 		{
-			let connection = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address)[0];
-
-			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
+			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}`);
 			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
-		
 		} else {
 			sendRetryResponse(res);
 		}
@@ -567,7 +563,6 @@ function evaluateAutoScalePolicy() {
 }
 
 const matchmaker = net.createServer((connection) => {
-	connection.setKeepAlive(true, 2000);
 	connection.on('data', (data) => {
 		try {
 			message = JSON.parse(data);
@@ -586,7 +581,7 @@ const matchmaker = net.createServer((connection) => {
 				address: message.address,
 				port: message.port,
 				numConnectedClients: 0,
-				isAlive = true
+				isAlive: true
 			};
 			cirrusServer.ready = message.ready === true;
 			// BENH: Check if player is connected and doing a reconnect
@@ -700,12 +695,19 @@ matchmaker.listen(config.matchmakerPort, () => {
 	console.log('Matchmaker listening on *:' + config.matchmakerPort);
 });
 
+function closeAllConnections()
+{
+	for (connection of cirrusServers.keys()) {
+		connection.close();
+	}
+}
+
 process.on('SIGTERM', function() {
-	matchmaker.close();
+	closeAllConnections();
 	process.exit();
   });
 
 process.on('SIGINT', function() {
-	matchmaker.close();
+	closeAllConnections();
 	process.exit();
 });
