@@ -541,6 +541,12 @@ if (config.UseMatchmaker) {
 		appInsightsLogMetric("SSMatchmakerConnectionDisconnected", 1);
 	});
 
+	matchmaker.on('timeout', function () {
+		console.log(`Matchmaker connection timeout`);
+		reconnect();
+		appInsightsLogMetric("SSMatchmakerConnectionTimeout", 1);
+	});
+
 	// Attempt to connect to the Matchmaker
 	function connect() {
 		matchmaker.connect(matchmakerPort, matchmakerAddress);
@@ -555,6 +561,15 @@ if (config.UseMatchmaker) {
 			connect();
 		}, matchmakerRetryInterval * 1000);
 	}
+
+	setInterval(function()
+	{
+		console.log(`matchmaker connection writable: ${matchmaker.writable}`);
+		if (!matchmaker.writable)
+		{
+			connect();
+		}
+	}, matchmakerRetryInterval * 1000);
 
 	connect();
 }
