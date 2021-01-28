@@ -273,7 +273,7 @@ function sendRetryResponse(res) {
 <head>
 <title>Clemens Messestand</title>
 <style>
- body {background-image: url('https://clemens-online.com/docs/landing-page')text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
+ body {background-image: url('https://clemens-online.com/docs/landing-page.png'); text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
  p {
    font-family: Verdana, Geneva, sans-serif;
    font-size: 15px;
@@ -358,8 +358,30 @@ if(enableRedirectionLinks) {
 		cirrusServer = getAvailableCirrusServer();
 		if (cirrusServer != undefined) 
 		{
-			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}`);
-			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+			var ping = require('ping');
+			let host = `http://${cirrusServer.address}:${cirrusServer.port}`;
+			ping.sys.probe(host, function(isAlive)
+			{
+				var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
+				console.log(msg);
+
+				if (isAlive)
+				{
+					res.redirect(host);
+					console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+				}
+				else
+				{
+					let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
+
+					if (server)
+					{
+						cirrusServers.delete(server[0])
+						console.log(`Deleted Server: ${cirrusServer.address}:${cirrusServer.port}`);
+					}
+				}
+			});
+		
 		} else {
 			sendRetryResponse(res);
 		}
