@@ -286,7 +286,7 @@ else {
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Now restarting"
-
+Add-Content -Path $logoutput -Value $logmessage
 # ----- NVidia driver installation requires a reboot. -----
 Restart-Computer -Force
 
