@@ -498,7 +498,7 @@ function disconnectAllPlayers(code, reason) {
 
 if (config.UseMatchmaker) {
 	var matchmaker = new net.Socket();
-
+	matchmaker.setKeepAlive(true, 5000);
 	matchmaker.on('connect', function() {
 		console.log(`Cirrus connected to Matchmaker ${matchmakerAddress}:${matchmakerPort}`);
 
@@ -561,15 +561,6 @@ if (config.UseMatchmaker) {
 			connect();
 		}, matchmakerRetryInterval * 1000);
 	}
-
-	setInterval(function()
-	{
-		console.log(`matchmaker connection writable: ${matchmaker.writable}`);
-		if (!matchmaker.writable)
-		{
-			connect();
-		}
-	}, matchmakerRetryInterval * 1000);
 
 	connect();
 }
