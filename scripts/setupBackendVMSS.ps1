@@ -104,16 +104,6 @@ Add-Content -Path $logoutput -Value $logmessage
 #sleep for 45 seconds to wait for install processes to complete
 Start-Sleep -s 5
 
-$logmessage = "Install UE4Prereq redistributable"
-Add-Content -Path $logoutput -Value $logmessage
-
-Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -passthru
-
-$logmessage = "Installing UE4Prereq redistributable complete"
-Add-Content -Path $logoutput -Value $logmessage
-
-Start-Sleep -s 5
-
 $logmessage = "Disabling Windows Firewalls"
 Add-Content -Path $logoutput -Value $logmessage
 
@@ -215,6 +205,15 @@ finally {
   $error.clear()
 }
 
+$logmessage = "Install UE4Prereq redistributable"
+Add-Content -Path $logoutput -Value $logmessage
+
+Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -passthru
+
+$logmessage = "Installing UE4Prereq redistributable complete"
+Add-Content -Path $logoutput -Value $logmessage
+
+Start-Sleep -s 5
 
 try{
    Set-Location -Path $vmServiceFolder 
