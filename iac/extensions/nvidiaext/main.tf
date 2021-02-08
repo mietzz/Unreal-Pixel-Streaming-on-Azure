@@ -16,5 +16,4 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
   type                         = "NvidiaGpuDriverWindows"
   type_handler_version         = "1.3"
   auto_upgrade_minor_version   = true
-  provision_after_extensions   = ["MMAExtension", "MonitoringAgentWindows", "ue4-extension"]
 }

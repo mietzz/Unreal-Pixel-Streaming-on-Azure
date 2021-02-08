@@ -31,6 +31,7 @@ $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 #$blobDestination = $folder + 'iac\unreal\app'
 $blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
+$ue4RedistFilePath = "C:\Unreal\iac\unreal\Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe"
 $executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
 $gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 
@@ -76,7 +77,7 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Installing Azure CLI"
 Add-Content -Path $logoutput -Value $logmessage
 
-choco upgrade git nodejs vcredist2017 directx azure-cli -y --no-progress
+choco upgrade git nodejs vcredist2017 azure-cli -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Scope Global
 Set-Alias -Name node -Value "$Env:ProgramFiles\nodejs\node.exe" -Scope Global
@@ -101,6 +102,16 @@ $logmessage = "Installing prerequisites complete"
 Add-Content -Path $logoutput -Value $logmessage
 
 #sleep for 45 seconds to wait for install processes to complete
+Start-Sleep -s 5
+
+$logmessage = "Install UE4Prereq redistributable"
+Add-Content -Path $logoutput -Value $logmessage
+
+Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -passthru
+
+$logmessage = "Installing UE4Prereq redistributable complete"
+Add-Content -Path $logoutput -Value $logmessage
+
 Start-Sleep -s 5
 
 $logmessage = "Disabling Windows Firewalls"
@@ -287,6 +298,7 @@ $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Now restarting"
 Add-Content -Path $logoutput -Value $logmessage
+
 # ----- NVidia driver installation requires a reboot. -----
 Restart-Computer -Force
 
