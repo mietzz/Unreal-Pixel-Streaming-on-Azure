@@ -1636,24 +1636,48 @@ function onConfig(config) {
 }
 
 function myHandleResponseFunction(data) {
-    //console.warn("Response received! " + data );
-    switch (data) {
-        case "ScreenShot":
-            url = "http://" + location.host + ":4244/screenshot";
-			//console.warn("received a Screenshot request " + url);
-			window.open(url,"_self")
-		break;
-		case "MailToAnywhere":
-			window.open("mailto:info@clemens-online.com","_self")
-			break;
-		case "EndExperience":
-			window.open("https://www.clemens-online.com/","_self")
-			break;
-		default:
-		console.warn(`ERROR: Unknown Response received!`);
-		registerLockedMouseEvents(playerElement);
-		break;
-    }
+	console.warn("Response received! " + data );
+	
+	let json = JSON.parse(data);
+
+	if (json.DownloadPDF)
+	{
+		window.open(json.DownloadPDF.Url,"_blank")
+	}
+  //   switch (data) {
+  //       case "ScreenShot":
+  //           url = "http://" + location.host + ":4244/screenshot";
+		// 	//console.warn("received a Screenshot request " + url);
+		// 	window.open(url,"_self")
+		// break;
+		// case "MailToAnywhere":
+		// 	window.open("mailto:info@clemens-online.com","_self")
+		// 	break;
+		// case "EndExperience":
+		// 	window.open("https://www.clemens-online.com/","_self")
+		// 	break;
+		// case "DownloadPDF":
+		// 	console.log("here");
+		// 	break;
+		// default:
+		// 	{
+		// 		console.log(json);
+		// 		if (json)
+		// 		{
+		// 			switch(json)
+		// 			{
+		// 				case "DownloadPDF":
+		// 					window.open(json.Url,"_self")
+		// 					return;
+
+		// 			}
+		// 		}
+
+		// 		console.warn(`ERROR: Unknown Response received!`);
+		// 		registerLockedMouseEvents(playerElement);
+		// 		break;
+		// 	}
+  //   }
 }
 
 
