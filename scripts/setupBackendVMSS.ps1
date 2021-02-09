@@ -77,7 +77,7 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Installing Azure CLI"
 Add-Content -Path $logoutput -Value $logmessage
 
-choco upgrade git nodejs dotnet3.5 vcredist2017 azure-cli -y --no-progress
+choco upgrade git nodejs dotnet vcredist2017 azure-cli -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Scope Global
 Set-Alias -Name node -Value "$Env:ProgramFiles\nodejs\node.exe" -Scope Global
