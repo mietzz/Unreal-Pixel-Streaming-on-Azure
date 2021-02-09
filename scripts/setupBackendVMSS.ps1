@@ -31,7 +31,6 @@ $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 #$blobDestination = $folder + 'iac\unreal\app'
 $blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
-$ue4RedistFilePath = "C:\Unreal\iac\unreal\Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe"
 $executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
 $gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
 
@@ -77,7 +76,7 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Installing Azure CLI"
 Add-Content -Path $logoutput -Value $logmessage
 
-choco upgrade git nodejs dotnet vcredist2017 azure-cli -y --no-progress
+choco upgrade git nodejs directx vcredist2017 azure-cli -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Scope Global
 Set-Alias -Name node -Value "$Env:ProgramFiles\nodejs\node.exe" -Scope Global
@@ -204,16 +203,6 @@ catch{
 finally {
   $error.clear()
 }
-
-$logmessage = "Install UE4Prereq redistributable"
-Add-Content -Path $logoutput -Value $logmessage
-
-Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -PassThru
-
-$logmessage = "Installing UE4Prereq redistributable complete"
-Add-Content -Path $logoutput -Value $logmessage
-
-Start-Sleep -s 5
 
 try{
    Set-Location -Path $vmServiceFolder 
