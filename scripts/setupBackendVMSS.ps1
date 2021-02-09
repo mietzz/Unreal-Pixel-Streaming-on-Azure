@@ -208,7 +208,7 @@ finally {
 $logmessage = "Install UE4Prereq redistributable"
 Add-Content -Path $logoutput -Value $logmessage
 
-Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -passthru
+Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -PassThru
 
 $logmessage = "Installing UE4Prereq redistributable complete"
 Add-Content -Path $logoutput -Value $logmessage
