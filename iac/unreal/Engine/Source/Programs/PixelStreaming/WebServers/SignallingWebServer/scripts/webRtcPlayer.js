@@ -81,6 +81,7 @@
         setupDataChannel = function(pc, label, options) {
             try {
                 var datachannel = pc.createDataChannel(label, options)
+                datachannel.binaryType = "arraybuffer";
                 console.log(`Created datachannel (${label})`)
                 
                 datachannel.onopen = function (e) {
