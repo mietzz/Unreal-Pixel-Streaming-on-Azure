@@ -27,7 +27,7 @@ $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
 $projectFolder =  $folder + 'iac\unreal\ClemensMessestand'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
-
+$ue4RedistFilePath = "C:\Unreal\iac\unreal\Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe"
 #$blobDestination = $folder + 'iac\unreal\app'
 $blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
@@ -76,7 +76,7 @@ Add-Content -Path $logoutput -Value $logmessage
 $logmessage = "Installing Azure CLI"
 Add-Content -Path $logoutput -Value $logmessage
 
-choco upgrade git nodejs directx vcredist2017 azure-cli -y --no-progress
+choco upgrade git nodejs dotnet vcredist2017 azure-cli -y --no-progress
 
 Set-Alias -Name git -Value "$Env:ProgramFiles\Git\bin\git.exe" -Scope Global
 Set-Alias -Name node -Value "$Env:ProgramFiles\nodejs\node.exe" -Scope Global
@@ -204,6 +204,14 @@ finally {
   $error.clear()
 }
 
+$logmessage = "Install UE4Prereq redistributable"
+Add-Content -Path $logoutput -Value $logmessage
+
+Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -PassThru
+
+$logmessage = "Installing UE4Prereq redistributable complete"
+Add-Content -Path $logoutput -Value $logmessage
+
 try{
    Set-Location -Path $vmServiceFolder 
 
@@ -283,8 +291,6 @@ Add-Content -Path $logoutput -Value $logmessage
 # }
 
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
-Add-Content -Path $logoutput -Value $logmessage
-$logmessage = "Now restarting"
 Add-Content -Path $logoutput -Value $logmessage
 
 # ----- NVidia driver installation requires a reboot. -----
