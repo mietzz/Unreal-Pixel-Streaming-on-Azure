@@ -263,24 +263,24 @@ finally {
 $logmessage = "Creating a job schedule complete"
 Add-Content -Path $logoutput -Value $logmessage
 
-#install the nvidia extension on this vmss
-$logMessage = "Starting the installation of the nVidia extension"
-Add-Content -Path $logoutput -Value $logMessage
+# #install the nvidia extension on this vmss
+# $logMessage = "Starting the installation of the nVidia extension"
+# Add-Content -Path $logoutput -Value $logMessage
 
-az login --identity
-az account set --subscription $subscription_id
-$isExtInstalled = az vmss extension show --name NvidiaGpuDriverWindows --resource-group $resource_group_name --vmss-name $vmss_name
-if (!$isExtInstalled.Length -gt 0) {
-  #install extension
-  az vmss extension set -g $resource_group_name --vmss-name $vmss_name --name NvidiaGpuDriverWindows --publisher Microsoft.HpcCompute --version 1.3 --settings '{ }'
+# az login --identity
+# az account set --subscription $subscription_id
+# $isExtInstalled = az vmss extension show --name NvidiaGpuDriverWindows --resource-group $resource_group_name --vmss-name $vmss_name
+# if (!$isExtInstalled.Length -gt 0) {
+#   #install extension
+#   az vmss extension set -g $resource_group_name --vmss-name $vmss_name --name NvidiaGpuDriverWindows --publisher Microsoft.HpcCompute --version 1.3 --settings '{ }'
 
-  $logMessage = "Completed the installation of the nVidia extension"
-  Add-Content -Path $logoutput -Value $logMessage
-}
-else {
-  $logmessage = "nVidia Extension already installed "
-  Add-Content -Path $logoutput -Value $logmessage
-}
+#   $logMessage = "Completed the installation of the nVidia extension"
+#   Add-Content -Path $logoutput -Value $logMessage
+# }
+# else {
+#   $logmessage = "nVidia Extension already installed "
+#   Add-Content -Path $logoutput -Value $logmessage
+# }
 
 $logmessage = "Completed at: " + (get-date).ToString('hh:mm:ss')
 Add-Content -Path $logoutput -Value $logmessage
@@ -288,7 +288,7 @@ $logmessage = "Now restarting"
 Add-Content -Path $logoutput -Value $logmessage
 
 # ----- NVidia driver installation requires a reboot. -----
-Restart-Computer -Force
+# Restart-Computer -Force
 
 # #just in case there is not a reboot, run the process...
 # $logmessage = "Starting the VMSS Process "

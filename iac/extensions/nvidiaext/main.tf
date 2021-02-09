@@ -10,10 +10,12 @@ variable "extension_name" {
 }
 
 resource "azurerm_virtual_machine_scale_set_extension" "ue4_nvidia_drivers" {
-  name                         = "NvidiaGpuDriverWindows"
+  name                         = var.extension_name
   virtual_machine_scale_set_id = var.virtual_machine_scale_set_id
   publisher                    = "Microsoft.HpcCompute"
   type                         = "NvidiaGpuDriverWindows"
   type_handler_version         = "1.3"
   auto_upgrade_minor_version   = true
+  provision_after_extensions   = ["ue4-extension", "MonitoringAgentWindows", "MMAExtension"]
+
 }

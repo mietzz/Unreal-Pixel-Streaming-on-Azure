@@ -53,7 +53,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "ue4extension" {
   publisher                    = "Microsoft.Compute"
   type                         = "CustomScriptExtension"
   type_handler_version         = "1.10"
-
+  provision_after_extensions   = ["MonitoringAgentWindows", "MMAExtension"]
   settings           = <<SETTINGS
   {
     "commandToExecute": "${local.paramstring}"

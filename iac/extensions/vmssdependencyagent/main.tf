@@ -5,8 +5,12 @@ variable "virtual_machine_scale_set_id" {
   type = string
 }
 
+variable "extension_name" {
+  type = string
+}
+
 resource "azurerm_virtual_machine_scale_set_extension" "MMAExtension" {
-  name                         = "MMAExtension"
+  name                         = var.extension_name
   virtual_machine_scale_set_id = var.virtual_machine_scale_set_id
   publisher                    = "Microsoft.Azure.Monitoring.DependencyAgent"
   type                         = "DependencyAgentWindows"

@@ -90,7 +90,7 @@ variable "managed" {
 
 #Backend number of instances deployed on the VMSS cluster
 variable "vmss_start_instances" {
-  default = 3
+  default = 0
 }
 
 #Backend compute type deployed on the VMSS cluster. NV6 have the NVidia GPUs

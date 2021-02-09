@@ -685,6 +685,33 @@ module "mm-vm-diag-extension" {
 }
 */
 
+/*
+module "ue4-vmss-ManagedIdentity" {
+  source                       = "../extensions/vmssmanagedidentity"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+}
+*/
+
+module "ue4-nvidia-extension" {
+  source                       = "../extensions/nvidiaext"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+  extension_name               = "NvidiaGpuDriverWindows"
+}
+
+module "ue4-vmss-MonitoringAgentWindows" {
+  source                       = "../extensions/vmssmonitoringagent"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+  extension_name               = "MonitoringAgentWindows"
+  workspace_id                 = module.loganalytics.workspace_id
+  workspace_key                = module.loganalytics.workspace_key
+}
+
+module "ue4-vmss-DependencyAgentWindows" {
+  source                       = "../extensions/vmssdependencyagent"
+  virtual_machine_scale_set_id = module.compute-vmss.id
+  extension_name               = "MMAExtension"
+}
+
 module "ue4-extension" {
   source                       = "../extensions/ue4extension"
   virtual_machine_scale_set_id = module.compute-vmss.id
@@ -699,32 +726,6 @@ module "ue4-extension" {
 }
 
 
-module "ue4-nvidia-extension" {
-  source                       = "../extensions/nvidiaext"
-  virtual_machine_scale_set_id = module.compute-vmss.id
-  extension_name               = "ue4_nvidia_driver"
-}
-
-
-/*
-module "ue4-vmss-ManagedIdentity" {
-  source                       = "../extensions/vmssmanagedidentity"
-  virtual_machine_scale_set_id = module.compute-vmss.id
-}
-*/
-
-module "ue4-vmss-MonitoringAgentWindows" {
-  source                       = "../extensions/vmssmonitoringagent"
-  virtual_machine_scale_set_id = module.compute-vmss.id
-  extension_name               = "MonitoringAgentWindows"
-  workspace_id                 = module.loganalytics.workspace_id
-  workspace_key                = module.loganalytics.workspace_key
-}
-
-module "ue4-vmss-DependencyAgentWindows" {
-  source                       = "../extensions/vmssdependencyagent"
-  virtual_machine_scale_set_id = module.compute-vmss.id
-}
 
 /*
 module "ue4-vmss-diag-extension" {
