@@ -190,6 +190,23 @@ module "mm-90-rule" {
   load_distribution                   = "SourceIPProtocol"
 }
 
+#add a lb probe/rule for mm - 443
+module "mm-443-rule" {
+  source                              = "../networking/addporttolb"
+  base_name                           = var.base_name
+  resource_group                      = module.unreal-rg.resource_group
+  lb_name                             = "mm"
+  loadbalancer_id                     = module.matchmaker-elb.lb_id
+  backend_address_pool_id             = module.matchmaker-elb.lb_backend_address_pool_id
+  probe_port                          = "443"
+  probe_protocol                      = "TCP"
+  rule_frontend_ip_configuration_name = "external"
+  rule_protocol                       = "TCP"
+  rule_frontend_port                  = "443"
+  rule_backend_port                   = "443"
+  load_distribution                   = "SourceIPProtocol"
+}
+
 #add a lb probe/rule for mm - 9999
 module "mm-9999-rule" {
   source                              = "../networking/addporttolb"
