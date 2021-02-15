@@ -252,75 +252,54 @@ function getConnectedClients() {
 
 function checkConnections()
 {
+	console.log("checking connections");
 	for (connection in cirrusServers)
 	{
-		if (!connection.isAlive)
+		// Check if we had at least 60 seconds since the last available check
+		if( cirrusServer.lastAliveCheck ) 
 		{
-			disconnect(connection);
-			cirrusServers.delete(connection);
-			console.log(`connection ${connection} deleted`);
+			if( ((Date.now() - cirrusServer.lastAliveCheck) / 1000) < 60 )
+				continue;
 		}
 
-		connection.isAlive = false;
+		var ping = require('ping');
+		var host = cirrusServer.address;
+		ping.sys.probe(host, function(isAlive)
+		{
+			var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
+			console.log(msg);
+
+			connection.isAlive = isAlive;
+
+			if (!isAlive)
+			{
+				connection.aliveCheckFailed++;
+			}
+
+			if (connection.aliveCheckFailed >= 10)
+			{
+				cirrusServers.delete(connection);
+				console.log(`Deleted Server: ${host} due to failed alive checks: ${connection.aliveCheckFailed}`);
+			}
+		});
+
+		cirrusServer.lastAliveCheck = Date.now();
 	}
 }
 
 // No servers are available so send some simple JavaScript to the client to make
 // it retry after a short period of time.
-function sendRetryResponse(res) {
-	res.send(`
-	<html>
-<head>
-<title>Clemens Messestand</title>
-<style>
- body {background-image: url('https://clemens-online.com/docs/landing-page.png'); text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
- p {
-   font-family: Verdana, Geneva, sans-serif;
-   font-size: 15px;
-	letter-spacing: 1px;
-	word-spacing: 2px;
-	color: #FFFFFF;
-	font-weight: normal;
-	text-decoration: none;
-	font-style: normal;
-	text-transform: none;}
-a {
-   font-family: Verdana, Geneva, sans-serif;
-   font-size: 15px;
-	letter-spacing: 1px;
-	word-spacing: 2px;
-	color: #0AAFF1;
-	font-weight: bold;
-	text-decoration: underline;
-	font-style: normal;
-	text-transform: none;}
-</style>
-</head>
-?
-<body>
-<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
-<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Clemens experience. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>The maximum number of users entering the fair has been reached. Please try again later.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
-?
-</body>
-</html>
-
-	<script>
-		var countdown = document.getElementById("countdown").textContent;
-		setInterval(function() {
-			countdown--;
-			if (countdown == 0) {
-				window.location.reload(1);
-			} else {
-				document.getElementById("countdown").textContent = countdown;
-			}
-		}, 1000);
-	</script>`);
+function sendRetryResponse(res) 
+{
+	let totalConnectedClients = getConnectedClients();
+	res.render('index.ejs', {"totalInstances": totalInstances, "totalConnectedClients": totalConnectedClients, "availableInstances": cirrusServers.size - totalConnectedClients, "currentVMSSNodeCount": currentVMSSNodeCount});
+	return;
 }
 
 // Get a Cirrus server if there is one available which has no clients connected.
 function getAvailableCirrusServer() {
 	for (cirrusServer of cirrusServers.values()) {
-		console.log(`getAvailableCirrusServers testing ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients} ready: ${cirrusServer.ready}`);
+		console.log(`getAvailableCirrusServers testing ${cirrusServer.address} numCon: ${cirrusServer.numConnectedClients} ready: ${cirrusServer.ready} isAlive: ${cirrusServer.isAlive}`);
 		if (cirrusServer.numConnectedClients === 0 && cirrusServer.ready === true && cirrusServer.isAlive === true) {
 
 			// Check if we had at least 30 seconds since the last redirect
@@ -358,41 +337,38 @@ if(enableRedirectionLinks) {
 		cirrusServer = getAvailableCirrusServer();
 		if (cirrusServer != undefined) 
 		{
-			var ping = require('ping');
-			let host = `http://${cirrusServer.address}:${cirrusServer.port}`;
-			ping.sys.probe(host, function(isAlive)
-			{
-				var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
-				console.log(msg);
-
-				if (isAlive)
-				{
-					res.redirect(host);
-					console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
-				}
-				else
-				{
-					let server = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address);
-
-					if (server)
-					{
-						cirrusServers.delete(server[0])
-						console.log(`Deleted Server: ${cirrusServer.address}:${cirrusServer.port}`);
-					}
-				}
-			});
-		
-		} else {
+			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}`);
+			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+		} 
+		else
+		{
 			sendRetryResponse(res);
 		}
+
 	});
 
 	// Handle URL with custom HTML.
 	app.get('/custom_html/:htmlFilename', (req, res) => {
 		cirrusServer = getAvailableCirrusServer();
 		if (cirrusServer != undefined) {
-			res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
-			console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+			let connection = [...cirrusServers.entries()].find(([key, val]) => val.address === cirrusServer.address)[0];
+
+			message = {
+				type: 'ping'
+			};
+
+			console.log(`sending ping to ${cirrusServer.address}`);
+			connection.write(JSON.stringify(message), function(err)
+			{
+				if (err)
+					console.log(`Error: Connection is unavailable: ${err}`);
+				else
+				{
+					res.redirect(`http://${cirrusServer.address}:${cirrusServer.port}/custom_html/${req.params.htmlFilename}`);
+					console.log(`Redirect to ${cirrusServer.address}:${cirrusServer.port}`);
+				}
+			});
+			
 		} else {
 			sendRetryResponse(res);
 		}
@@ -404,7 +380,7 @@ app.get('/ping', (req, res) => {
 
 	res.send('ping');
 });
-
+app.set('view engine', 'ejs');
 //
 // Connection to Cirrus.
 //
@@ -603,8 +579,10 @@ const matchmaker = net.createServer((connection) => {
 				address: message.address,
 				port: message.port,
 				numConnectedClients: 0,
-				isAlive: true
+				isAlive: true,
+				aliveCheckFailed: 0
 			};
+			cirrusServer.lastAliveCheck = Date.now();
 			cirrusServer.ready = message.ready === true;
 			// BENH: Check if player is connected and doing a reconnect
 			if(message.playerConnected == true) {

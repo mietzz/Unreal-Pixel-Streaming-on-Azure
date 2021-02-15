@@ -1,0 +1,52 @@
+<html>
+    <head>
+    <title>Clemens Messestand</title>
+    <style>
+     body {background-image: url('https://clemens-online.com/docs/landing-page.png'); text-align: center; background-repeat: no-repeat; background-color:black; background-position: center;}
+     p {
+       font-family: Verdana, Geneva, sans-serif;
+       font-size: 15px;
+        letter-spacing: 1px;
+        word-spacing: 2px;
+        color: #FFFFFF;
+        font-weight: normal;
+        text-decoration: none;
+        font-style: normal;
+        text-transform: none;}
+    a {
+       font-family: Verdana, Geneva, sans-serif;
+       font-size: 15px;
+        letter-spacing: 1px;
+        word-spacing: 2px;
+        color: #0AAFF1;
+        font-weight: bold;
+        text-decoration: underline;
+        font-style: normal;
+        text-transform: none;}
+    </style>
+    </head>
+    ?
+    <body>
+    <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
+    <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>Welcome to the Clemens experience. </p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>The maximum number of users entering the fair has been reached. Please try again later.</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>This page will automatically reload in <span id="countdown">10</span>.</p><p></p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
+    <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
+    <p>Current VMSSNodes: <span id="availableVMSSNodeCount"><%= currentVMSSNodeCount %></span></p>
+    <p>Current Instances available: <span id="availableInstances"><%= availableInstances %>/<%= totalInstances %></span></p>
+    <p>Current Clients connected: <span id="availableClients"><%= totalConnectedClients %></span></p>
+    ?
+    </body>
+    </html>
+        <script>
+            var countdown = document.getElementById("countdown").textContent;
+    
+            setInterval(function() {
+                countdown--;
+                if (countdown == 0) {
+                    window.location.reload(1);
+                } else {
+                    document.getElementById("countdown").textContent = countdown;
+                }
+    
+            }, 1000);
+    
+        </script>
