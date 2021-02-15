@@ -21,13 +21,16 @@ Param (
 
 $zipfilepath = "https://rockadman01.blob.core.windows.net/container-pixelstreaming/WindowsNoEditor.zip"
 $zipfilename = "c:\WindowsNoEditor.zip"
+$directxfilepath = "https://rockadman01.blob.core.windows.net/container-pixelstreaming/directx_Jun2010_redist.exe"
+$directxfilename = "c:\directx_Jun2010_redist.exe"
+$directxDestination = "c:\directx9"
+$directxSetupfilename = "C:\directx9\DXSETUP.exe"
 $logsbasefolder = "C:\gaming"
 $logsfolder = "c:\gaming\logs"
 $folder = "c:\Unreal\"
 $scriptfile = $folder + 'scripts\OnClientDisconnected.ps1'
 $projectFolder =  $folder + 'iac\unreal\ClemensMessestand'
 $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
-$ue4RedistFilePath = "C:\Unreal\iac\unreal\Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe"
 #$blobDestination = $folder + 'iac\unreal\app'
 $blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
@@ -126,6 +129,7 @@ if ($endsInOn) {
 $logmessage = "Disabling Windows Firewalls complete"
 Add-Content -Path $logoutput -Value $logmessage
 
+
 $logmessage = "Cloning the github repo"
 Add-Content -Path $logoutput -Value $logmessage
 
@@ -156,6 +160,43 @@ finally {
   $error.clear()
 }
 
+$logmessage = "Downloading directx_Jun2010_redist from blob storage"
+Add-Content -Path $logoutput -Value $logmessage
+
+try {
+  Invoke-WebRequest $directxfilepath -OutFile $directxfilename
+
+  $logmessage = "Downloading directx_Jun2010_redist from blob storage complete"
+  Add-Content -Path $logoutput -Value $logmessage
+
+  
+  $logmessage = "Extracting directx to " + $directxDestination
+  Add-Content -Path $logoutput -Value $logmessage
+ 
+  if (-not (Test-Path -LiteralPath $directxDestination)) 
+  {
+    & $directxfilename /Q /T:$directxDestination
+    Start-Sleep -s 10
+  }
+
+   
+  $logmessage = "Installing DirectX"
+  Add-Content -Path $logoutput -Value $logmessage
+
+  Start-Process -FilePath $directxSetupfilename -Wait -ArgumentList "/silent" -PassThru
+
+  $logmessage = "Installing DirectX complete"
+  Add-Content -Path $logoutput -Value $logmessage
+  
+}
+catch {
+  $logmessage = $_.Exception.Message
+  Write-Output $logmessage
+  Add-Content -Path $logoutput -Value $logmessage
+}
+finally {
+  $error.clear()
+}
 
 try{
   $logmessage = "Downloading WindowsNoEditor binaries from blob storage"
@@ -203,14 +244,6 @@ catch{
 finally {
   $error.clear()
 }
-
-$logmessage = "Install UE4Prereq redistributable"
-Add-Content -Path $logoutput -Value $logmessage
-
-Start-Process -Wait -FilePath $ue4RedistFilePath -ArgumentList "/S /v /qn" -PassThru
-
-$logmessage = "Installing UE4Prereq redistributable complete"
-Add-Content -Path $logoutput -Value $logmessage
 
 try{
    Set-Location -Path $vmServiceFolder 
