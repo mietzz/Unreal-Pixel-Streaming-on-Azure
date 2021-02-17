@@ -78,7 +78,7 @@ try {
   choco upgrade git -y --no-progress
   choco upgrade nodejs -y --no-progress
   choco upgrade vcredist2017 -y --no-progress
-  choco upgrade directx -y --no-progress
+  choco upgrade azure-cli -y --no-progress
   $logmessage = "Installing prerequisites Complete"
   Add-Content -Path $logoutput -Value $logmessage
 }

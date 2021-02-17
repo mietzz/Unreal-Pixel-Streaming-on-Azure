@@ -25,7 +25,7 @@ var scaleUpNodeCount = 5;
 
 const defaultConfig = {
 	// The port clients connect to the matchmaking service over HTTP
-	httpPort: 90,
+	httpPort: 80,
 	httpsPort: 443,
 	UseHTTPS: false,
 	// The matchmaking port the signaling service connects to the matchmaker
@@ -78,13 +78,24 @@ logger.setLogLevel('info');
 const appInsights = require('applicationinsights');
 
 if (config.UseHTTPS) {
+	
 	//HTTPS certificate details
-	const options = {
-		pfx: fs.readFileSync(path.join(__dirname, './certificates/appservicecertificate.pfx')),
-		passphrase: config.passphrase
-	};
-
-	var https = require('https').Server(options, app);
+	;(async () =>
+	{
+		const passphrase = await getCertificateSecret("rockadman-key-vault", "rockadman-de-certificate-key");
+		console.log("DONE");
+		console.log(passphrase);
+		const options = {
+			// pfx: fs.readFileSync('c:/certificates/rockadman-de.pfx'),
+			passphrase: passphrase
+		};
+	
+		var https = require('https').Server(options, app);
+		https.listen(443, function () {
+			console.log('Https listening on 443');
+		});
+	})()
+	
 }
 
 if (config.UseHTTPS) {
@@ -167,14 +178,26 @@ http.listen(config.httpPort, () => {
     console.log('HTTP listening on *:' + config.httpPort);
 });
 
-if (config.UseHTTPS) {
-	https.listen(443, function () {
-		console.log('Https listening on 443');
-	});
-}
 
 function validateConfigs() {
 	// TODO: Do validations on config params to ensure valid data
+}
+
+async function getCertificateSecret(vaultName, secretName)
+{
+	const { DefaultAzureCredential } = require("@azure/identity");
+	const { SecretClient } = require("@azure/keyvault-secrets");
+	 
+	const credential = new DefaultAzureCredential();
+	 
+	const url = `https://${vaultName}.vault.azure.net`;
+	 
+	const client = new SecretClient(url, credential);
+	 
+	const latestSecret = await client.getSecret(secretName);
+	console.log(`Latest version of the secret ${secretName}: `, latestSecret);
+	console.log(latestSecret.value);
+	return latestSecret.value;
 }
 
 var lastVMSSCapacity = 0;

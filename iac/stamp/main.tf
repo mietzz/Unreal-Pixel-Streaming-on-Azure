@@ -133,8 +133,8 @@ module "matchmaker-elb" {
   domain_name_label = format("%s-%s-%s", var.location, lower(var.base_name), "mm")
 
   nat_pool_frontend_port_start = 80
-  nat_pool_frontend_port_end   = 90
-  nat_pool_backend_port        = 90
+  nat_pool_frontend_port_end   = 80
+  nat_pool_backend_port        = 80
 
   sku       = var.matchmaker_elb_sku
   subnet_id = module.unreal-vnet.subnet_id
@@ -173,20 +173,20 @@ output "ue4-elb-fqdn" {
   value = module.ue4-elb.fqdn
 }
 
-#add a lb probe/rule for mm - 90
-module "mm-90-rule" {
+#add a lb probe/rule for mm - 80
+module "mm-80-rule" {
   source                              = "../networking/addporttolb"
   base_name                           = var.base_name
   resource_group                      = module.unreal-rg.resource_group
   lb_name                             = "mm"
   loadbalancer_id                     = module.matchmaker-elb.lb_id
   backend_address_pool_id             = module.matchmaker-elb.lb_backend_address_pool_id
-  probe_port                          = "90"
+  probe_port                          = "80"
   probe_protocol                      = "TCP"
   rule_frontend_ip_configuration_name = "external"
   rule_protocol                       = "TCP"
-  rule_frontend_port                  = "90"
-  rule_backend_port                   = "90"
+  rule_frontend_port                  = "80"
+  rule_backend_port                   = "80"
   load_distribution                   = "SourceIPProtocol"
 }
 
@@ -377,18 +377,18 @@ module "matchmaker_nsg_association" {
   network_security_group_id = module.matchmaker_nsg.network_security_group_id
 }
 
-module "matchmaker_security_rule_90" {
+module "matchmaker_security_rule_80" {
   source                      = "../networking/security_rule"
   resource_group              = module.unreal-rg.resource_group
   network_security_group_name = module.matchmaker_nsg.network_security_group_name
 
-  security_rule_name                       = "Open90"
+  security_rule_name                       = "Open80"
   security_rule_priority                   = 1000
   security_rule_direction                  = "Inbound"
   security_rule_access                     = "Allow"
   security_rule_protocol                   = "Tcp"
   security_rule_source_port_range          = "*"
-  security_rule_destination_port_range     = "90"
+  security_rule_destination_port_range     = "80"
   security_rule_source_address_prefix      = "*"
   security_rule_destination_address_prefix = "*"
 }
