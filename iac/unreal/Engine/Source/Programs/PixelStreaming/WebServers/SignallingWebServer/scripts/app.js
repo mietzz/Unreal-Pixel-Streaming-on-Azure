@@ -1642,7 +1642,15 @@ function myHandleResponseFunction(data) {
 
 	if (json.DownloadPDF)
 	{
-		window.open(json.DownloadPDF.Url,"_blank")
+		var a = document.createElement('a');
+		a.setAttribute("href", json.DownloadPDF.Url);
+		a.dispatchEvent(new MouseEvent("click", {'view': window, 'bubbles': true, 'cancelable': true}));
+
+		var dispatch = document.createEvent("HTMLEvents");
+		dispatch.initEvent("click", true, true);
+		a.dispatchEvent(dispatch);
+		alert("event dispatched");
+		// window.open(json.DownloadPDF.Url, "Mywindow","location=yes,menubar=yes");
 	}
   //   switch (data) {
   //       case "ScreenShot":
