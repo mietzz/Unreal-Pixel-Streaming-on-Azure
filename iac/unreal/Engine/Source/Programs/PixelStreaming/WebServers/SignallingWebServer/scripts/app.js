@@ -1639,18 +1639,26 @@ function myHandleResponseFunction(data) {
 	console.warn("Response received! " + data );
 	
 	let json = JSON.parse(data);
-
 	if (json.DownloadPDF)
 	{
-		var a = document.createElement('a');
-		a.setAttribute("href", json.DownloadPDF.Url);
-		a.dispatchEvent(new MouseEvent("click", {'view': window, 'bubbles': true, 'cancelable': true}));
+		// var a = document.createElement('a');
+		// a.setAttribute("href", json.DownloadPDF.Url);
+		// a.setAttribute('download',  json.DownloadPDF.Url)
+		// a.dispatchEvent(new MouseEvent("click", {'view': window, 'bubbles': true, 'cancelable': true}));
 
-		var dispatch = document.createEvent("HTMLEvents");
-		dispatch.initEvent("click", true, true);
-		a.dispatchEvent(dispatch);
-		alert("event dispatched");
-		// window.open(json.DownloadPDF.Url, "Mywindow","location=yes,menubar=yes");
+		// var dispatch = document.createEvent("HTMLEvents");
+		// dispatch.initEvent("click", true, true);
+		// a.dispatchEvent(dispatch);
+		// alert("event dispatched");
+		
+
+		var newWin = window.open(json.DownloadPDF.Url,'Download');         
+
+		if(!newWin || newWin.closed || typeof newWin.closed=='undefined') 
+		{ 
+			//POPUP BLOCKED
+			alert("Pop-up Blocker is enabled! Please add this site to your exception list.");
+		}
 	}
   //   switch (data) {
   //       case "ScreenShot":
