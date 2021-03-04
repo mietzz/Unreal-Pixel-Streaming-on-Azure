@@ -33,7 +33,7 @@ var freezeFrame = {
 // Optionally detect if the user is not interacting (AFK) and disconnect them.
 var afk = {
 	enabled: true,   // Set to true to enable the AFK system.
-	warnTimeout: 30,   // The time to elapse before warning the user they are inactive.
+	warnTimeout: 25,   // The time to elapse before warning the user they are inactive.
 	closeTimeout: 10,   // The time after the warning when we disconnect the user.
 
 	active: false,   // Whether the AFK system is currently looking for inactivity.
@@ -62,6 +62,20 @@ function setupHtmlEvents() {
 	window.addEventListener('resize', resizePlayerStyle, true);
 	window.addEventListener('orientationchange', onOrientationChange);
 
+	//ios workaround. iOS dowsnt count internal timers when inactive.
+	document.addEventListener('visibilitychange', function() {
+		if(document.hidden) {
+			// tab is now inactive
+			// temporarily clear timer using clearInterval() / clearTimeout()
+			// window.open("https://www.clemens-online.com/","_self")
+			window.location.assign("https://www.clemens-online.com/");
+			ws.close();
+		}
+		else {
+			// tab is active again
+			// restart timers
+		}
+	});
 	//HTML elements controls
 	let overlayButton = document.getElementById('overlayButton');
 	overlayButton.addEventListener('click', onExpandOverlay_Click); 
@@ -289,7 +303,14 @@ function showAfkOverlay() {
 	updateAfkOverlayText();
 
 	if (inputOptions.controlScheme == ControlSchemeType.LockedMouse) {
-		document.exitPointerLock();
+		// workaround for iOS
+		try{
+			 document.exitPointerLock();
+		}
+		catch(error)
+		{
+			console.log(error);
+		}
 	}
 
 	afk.countdownTimer = setInterval(function () {
@@ -298,7 +319,10 @@ function showAfkOverlay() {
 			// The user failed to click so disconnect them.
 			hideOverlay();
 			// Redirect to the Anywhere landing page
-			window.open("https://www.clemens-online.com/","_self")
+		
+			//workaround for iOS
+			// window.open("https://www.clemens-online.com/","_self")
+			window.location.assign("https://www.clemens-online.com/");
 			ws.close();
 		} else {
 			// Update the countdown message.
