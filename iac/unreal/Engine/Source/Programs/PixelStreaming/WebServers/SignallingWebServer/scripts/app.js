@@ -3,7 +3,7 @@
 var webRtcPlayerObj = null;
 var print_stats = false;
 var print_inputs = false;
-var connect_on_load = false;
+var connect_on_load = true;
 
 var is_reconnection = false;
 var ws;
@@ -1573,6 +1573,8 @@ function start() {
 		shouldShowPlayOverlay = true;
 		resizePlayerStyle();
 	} else {
+		startAfkWarningTimer();
+		resizePlayerStyle();
 		connect();
 	}
 
