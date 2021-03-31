@@ -35,6 +35,17 @@
           offerToReceiveVideo: 1
         };
 
+        // Temporary hotfix for Chrome >=89 and other device/browser configurations
+        const tempChromeInfo = navigator.userAgent.match( /Chrom(e|ium)\/([0-9]+)\./ );
+        if ( tempChromeInfo )
+        {
+                const tempVersion = parseInt( tempChromeInfo[ 2 ], 10 );
+                if ( tempVersion >= 89 )
+                {
+                        this.cfg.offerExtmapAllowMixed = false;
+                }
+        }
+
         // See https://www.w3.org/TR/webrtc/#dom-rtcdatachannelinit for values
         this.dataChannelOptions = {ordered: true};
 
