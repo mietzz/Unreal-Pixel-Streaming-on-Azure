@@ -25,6 +25,22 @@ const defaultConfig = {
 	EnableWebserver: true
 };
 
+// Optionally detect if the user is not interacting (AFK) and disconnect them.
+var afk = {
+	closeTimeout: 10,   // The time after the warning when we disconnect the user.
+
+	countdown: 0,   // The inactivity warning overlay has a countdown to show time until disconnect.
+	countdownTimer: undefined,   // The timer used to tick the seconds shown on the inactivity warning overlay.
+}
+
+// Implements ping/pong feature. This makes sure that server knows about client connectivity.
+var pingPong = 
+{
+	timeout: undefined,
+	pingInterval: undefined,
+	waitingForPong: false
+}
+
 const argv = require('yargs').argv;
 var configFile = (typeof argv.configFile != 'undefined') ? argv.configFile.toString() : '.\\config.json';
 console.log(`configFile ${configFile}`);
@@ -377,6 +393,10 @@ playerServer.on('connection', function (ws, req) {
 		return;
 	}
 
+	// Start ping/pong
+	console.log("connection open");
+	pingPong.pingInterval = setInterval(startPing, 10000);
+
 	let playerId = ++nextPlayerId;
 	console.log(`player ${playerId} (${req.connection.remoteAddress}) connected`);
 	players.set(playerId, { ws: ws, id: playerId });
@@ -420,33 +440,50 @@ playerServer.on('connection', function (ws, req) {
 					p.ws.close(4000, 'kicked');
 				}
 			}
+		} else if (msg.type == 'playeractive') {
+			console.log(`<- player ${playerId}: active ${msg.active}`);
+			let active = msg.active;
+			if (!active)
+			{
+				startCountdownTimer();
+			}
+			else
+			{
+				stopCountdownTimer();
+			}
+		} else if (msg.type == 'pong') {
+			console.log(`pong received: ${msg.time}. Clear Timeout`);
+			clearInterval(pingPong.timeout);
+			pingPong.waitingForPong = false;
+			return;
 		} else {
 			console.error(`<- player ${playerId}: unsupported message type: ${msg.type}`);
 			ws.close(1008, 'Unsupported message type');
 			return;
 		}
 	});
+	
+	function startCountdownTimer()
+	{
+		afk.countdown = afk.closeTimeout;
+		afk.countdownTimer = setInterval(function () {
+			afk.countdown--;
+			console.log(afk.countdown);
+			if (afk.countdown == 0) {
+				// The user failed to click so disconnect them.
+				// we use terminate instead of close here, because if an application is inactive in iOS for instance
+				// we won't be able to gracefully close the connection
+				ws.terminate();
+				stopCountdownTimer();
+			} else {
+				// Update the countdown message.
+			}
+		}, 1000);
+	}
 
-	function restartUnrealApp() {
-		// Call the restart PowerShell script
-		try {
-			var spawn = require("child_process").spawn,child;
-			//child = spawn("powershell.exe",["D:\\Git\\Demo\\Unreal-Pixel-Streaming-on-Azure\\scripts\\OnClientDisconnected.ps1"]);
-			child = spawn("powershell.exe",["C:\\Unreal\\scripts\\OnClientDisconnected.ps1"]);		
-			child.stdout.on("data", function(data) {
-				console.log("Powershell: " + data);
-			});
-			child.stderr.on("data", function(data) {
-				console.log("Errors: " + data);
-			});
-			child.on("exit",function(){
-				console.log("Powershell Script finished");
-			});
-			child.stdin.end();
-		} catch(e) {
-			console.log(`ERROR: Failed to execute Powershell with message -- ${e.toString()}`);
-			appInsightsLogError(e);
-		}
+	function stopCountdownTimer()
+	{
+		clearInterval(afk.countdownTimer);
 	}
 
 	function onPlayerDisconnected() {
@@ -458,11 +495,37 @@ playerServer.on('connection', function (ws, req) {
 			sendPlayerDisconnectedToFrontend();
 			sendPlayerDisconnectedToMatchmaker();
 			sendPlayersCount();
+			stopCountdownTimer();
+			stopPing();
 			appInsightsLogMetric("SSPlayerDisconnected", 1);
 			console.log("CALLED onPlayerDisconnected");
 		} catch(err) {
-			console.logColor(loggin.Red, `ERROR:: onPlayerDisconnected error: ${err.message}`);
+			console.logColor(logging.Red, `ERROR:: onPlayerDisconnected error: ${err.message}`);
 		}
+	}
+
+	function startPing()
+	{
+		if (pingPong.waitingForPong)
+			return;
+
+		console.log("sending ping");
+		ws.send(JSON.stringify({ type: 'ping', time: Date.now()}));
+		pingPong.waitingForPong = true;
+		pingPong.timeout = setTimeout(function()
+		{
+			// connection closed
+			console.log("pong not received. Terminate connection");
+			pingPong.waitingForPong = false;
+			ws.terminate();
+		}, 5000);
+	}
+
+	function stopPing()
+	{
+		console.log("stop ping")
+		clearInterval(pingPong.pingInterval);
+		clearTimeout(pingPong.timeout);
 	}
 
 	ws.on('close', function(code, reason) {
@@ -796,6 +859,29 @@ function sendPlayerDisconnectedToMatchmaker() {
 	}
 }
 
+function restartUnrealApp() {
+	// Call the restart PowerShell script
+	try {
+		var spawn = require("child_process").spawn,child;
+		//child = spawn("powershell.exe",["D:\\Git\\Demo\\Unreal-Pixel-Streaming-on-Azure\\scripts\\OnClientDisconnected.ps1"]);
+		child = spawn("powershell.exe",["C:\\Unreal\\scripts\\OnClientDisconnected.ps1"]);		
+		child.stdout.on("data", function(data) {
+			console.log("Powershell: " + data);
+		});
+		child.stderr.on("data", function(data) {
+			console.log("Errors: " + data);
+		});
+		child.on("exit",function(){
+			console.log("Powershell Script finished");
+		});
+		child.stdin.end();
+	} catch(e) {
+		console.log(`ERROR: Failed to execute Powershell with message -- ${e.toString()}`);
+		appInsightsLogError(e);
+	}
+}
+
+setTimeout(restartUnrealApp, 500);
 
 process.on('SIGTERM', function() {
 	disconnectAllPlayers();

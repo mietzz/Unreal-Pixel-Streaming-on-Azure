@@ -20,6 +20,8 @@ var responseEventListeners = new Map();
 
 var freezeFrameOverlay = null;
 var shouldShowPlayOverlay = true;
+
+var pingPongTimeout = undefined;
 // A freeze frame is a still JPEG image shown instead of the video.
 var freezeFrame = {
 	receiving: false,
@@ -33,8 +35,9 @@ var freezeFrame = {
 // Optionally detect if the user is not interacting (AFK) and disconnect them.
 var afk = {
 	enabled: true,   // Set to true to enable the AFK system.
-	warnTimeout: 25,   // The time to elapse before warning the user they are inactive.
+	warnTimeout: 5,   // The time to elapse before warning the user they are inactive.
 	closeTimeout: 10,   // The time after the warning when we disconnect the user.
+	startedAt: 0,		// the time timer was started at
 
 	active: false,   // Whether the AFK system is currently looking for inactivity.
 	overlay: undefined,   // The UI overlay warning the user that they are inactive.
@@ -62,20 +65,24 @@ function setupHtmlEvents() {
 	window.addEventListener('resize', resizePlayerStyle, true);
 	window.addEventListener('orientationchange', onOrientationChange);
 
-	//ios workaround. iOS dowsnt count internal timers when inactive.
-	document.addEventListener('visibilitychange', function() {
-		if(document.hidden) {
-			// tab is now inactive
-			// temporarily clear timer using clearInterval() / clearTimeout()
-			// window.open("https://www.clemens-online.com/","_self")
-			window.location.assign("https://www.clemens-online.com/");
-			ws.close();
-		}
-		else {
-			// tab is active again
-			// restart timers
-		}
+	onVisibilityChange(function(visible) {
+		console.log('the page is now', visible ? 'focused' : 'unfocused');
+		// ws.send(JSON.stringify({ type: 'playeractive', 'active': visible}));
 	});
+	// //ios workaround. iOS dowsnt count internal timers when inactive.
+	// document.addEventListener('visibilitychange', function() {
+	// 	if(document.hidden) {
+	// 		// tab is now inactive
+	// 		// temporarily clear timer using clearInterval() / clearTimeout()
+	// 		// window.open("https://www.clemens-online.com/","_self")
+	// 		window.location.assign("https://www.clemens-online.com/");
+	// 		ws.close();
+	// 	}
+	// 	else {
+	// 		// tab is active again
+	// 		// restart timers
+	// 	}
+	// });
 	//HTML elements controls
 	let overlayButton = document.getElementById('overlayButton');
 	overlayButton.addEventListener('click', onExpandOverlay_Click); 
@@ -295,6 +302,7 @@ function showAfkOverlay() {
 	setOverlay('clickableState', afk.overlay, event => {
 		// The user clicked so start the timer again and carry on.
 		hideOverlay();
+
 		clearInterval(afk.countdownTimer);
 		startAfkWarningTimer();
 	});
@@ -315,6 +323,7 @@ function showAfkOverlay() {
 
 	afk.countdownTimer = setInterval(function () {
 		afk.countdown--;
+		console.log(afk.countdown);
 		if (afk.countdown == 0) {
 			// The user failed to click so disconnect them.
 			hideOverlay();
@@ -322,7 +331,7 @@ function showAfkOverlay() {
 		
 			//workaround for iOS
 			// window.open("https://www.clemens-online.com/","_self")
-			window.location.assign("https://www.clemens-online.com/");
+			redirectToLandingpage()
 			ws.close();
 		} else {
 			// Update the countdown message.
@@ -334,6 +343,57 @@ function showAfkOverlay() {
 function hideOverlay() {
 	setOverlay('hiddenState');
 }
+
+function redirectToLandingpage()
+{
+	window.location.assign("https://www.clemens-online.com/");
+}
+
+function onVisibilityChange(callback) {
+    var visible = true;
+
+    if (!callback) {
+        throw new Error('no callback given');
+    }
+
+    function focused() {
+        if (!visible) {
+            callback(visible = true);
+        }
+    }
+
+    function unfocused() {
+        if (visible) {
+            callback(visible = false);
+        }
+    }
+
+    // Standards:
+    if ('hidden' in document) {
+        document.addEventListener('visibilitychange',
+            function() {(document.hidden ? unfocused : focused)()});
+    }
+    if ('mozHidden' in document) {
+        document.addEventListener('mozvisibilitychange',
+            function() {(document.mozHidden ? unfocused : focused)()});
+    }
+    if ('webkitHidden' in document) {
+        document.addEventListener('webkitvisibilitychange',
+            function() {(document.webkitHidden ? unfocused : focused)()});
+    }
+    if ('msHidden' in document) {
+        document.addEventListener('msvisibilitychange',
+            function() {(document.msHidden ? unfocused : focused)()});
+    }
+    // IE 9 and lower:
+    if ('onfocusin' in document) {
+        document.onfocusin = focused;
+        document.onfocusout = unfocused;
+    }
+    // All others:
+    window.onpageshow = window.onfocus = focused;
+    window.onpagehide = window.onblur = unfocused;
+};
 
 // Start a timer which when elapsed will warn the user they are inactive.
 function startAfkWarningTimer() {
@@ -350,9 +410,21 @@ function stopAfkWarningTimer() {
 function resetAfkWarningTimer() {
 	if (afk.active) {
 		clearTimeout(afk.warnTimer);
+		// afk.startedAt = Date.now();
 		afk.warnTimer = setTimeout(function () {
 			showAfkOverlay();
 		}, afk.warnTimeout * 1000);
+
+		// afk.warnTimer = setInterval(function ()
+		// {
+		// 	let elapsedTime = Date.now() - afk.startedAt;
+
+		// 	if (elapsedTime >= afk.warnTimeout * 1000)
+		// 	{
+		// 		showAfkOverlay();
+		// 		clearInterval(afk.warnTimer);
+		// 	}
+		// }, 1000)
 	}
 }
 
@@ -778,9 +850,6 @@ function resizePlayerStyle(event) {
 	if (!playerElement)
 		return;
 
-	// set resolution to WQHD - best compromise quality/performance
-	setRes(2560, 1440);
-
 	updateVideoStreamSize();
 
 	if (playerElement.classList.contains('fixed-size'))
@@ -804,15 +873,6 @@ function resizePlayerStyle(event) {
 	setupNormalizeAndQuantize();
 	resizeFreezeFrameOverlay();
 }
-
-function setRes(width, height) 
-{
-    let descriptor = {
-        Console: 'setres ' + width + 'x' + height
-    };
-    emitUIInteraction(descriptor);
-}
-
 
 function updateVideoStreamSize() {
 	if (!matchViewportResolution) {
@@ -1612,7 +1672,10 @@ function connect() {
 		} else if (msg.type === 'iceCandidate') {
 			onWebRtcIce(msg.candidate);
 			emitUIInteraction("PlayerConnected");
-		} else {
+		} else if (msg.type === 'ping') {
+			ws.send(JSON.stringify({ type: 'pong', time: msg.time}));
+		} 
+		else {
 			console.log(`invalid SS message type: ${msg.type}`);
 		}
 	};
@@ -1635,7 +1698,7 @@ function connect() {
 		}
 
 		showTextOverlay(`Disconnected: ${event.reason}`);
-		var reclickToStart = setTimeout(start, 4000);
+		var reclickToStart = setTimeout(redirectToLandingpage, 4000);
 	};
 }
 
