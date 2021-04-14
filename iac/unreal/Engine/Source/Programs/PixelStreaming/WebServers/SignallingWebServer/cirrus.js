@@ -36,7 +36,7 @@ var afk = {
 // Implements ping/pong feature. This makes sure that server knows about client connectivity.
 var pingPong = 
 {
-	timeout: undefined,
+	pongTimeout: undefined,
 	pingInterval: undefined,
 	waitingForPong: false
 }
@@ -453,7 +453,7 @@ playerServer.on('connection', function (ws, req) {
 			}
 		} else if (msg.type == 'pong') {
 			console.log(`pong received: ${msg.time}. Clear Timeout`);
-			clearInterval(pingPong.timeout);
+			clearTimeout(pingPong.pongTimeout);
 			pingPong.waitingForPong = false;
 			return;
 		} else {
@@ -512,7 +512,7 @@ playerServer.on('connection', function (ws, req) {
 		console.log("sending ping");
 		ws.send(JSON.stringify({ type: 'ping', time: Date.now()}));
 		pingPong.waitingForPong = true;
-		pingPong.timeout = setTimeout(function()
+		pingPong.pongTimeout = setTimeout(function()
 		{
 			// connection closed
 			console.log("pong not received. Terminate connection");
@@ -525,7 +525,7 @@ playerServer.on('connection', function (ws, req) {
 	{
 		console.log("stop ping")
 		clearInterval(pingPong.pingInterval);
-		clearTimeout(pingPong.timeout);
+		clearTimeout(pingPong.pongTimeout);
 	}
 
 	ws.on('close', function(code, reason) {
@@ -561,7 +561,6 @@ function disconnectAllPlayers(code, reason) {
 
 if (config.UseMatchmaker) {
 	var matchmaker = new net.Socket();
-	matchmaker.setKeepAlive(true, 5000);
 	matchmaker.on('connect', function() {
 		console.log(`Cirrus connected to Matchmaker ${matchmakerAddress}:${matchmakerPort}`);
 
@@ -610,6 +609,27 @@ if (config.UseMatchmaker) {
 		appInsightsLogMetric("SSMatchmakerConnectionTimeout", 1);
 	});
 
+	matchmaker.on('data', (data) =>
+	{
+		try {
+			message = JSON.parse(data);
+			if(message)
+				console.log(`Message TYPE: ${message.type}`);
+		} catch(e) {
+			console.log(`ERROR (${e.toString()}): Failed to parse Matchmaker information from data: ${data.toString()}`);
+			sendStreamerDisconnectedToMatchmaker();
+			appInsightsLogError(e);
+			return;
+		}
+
+		if (message.type === 'ping')
+		{
+			console.log(`Received ping from ${matchmakerAddress}.`);
+			console.log(`Sending pong: ${message.time}.`);
+			matchmaker.write(JSON.stringify({ type: "pong", time: message.time}));
+		}
+	})
+
 	// Attempt to connect to the Matchmaker
 	function connect() {
 		matchmaker.connect(matchmakerPort, matchmakerAddress);
@@ -624,7 +644,7 @@ if (config.UseMatchmaker) {
 			connect();
 		}, matchmakerRetryInterval * 1000);
 	}
-
+	matchmaker.setTimeout(10000);
 	connect();
 }
 

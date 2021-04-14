@@ -69,6 +69,8 @@ const app = express();
 const http = require('http').Server(app);
 const fs = require('fs');
 const path = require('path');
+const logging = require('./modules/logging.js');
+logging.RegisterConsoleLogger();
 
 // Azure SDK Clients
 const { ComputeManagementClient, VirtualMachineScaleSets } = require('@azure/arm-compute');
@@ -251,9 +253,8 @@ getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.vir
 
 // Set a timed refresh interval for getting the latest update from the state and capacity of the VMSS
 setInterval(function () {
-
+	pingAllConnections();
 	getVMSSNodeCountAndState(config.subscriptionId, config.resourceGroup, config.virtualMachineScaleSet);
-	checkConnections();
 	evaluateAutoScalePolicy();
 }, vmssUpdateStateInterval);
 
@@ -271,43 +272,6 @@ function getConnectedClients() {
 
 	console.log(`Total Connected Clients Found: ${connectedClients}`);
 	return connectedClients;
-}
-
-function checkConnections()
-{
-	console.log("checking connections");
-	for (connection in cirrusServers)
-	{
-		// Check if we had at least 60 seconds since the last available check
-		if( cirrusServer.lastAliveCheck ) 
-		{
-			if( ((Date.now() - cirrusServer.lastAliveCheck) / 1000) < 60 )
-				continue;
-		}
-
-		var ping = require('ping');
-		var host = cirrusServer.address;
-		ping.sys.probe(host, function(isAlive)
-		{
-			var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
-			console.log(msg);
-
-			connection.isAlive = isAlive;
-
-			if (!isAlive)
-			{
-				connection.aliveCheckFailed++;
-			}
-
-			if (connection.aliveCheckFailed >= 10)
-			{
-				cirrusServers.delete(connection);
-				console.log(`Deleted Server: ${host} due to failed alive checks: ${connection.aliveCheckFailed}`);
-			}
-		});
-
-		cirrusServer.lastAliveCheck = Date.now();
-	}
 }
 
 // No servers are available so send some simple JavaScript to the client to make
@@ -603,9 +567,8 @@ const matchmaker = net.createServer((connection) => {
 				port: message.port,
 				numConnectedClients: 0,
 				isAlive: true,
-				aliveCheckFailed: 0
 			};
-			cirrusServer.lastAliveCheck = Date.now();
+
 			cirrusServer.ready = message.ready === true;
 			// BENH: Check if player is connected and doing a reconnect
 			if(message.playerConnected == true) {
@@ -688,6 +651,10 @@ const matchmaker = net.createServer((connection) => {
 				appInsightsLogEvent("CirrusServerUndefined", `No cirrus server found on client disconnect: ${connection.remoteAddress}`);
 				disconnect(connection);
 			}
+		} else if (message.type === 'pong') {
+			console.logColor(logging.Green, `Received pong from cirrusServer: ${cirrusServer.address}`)
+			cirrusServer = cirrusServers.get(connection);
+			cirrusServer.isAlive = true;
 		} else {
 			console.log('ERROR: Unknown data: ' + JSON.stringify(message));
 			disconnect(connection);
@@ -722,6 +689,26 @@ function closeAllConnections()
 {
 	for (connection of cirrusServers.keys()) {
 		connection.close();
+	}
+}
+
+function pingAllConnections()
+{
+	for (let connection of cirrusServers.keys())
+	{
+		let cirrusServer = cirrusServers.get(connection);
+
+		if (!cirrusServer.isAlive)
+		{
+			console.logColor(logging.Red, `CirrusServer ${cirrusServer.address} went down. Deleting it from map.`)
+			console.log(connection);
+			connection.destroy();
+			return;
+		}
+
+		cirrusServer.isAlive = false;
+		console.log(`Send ping to cirrusServer: ${cirrusServer.address}`)
+		connection.write(JSON.stringify({ type: 'ping', time: Date.now()}));
 	}
 }
 
