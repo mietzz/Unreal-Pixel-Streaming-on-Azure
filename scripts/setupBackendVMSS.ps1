@@ -35,12 +35,12 @@ $projectExecFolder =  $folder + 'iac\unreal\WindowsNoEditor\*'
 $blobDestination = $folder + 'iac\unreal'
 $vmServiceFolder = "C:\Unreal\iac\unreal\Engine\Source\Programs\PixelStreaming\WebServers\SignallingWebServer"
 $executionfilepath = "C:\Unreal\scripts\startVMSS.ps1"
-$gitpath = "https://github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
+$gitpath = "https://github.com/mietzz/Pixelstreaming-on-Azure-Whitelabel"
 
 #handle if a Personal Access Token is being passed
 if ($pat.Length -gt 0) {
   #handle if a PAT was passed and use that in the url
-  $gitpath = "https://" + $pat + "@github.com/mietzz/Unreal-Pixel-Streaming-on-Azure.git"
+  $gitpath = "https://" + $pat + "@github.com/mietzz/Pixelstreaming-on-Azure-Whitelabel"
 }
 #####################################################################################################
 
