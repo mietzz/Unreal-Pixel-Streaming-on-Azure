@@ -43,6 +43,8 @@ output "name" {
 
 output "key" {
   value = azurerm_storage_account.storageaccount.primary_access_key
+   # sensitive must be true when referencing a sensitive input variable
+  sensitive = true
 }
 
 ## locals

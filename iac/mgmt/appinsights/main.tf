@@ -25,6 +25,7 @@ resource "azurerm_application_insights" "appI" {
 
 output "instrumentation_key" {
   value = azurerm_application_insights.appI.instrumentation_key
+  sensitive = true
 }
 
 output "app_id" {
